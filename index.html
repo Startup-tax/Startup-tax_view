@@ -56,7 +56,10 @@
                 <div class="form-group">
                     <label>生年月日</label>
                     <div class="date-select-group" data-prefix="user">
-                        <select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span>
+                        <select class="era"><option value="">元号</option></select>
+                        <select class="year"><option value="">年</option></select><span>年</span>
+                        <select class="month"><option value="">月</option></select><span>月</span>
+                        <select class="day"><option value="">日</option></select><span>日</span>
                     </div>
                     <input type="hidden" name="birth_date">
                 </div>
@@ -100,9 +103,9 @@
     
     <script src="https://yubinbango.github.io/yubinbango/yubinbango.js" charset="UTF-8"></script>
     <script src="./jquery.min.js"></script>
-    <script src="./jquery.autoKana.js"></script>
+    <script src="./jquery.autokana.js"></script>
     <script>
-        const GAS_WEB_APP_URL = 'ここにGASのウェブアプリURLを貼り付け';
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec'; //GASウェブアプリURL
         const form = document.getElementById('main-form');
         const formContents = document.getElementById('form-contents');
         const confirmContents = document.getElementById('confirm-contents');
@@ -124,9 +127,12 @@
             const yearSelect = group.querySelector('.year');
             const monthSelect = group.querySelector('.month');
             const daySelect = group.querySelector('.day');
+            
             Object.keys(warekiData).forEach(era => {eraSelect.options[eraSelect.options.length] = new Option(era, era);});
+            
             for (let i = 1; i <= 12; i++) monthSelect.options[monthSelect.options.length] = new Option(i, i);
             for (let i = 1; i <= 31; i++) daySelect.options[daySelect.options.length] = new Option(i, i);
+            
             eraSelect.addEventListener('change', () => {
                 yearSelect.innerHTML = '<option value="">年</option>';
                 const era = eraSelect.value;
@@ -196,11 +202,11 @@
             }
         }
         
-        // 金額に3桁区切りのカンマを付ける関数
         function formatCurrency(event) {
             const input = event.target;
             let value = input.value.replace(/,/g, '');
             if (value === '' || isNaN(value)) {
+                input.value = '';
                 return;
             }
             input.value = Number(value).toLocaleString('ja-JP');
@@ -292,7 +298,6 @@
                     <div id="housing-loan-group" class="form-group hidden"><label>住宅ローン_申告書・証明書</label><input type="file" name="housing_loan_file" multiple></div>
                 </fieldset>
             `;
-            mainSectionsContainer.innerHTML = html;
         }
 
         function formatPostalCode(inputName) {
@@ -323,14 +328,12 @@
                 }
             });
 
-            // 送信前にカンマを削除
             form.querySelectorAll('.currency-input').forEach(input => {
                 input.value = input.value.replace(/,/g, '');
             });
 
             if (!form.checkValidity()) {
                 form.reportValidity();
-                 // カンマを再表示
                 form.querySelectorAll('.currency-input').forEach(input => {
                     if(input.value) input.value = Number(input.value).toLocaleString('ja-JP');
                 });
@@ -343,18 +346,62 @@
             const table = document.getElementById('confirm-table');
             const formData = new FormData(form);
 
-            const fieldLabels = { /* (fieldLabelsの定義は変更なし) */ };
+            const fieldLabels = {
+                'company_name': '会社名','email_address': 'メールアドレス','last_name': '姓','first_name': '名',
+                'last_name_furigana': '姓フリガナ','first_name_furigana': '名フリガナ','birth_date': '生年月日',
+                'postal_code': '郵便番号','address1': '住所1','address2': '住所2','year_end_adjustment': '年末調整実施可否',
+                'previous_job': '前職有無','previous_job_file': '前職源泉徴収票','resident_tax': '住民税徴収方法',
+                'spouse_existence': '配偶者有無','spouse_last_name': '配偶者 姓','spouse_first_name': '配偶者 名',
+                'spouse_last_name_furigana': '配偶者 姓フリガナ','spouse_first_name_furigana': '配偶者 名フリガナ',
+                'spouse_birth_date': '配偶者 生年月日', 'spouse_address1': '配偶者 住所1','spouse_address2': '配偶者 住所2',
+                'spouse_income_amount': '配偶者 収入金額','spouse_severance_pay_existence': '配偶者 退職手当有無',
+                'spouse_severance_pay_amount': '配偶者 退職手当等金額','spouse_disability': '配偶者 障害者区分',
+                'dependents_existence': '扶養親族有無','user_disability': '本人障害者区分','widow_status': '寡婦該当確認',
+                'single_parent_status': 'ひとり親該当確認','working_student_status': '勤労学生該当確認',
+                'student_card_file': '勤労学生_学生証','disaster_status': '災害者該当確認','foreigner_status': '外国人該当確認',
+                'life_insurance_deduction': '生命保険料控除有無','life_insurance_file': '生命保険料_控除証明書',
+                'earthquake_insurance_deduction': '地震保険料控除有無','earthquake_insurance_file': '地震保険料_控除証明書',
+                'social_insurance_deduction': '社会保険料控除有無','social_insurance_file': '社会保険料_控除証明書',
+                'small_business_deduction': '小規模企業共済掛金等控除有無','small_business_file': '小規模企業共済掛金等_控除証明書',
+                'housing_loan_deduction': '住宅ローン控除有無','housing_loan_file': '住宅ローン_申告書・証明書'
+            };
             
-            // (addRow関数の定義は変更なし)
+            const addRow = (label, value) => {
+                if (value === null || value === undefined || value === '') return;
+                const row = table.insertRow();
+                row.insertCell().outerHTML = `<th>${label}</th>`;
+                row.insertCell().textContent = value;
+            };
             
             for (const [name, label] of Object.entries(fieldLabels)) {
-                // (確認画面の表示ロジックは変更なし)
+                const input = form.querySelector(`[name="${name}"]`);
+                if (input && !input.disabled) {
+                    let value = formData.get(name);
+                    if (value instanceof File) {
+                        value = value.name || '';
+                    } else if (input.files && input.files.length > 1) {
+                         value = Array.from(input.files).map(f => f.name).join(', ');
+                    }
+                    if (input.classList.contains('currency-input') && value) {
+                        value = Number(value).toLocaleString('ja-JP');
+                    }
+                    addRow(label, value);
+                }
             }
-            
-            // カンマを再表示
-            form.querySelectorAll('.currency-input').forEach(input => {
-                if(input.value) input.value = Number(input.value).toLocaleString('ja-JP');
-            });
+
+            if (formData.get('dependents_existence') === 'あり') {
+                for (let i = 1; i <= MAX_DEPENDENTS; i++) {
+                    const lastName = formData.get(`dependent_${i}_last_name`);
+                    if (lastName) {
+                        addRow(`【扶養親族${i}】氏名`, `${lastName} ${formData.get(`dependent_${i}_first_name`)}`);
+                        addRow(`【扶養親族${i}】フリガナ`, `${formData.get(`dependent_${i}_last_name_furigana`)} ${formData.get(`dependent_${i}_first_name_furigana`)}`);
+                        addRow(`【扶養親族${i}】続柄`, formData.get(`dependent_${i}_relationship`));
+                        addRow(`【扶養親族${i}】生年月日`, formData.get(`dependent_${i}_birth_date`));
+                        let income = formData.get(`dependent_${i}_income_amount`);
+                        addRow(`【扶養親族${i}】収入金額`, income ? Number(income).toLocaleString('ja-JP') : '');
+                    }
+                }
+            }
 
             formContents.classList.add('hidden');
             confirmContents.classList.remove('hidden');
@@ -362,6 +409,9 @@
         }
 
         function goBack() {
+            form.querySelectorAll('.currency-input').forEach(input => {
+                if(input.value) input.value = Number(input.value.replace(/,/g, '')).toLocaleString('ja-JP');
+            });
             confirmContents.classList.add('hidden');
             formContents.classList.remove('hidden');
         }
@@ -370,7 +420,6 @@
             confirmContents.classList.add('hidden');
             loading.classList.remove('hidden');
             
-            // 送信直前に最終的にカンマを削除
             form.querySelectorAll('.currency-input').forEach(input => {
                 input.value = input.value.replace(/,/g, '');
             });
@@ -379,31 +428,64 @@
             
             const multiFileFields = ['previous_job_file', 'life_insurance_file', 'earthquake_insurance_file', 'social_insurance_file', 'small_business_file', 'housing_loan_file'];
             multiFileFields.forEach(fieldName => {
-                // ... (複数ファイル処理は変更なし) ...
+                const input = form.querySelector(`[name="${fieldName}"]`);
+                if (input && input.files.length > 0) {
+                    formData.delete(fieldName);
+                    for (let i = 0; i < input.files.length; i++) {
+                        formData.append(`${fieldName}-${i}`, input.files[i]);
+                    }
+                }
             });
             
             try {
-                // ... (fetch処理は変更なし) ...
+                const response = await fetch(GAS_WEB_APP_URL, { method: 'POST', body: formData });
+                const result = await response.json();
+                loading.classList.add('hidden');
+                if (result.result === 'success') {
+                    complete.innerHTML = `<h2>送信が完了しました</h2><p>ご回答ありがとうございました。</p><p><strong>回答ID: ${result.submissionId}</strong></p><p>このIDは回答内容の確認に必要ですので、大切に保管してください。</p>`;
+                    complete.classList.remove('hidden');
+                } else {
+                    alert(`送信に失敗しました: ${result.message}`);
+                    goBack();
+                }
             } catch (error) {
-                // ... (エラー処理は変更なし) ...
+                loading.classList.add('hidden');
+                alert(`送信中にエラーが発生しました: ${error}`);
+                goBack();
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            populateMainSections(); // HTMLを生成
-            document.querySelectorAll('.date-select-group').forEach(setupWarekiDateFields); // 和暦を設定
-            toggleMainSections(form.querySelector('input[name="year_end_adjustment"]:checked').value); // 初期表示を制御
+            // URLパラメータ処理を一番最初に実行
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const companyName = params.get('company');
+                if (companyName) {
+                    const companyInput = form.querySelector('[name="company_name"]');
+                    if (companyInput) {
+                        companyInput.value = companyName;
+                        companyInput.readOnly = true;
+                    }
+                }
+            } catch(e) { console.error("URLパラメータ処理エラー:", e); }
 
-            // autoKanaの初期化
+            // HTMLの動的部分を生成
+            populateMainSections();
+            
+            // 生成されたHTML要素に対してイベントリスナー等を設定
+            document.querySelectorAll('.date-select-group').forEach(setupWarekiDateFields);
+            toggleMainSections(form.querySelector('input[name="year_end_adjustment"]:checked').value);
+            
+            // autokanaの初期化
             $(function() {
                 const options = { katakana: true };
-                $.fn.autoKana('#name_last', '#kana_last', options);
-                $.fn.autoKana('#name_first', '#kana_first', options);
-                $.fn.autoKana('#spouse_name_last', '#spouse_kana_last', options);
-                $.fn.autoKana('#spouse_name_first', '#spouse_kana_first', options);
+                $.fn.autokana('#name_last', '#kana_last', options);
+                $.fn.autokana('#name_first', '#kana_first', options);
+                $.fn.autokana('#spouse_name_last', '#spouse_kana_last', options);
+                $.fn.autokana('#spouse_name_first', '#spouse_kana_first', options);
                 for (let i = 1; i <= MAX_DEPENDENTS; i++) {
-                    $.fn.autoKana(`#dependent_${i}_name_last`, `#dependent_${i}_kana_last`, options);
-                    $.fn.autoKana(`#dependent_${i}_name_first`, `#dependent_${i}_kana_first`, options);
+                    $.fn.autokana(`#dependent_${i}_name_last`, `#dependent_${i}_kana_last`, options);
+                    $.fn.autokana(`#dependent_${i}_name_first`, `#dependent_${i}_kana_first`, options);
                 }
             });
 
