@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>回答内容の確認</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f4f4f4; }
+        .container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        #result-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        #result-table th, #result-table td { border: 1px solid #ddd; padding: 12px; text-align: left; word-break: break-all; }
+        #result-table th { background-color: #ecf0f1; width: 35%; }
+        #message { margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>回答内容の確認</h1>
+        <div id="message"></div>
+        <table id="result-table"></table>
+    </div>
+    <script>
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec'; // GASウェブアプリURL
+
+        const fieldLabels = {
+            '回答ID': '回答ID', '回答表示URL': '回答表示URL', 'タイムスタンプ': '回答日時', '会社名': '会社名', 'メールアドレス': 'メールアドレス',
+            '姓': '姓', '名': '名', '姓フリガナ': '姓フリガナ', '名フリガナ': '名フリガナ',
+            '生年月日': '生年月日', '郵便番号': '郵便番号', '住所1': '住所1', '住所2': '住所2',
+            '年末調整実施可否': '年末調整実施可否', '前職有無': '前職有無', '前職源泉徴収票URL': '前職源泉徴収票',
+            '住民税徴収方法': '住民税徴収方法', '配偶者有無': '配偶者有無', '配偶者姓': '配偶者 姓', '配偶者名': '配偶者 名',
+            // ... ここにGoogleフォームの全項目名と表示したい日本語名を記述 ...
+        };
+
+        async function fetchData(id) {
+            const table = document.getElementById('result-table');
+            const message = document.getElementById('message');
+            
+            table.innerHTML = '';
+            message.textContent = 'データを取得中...';
+
+            if (!id) {
+                message.textContent = '回答IDがURLに含まれていません。';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${GAS_WEB_APP_URL}?id=${id}`);
+                const result = await response.json();
+
+                if (result.result === 'success') {
+                    message.textContent = 'データを取得しました。';
+                    const data = result.data;
+                    
+                    for(const header in fieldLabels){
+                        if(data[header]){
+                            const row = table.insertRow();
+                            row.insertCell().outerHTML = `<th>${fieldLabels[header]}</th>`;
+                            const cell = row.insertCell();
+                            let value = data[header];
+                            if (typeof value === 'string' && value.startsWith('http')) {
+                                const urls = value.split('\n');
+                                urls.forEach((url, index) => {
+                                    if(!url) return;
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.textContent = `添付ファイル${index + 1}`;
+                                    a.target = '_blank';
+                                    cell.appendChild(a);
+                                    cell.appendChild(document.createElement('br'));
+                                });
+                            } else {
+                                cell.textContent = value;
+                            }
+                        }
+                    }
+                } else {
+                    message.textContent = `エラー: ${result.message}`;
+                }
+            } catch (error) {
+                message.textContent = 'データの取得に失敗しました。';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const submissionId = params.get('id');
+            fetchData(submissionId);
+        });
+    </script>
+</body>
+</html>
