@@ -476,16 +476,16 @@
             document.querySelectorAll('.date-select-group').forEach(setupWarekiDateFields);
             toggleMainSections(form.querySelector('input[name="year_end_adjustment"]:checked').value);
             
-            // autokanaの初期化
+            // autoKanaの初期化
             $(function() {
                 const options = { katakana: true };
-                $.fn.autokana('#name_last', '#kana_last', options);
-                $.fn.autokana('#name_first', '#kana_first', options);
-                $.fn.autokana('#spouse_name_last', '#spouse_kana_last', options);
-                $.fn.autokana('#spouse_name_first', '#spouse_kana_first', options);
+                $.fn.autoKana('#name_last', '#kana_last', options);
+                $.fn.autoKana('#name_first', '#kana_first', options);
+                $.fn.autoKana('#spouse_name_last', '#spouse_kana_last', options);
+                $.fn.autoKana('#spouse_name_first', '#spouse_kana_first', options);
                 for (let i = 1; i <= MAX_DEPENDENTS; i++) {
-                    $.fn.autokana(`#dependent_${i}_name_last`, `#dependent_${i}_kana_last`, options);
-                    $.fn.autokana(`#dependent_${i}_name_first`, `#dependent_${i}_kana_first`, options);
+                    $.fn.autoKana(`#dependent_${i}_name_last`, `#dependent_${i}_kana_last`, options);
+                    $.fn.autoKana(`#dependent_${i}_name_first`, `#dependent_${i}_kana_first`, options);
                 }
             });
 
