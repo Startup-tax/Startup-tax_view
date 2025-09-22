@@ -377,11 +377,15 @@
             const getDisplayValue = (name) => {
                 const input = form.querySelector(`[name="${name}"]`);
                 if (!input) return null;
+
                 if (input.type === 'file') {
                     return input.files.length > 0 ? Array.from(input.files).map(f => f.name).join(', ') : null;
                 }
+
                 let value = input.disabled ? input.value : formData.get(name);
+
                 if (value === null || value === undefined || value === '') return null;
+
                 if (input.classList.contains('currency-input')) {
                     return Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
                 }
@@ -495,7 +499,6 @@
                 input.value = input.value.replace(/,/g, '');
             });
 
-            // Base64変換用のヘルパー関数
             const fileToBase64 = (file) => new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
@@ -510,7 +513,7 @@
             const formData = new FormData(form);
             const dataObject = {};
             for (const [key, value] of formData.entries()) {
-                if (!form.querySelector(`[name="${key}"]`).disabled) {
+                if (!form.querySelector(`[name="${key}"]`)?.disabled) {
                     dataObject[key] = value;
                 }
             }
@@ -537,18 +540,20 @@
             try {
                 const response = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // CORSエラー回避のため
                     redirect: 'follow',
                     body: JSON.stringify({postData: dataObject})
                 });
-
-                // no-corsモードではレスポンスが読めないため、成功したと仮定して完了画面を表示
+                
+                const result = await response.json();
+                
                 loading.classList.add('hidden');
-                // 成功レスポンスの代わりに仮のIDを生成して表示
-                const pseudoId = new Date().getTime().toString(36);
-                complete.innerHTML = `<h2>送信リクエストを受け付けました</h2><p>ご協力ありがとうございました。</p><p>サーバー側で処理が実行されます。別途、自動返信メールをご確認ください。</p><p><strong>受付ID: ${pseudoId}</strong></p>`;
-                complete.classList.remove('hidden');
-
+                if (result.result === 'success') {
+                    complete.innerHTML = `<h2>送信が完了しました</h2><p>ご回答ありがとうございました。</p><p><strong>回答ID: ${result.submissionId}</strong></p><p>このIDは回答内容の確認に必要ですので、大切に保管してください。</p>`;
+                    complete.classList.remove('hidden');
+                } else {
+                    alert(`送信に失敗しました: ${result.message}`);
+                    goBack();
+                }
             } catch (error) {
                 loading.classList.add('hidden');
                 alert(`送信中にエラーが発生しました: ${error}`);
