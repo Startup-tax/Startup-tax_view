@@ -9,7 +9,7 @@
         h1 { color: #2c3e50; text-align: center; }
         .form-container, .confirm-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         fieldset { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
-        legend { font-weight: bold; color: #3498db; padding: 0 10px; font-size: 1.2em; }
+        legend { font-weight: bold; color: #3498db; padding: 0 10px; font-size: 1.2em; display: flex; justify-content: space-between; align-items: center; }
         .form-group { margin-bottom: 20px; }
         .form-row { display: flex; gap: 20px; }
         .form-row > div { flex: 1; }
@@ -24,6 +24,8 @@
         button { background-color: #3498db; color: white; padding: 12px 25px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background-color: #2980b9; }
         #confirm-back-btn { background-color: #95a5a6; }
+        .btn-remove { background-color: #e74c3c; font-size: 12px; padding: 4px 10px; }
+        .btn-remove:hover { background-color: #c0392b; }
         #loading, #complete { text-align: center; padding: 40px; }
         #confirm-table { width: 100%; border-collapse: collapse; }
         #confirm-table th, #confirm-table td { border: 1px solid #ddd; padding: 12px; text-align: left; word-break: break-all; }
@@ -113,7 +115,6 @@
         const complete = document.getElementById('complete');
         const mainSectionsContainer = document.getElementById('main-sections');
         
-        let visibleDependentsCount = 1;
         const MAX_DEPENDENTS = 6;
 
         const warekiData = {
@@ -167,13 +168,11 @@
                 }
             });
             if (sectionId === 'dependents-section' && !show) {
-                visibleDependentsCount = 1;
                 for (let i = 2; i <= MAX_DEPENDENTS; i++) {
-                    const dependentGroup = document.getElementById(`dependent-group-${i}`);
-                    if (dependentGroup) dependentGroup.classList.add('hidden');
+                    removeDependentField(i); // 削除関数を呼んでリセット
                 }
                 const addButton = document.getElementById('add-dependent-btn');
-                if (addButton) addButton.style.display = 'inline-block';
+                if (addButton) addButton.classList.remove('hidden');
             }
         }
 
@@ -187,16 +186,32 @@
                 document.getElementById('submit-button-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }
-
+        
         function addDependentField() {
-            if (visibleDependentsCount < MAX_DEPENDENTS) {
-                visibleDependentsCount++;
-                const nextDependentGroup = document.getElementById(`dependent-group-${visibleDependentsCount}`);
-                if (nextDependentGroup) nextDependentGroup.classList.remove('hidden');
-                if (visibleDependentsCount >= MAX_DEPENDENTS) {
-                    document.getElementById('add-dependent-btn').style.display = 'none';
-                }
+            const nextDependentGroup = document.querySelector('#dependents-section .hidden[id^="dependent-group-"]');
+            if (nextDependentGroup) {
+                nextDependentGroup.classList.remove('hidden');
             }
+            
+            const anyHidden = document.querySelector('#dependents-section .hidden[id^="dependent-group-"]');
+            if (!anyHidden) {
+                document.getElementById('add-dependent-btn').classList.add('hidden');
+            }
+        }
+
+        function removeDependentField(dependentNumber) {
+            const groupToRemove = document.getElementById(`dependent-group-${dependentNumber}`);
+            if (!groupToRemove) return;
+
+            groupToRemove.querySelectorAll('input[type="text"], input[type="hidden"], input[type="file"], select').forEach(el => el.value = '');
+            groupToRemove.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+            groupToRemove.querySelectorAll('input[type="radio"]').forEach(el => {
+                const isDefaultNo = el.value === 'なし' && (el.name.includes('severance_pay_existence') || el.name.includes('disability_certificate_existence'));
+                el.checked = isDefaultNo;
+            });
+            
+            groupToRemove.classList.add('hidden');
+            document.getElementById('add-dependent-btn').classList.remove('hidden');
         }
         
         function formatCurrency(event) {
@@ -249,7 +264,10 @@
                     <div id="dependents-section" class="hidden">
                         ${[...Array(MAX_DEPENDENTS)].map((_, i) => `
                             <fieldset id="dependent-group-${i + 1}" class="${i > 0 ? 'hidden' : ''}">
-                                <legend>扶養親族 ${i + 1}</legend>
+                                <legend>
+                                    <span>扶養親族 ${i + 1}</span>
+                                    ${i > 0 ? `<button type="button" class="btn-remove" onclick="removeDependentField(${i + 1})">この親族を削除</button>` : ''}
+                                </legend>
                                 <div class="form-row">
                                     <div><label>姓</label><input type="text" id="dependent_${i + 1}_name_last" name="dependent_${i + 1}_last_name"></div>
                                     <div><label>名</label><input type="text" id="dependent_${i + 1}_name_first" name="dependent_${i + 1}_first_name"></div>
@@ -339,8 +357,40 @@
                 });
                 return;
             }
-            
-            const orderedFieldList = [
+
+            let confirmHtml = `<h2>入力内容の確認</h2><p>以下の内容で送信します。よろしいですか？</p><table id="confirm-table"></table><div class="btn-container"><button id="confirm-back-btn" type="button" onclick="goBack()">修正する</button><button id="submit-btn" type="button" onclick="submitForm()">送信する</button></div>`;
+            confirmContents.innerHTML = confirmHtml;
+
+            const table = document.getElementById('confirm-table');
+            const formData = new FormData(form);
+
+            const addRow = (label, value) => {
+                const row = table.insertRow();
+                row.insertCell().outerHTML = `<th>${label}</th>`;
+                row.insertCell().textContent = (value === null || value === undefined) ? '' : value;
+            };
+
+            const processField = (name, label) => {
+                const input = form.querySelector(`[name="${name}"]`);
+                if (!input || input.disabled) return;
+
+                let value = formData.get(name);
+                if (value instanceof File) {
+                    value = value.name || '';
+                } else if (input.files && input.files.length > 0) {
+                    value = Array.from(input.files).map(f => f.name).join(', ');
+                }
+                
+                if (input.classList.contains('currency-input') && value) {
+                    value = Number(value).toLocaleString('ja-JP');
+                }
+                
+                if (value === null || value === undefined || value === '') return;
+
+                addRow(label, value);
+            };
+
+            const preDependentsFields = [
                 ['company_name', '会社名'], ['email_address', 'メールアドレス'], ['last_name', '姓'], ['first_name', '名'],
                 ['last_name_furigana', '姓フリガナ'], ['first_name_furigana', '名フリガナ'], ['birth_date', '生年月日'],
                 ['postal_code', '郵便番号'], ['address1', '住所1'], ['address2', '住所2'], ['year_end_adjustment', '年末調整実施可否'],
@@ -354,23 +404,7 @@
                 ['dependents_existence', '扶養親族有無'],
             ];
 
-            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
-                orderedFieldList.push([`dependent_${i}_last_name`, `【扶養親族${i}】姓`]);
-                orderedFieldList.push([`dependent_${i}_first_name`, `【扶養親族${i}】名`]);
-                orderedFieldList.push([`dependent_${i}_last_name_furigana`, `【扶養親族${i}】姓フリガナ`]);
-                orderedFieldList.push([`dependent_${i}_first_name_furigana`, `【扶養親族${i}】名フリガナ`]);
-                orderedFieldList.push([`dependent_${i}_relationship`, `【扶養親族${i}】続柄`]);
-                orderedFieldList.push([`dependent_${i}_birth_date`, `【扶養親族${i}】生年月日`]);
-                orderedFieldList.push([`dependent_${i}_address1`, `【扶養親族${i}】住所1`]);
-                orderedFieldList.push([`dependent_${i}_address2`, `【扶養親族${i}】住所2`]);
-                orderedFieldList.push([`dependent_${i}_income_amount`, `【扶養親族${i}】収入金額`]);
-                orderedFieldList.push([`dependent_${i}_severance_pay_existence`, `【扶養親族${i}】退職手当有無`]);
-                orderedFieldList.push([`dependent_${i}_severance_pay_amount`, `【扶養親族${i}】退職手当等金額`]);
-                orderedFieldList.push([`dependent_${i}_disability_certificate_existence`, `【扶養親族${i}】障害者手帳交付有無`]);
-                orderedFieldList.push([`dependent_${i}_disability_certificate_file`, `【扶養親族${i}】障害者手帳`]);
-            }
-
-            orderedFieldList.push(
+            const postDependentsFields = [
                 ['user_disability_certificate_existence', '本人 障害者手帳交付有無'], ['user_disability_certificate_file', '本人 障害者手帳'],
                 ['widow_status', '寡婦該当確認'], ['single_parent_status', 'ひとり親該当確認'],
                 ['working_student_status', '勤労学生該当確認'], ['student_card_file', '勤労学生_学生証'],
@@ -380,60 +414,56 @@
                 ['social_insurance_deduction', '社会保険料控除有無'], ['social_insurance_file', '社会保険料_控除証明書'],
                 ['small_business_deduction', '小規模企業共済掛金等控除有無'], ['small_business_file', '小規模企業共済掛金等_控除証明書'],
                 ['housing_loan_deduction', '住宅ローン控除有無'], ['housing_loan_file', '住宅ローン_申告書・証明書']
-            );
+            ];
 
-            let confirmHtml = `<h2>入力内容の確認</h2><p>以下の内容で送信します。よろしいですか？</p><table id="confirm-table"></table><div class="btn-container"><button id="confirm-back-btn" type="button" onclick="goBack()">修正する</button><button id="submit-btn" type="button" onclick="submitForm()">送信する</button></div>`;
-            confirmContents.innerHTML = confirmHtml;
-
-            const table = document.getElementById('confirm-table');
-            const formData = new FormData(form);
-
-            const addRow = (label, value) => {
-                if (value === null || value === undefined || value === '') return;
-                const row = table.insertRow();
-                row.insertCell().outerHTML = `<th>${label}</th>`;
-                row.insertCell().textContent = value;
-            };
-            
-            for (const [name, label] of orderedFieldList) {
-                const input = form.querySelector(`[name="${name}"]`);
-                if (!input || input.disabled) continue;
-
+            for (const [name, label] of preDependentsFields) {
                 if (name.startsWith('spouse_') && name !== 'spouse_existence') {
                     if (formData.get('spouse_existence') !== 'あり') continue;
                 }
-                if (name.startsWith('dependent_')) {
-                    if (formData.get('dependents_existence') !== 'あり') continue;
+                if (name === 'previous_job_file') {
+                    if (formData.get('previous_job') !== 'あり') continue;
                 }
-                if (name === 'user_disability_certificate_file') {
+                processField(name, label);
+            }
+
+            if (formData.get('dependents_existence') === 'あり') {
+                for (let i = 1; i <= MAX_DEPENDENTS; i++) {
+                    const dependentFields = [
+                        [`dependent_${i}_last_name`, `【扶養親族${i}】姓`], [`dependent_${i}_first_name`, `【扶養親族${i}】名`],
+                        [`dependent_${i}_last_name_furigana`, `【扶養親族${i}】姓フリガナ`], [`dependent_${i}_first_name_furigana`, `【扶養親族${i}】名フリガナ`],
+                        [`dependent_${i}_relationship`, `【扶養親族${i}】続柄`], [`dependent_${i}_birth_date`, `【扶養親族${i}】生年月日`],
+                        [`dependent_${i}_address1`, `【扶養親族${i}】住所1`], [`dependent_${i}_address2`, `【扶養親族${i}】住所2`],
+                        [`dependent_${i}_income_amount`, `【扶養親族${i}】収入金額`], [`dependent_${i}_severance_pay_existence`, `【扶養親族${i}】退職手当有無`],
+                        [`dependent_${i}_severance_pay_amount`, `【扶養親族${i}】退職手当等金額`],
+                        [`dependent_${i}_disability_certificate_existence`, `【扶養親族${i}】障害者手帳交付有無`], [`dependent_${i}_disability_certificate_file`, `【扶養親族${i}】障害者手帳`]
+                    ];
+                    
+                    const isDependentEntered = dependentFields.some(([name, _]) => {
+                        const val = formData.get(name);
+                        const input = form.querySelector(`[name="${name}"]`);
+                        if (input && input.files && input.files.length > 0) return true;
+                        return val !== null && val !== undefined && val !== '';
+                    });
+
+                    if (isDependentEntered) {
+                        dependentFields.forEach(([name, label]) => addRow(label, formData.get(name)));
+                    }
+                }
+            }
+            
+            for (const [name, label] of postDependentsFields) {
+                 if (name === 'user_disability_certificate_file') {
                     if (formData.get('user_disability_certificate_existence') !== 'あり') continue;
                 }
                 if (name === 'student_card_file') {
                     if (formData.get('working_student_status') !== '該当') continue;
-                }
-                if (name === 'previous_job_file') {
-                    if (formData.get('previous_job') !== 'あり') continue;
                 }
                 const fileInputs = ['life_insurance_file', 'earthquake_insurance_file', 'social_insurance_file', 'small_business_file', 'housing_loan_file'];
                 if (fileInputs.includes(name)) {
                     const correspondingRadio = name.replace('_file', '_deduction');
                     if (formData.get(correspondingRadio) !== 'あり') continue;
                 }
-
-                let value = formData.get(name);
-                if (value instanceof File) {
-                    value = value.name || '';
-                } else if (input.files && input.files.length > 0) {
-                    value = Array.from(input.files).map(f => f.name).join(', ');
-                }
-                
-                if (input.classList.contains('currency-input') && value) {
-                    value = Number(value).toLocaleString('ja-JP');
-                }
-
-                if (value === null || value === undefined || value === '') continue;
-
-                addRow(label, value);
+                processField(name, label);
             }
 
             formContents.classList.add('hidden');
@@ -462,7 +492,8 @@
             const multiFileFields = [
                 'previous_job_file', 'life_insurance_file', 'earthquake_insurance_file', 
                 'social_insurance_file', 'small_business_file', 'housing_loan_file',
-                'user_disability_certificate_file', 'spouse_disability_certificate_file'
+                'user_disability_certificate_file', 'spouse_disability_certificate_file',
+                'student_card_file'
             ];
             for (let i = 1; i <= MAX_DEPENDENTS; i++) {
                 multiFileFields.push(`dependent_${i}_disability_certificate_file`);
