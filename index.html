@@ -377,15 +377,11 @@
             const getDisplayValue = (name) => {
                 const input = form.querySelector(`[name="${name}"]`);
                 if (!input) return null;
-
                 if (input.type === 'file') {
                     return input.files.length > 0 ? Array.from(input.files).map(f => f.name).join(', ') : null;
                 }
-
                 let value = input.disabled ? input.value : formData.get(name);
-
                 if (value === null || value === undefined || value === '') return null;
-
                 if (input.classList.contains('currency-input')) {
                     return Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
                 }
@@ -400,7 +396,6 @@
 
             const processFields = (fieldList) => {
                 for (const [name, label] of fieldList) {
-                    // Conditional display logic
                     if (name.startsWith('spouse_') && name !== 'spouse_existence') {
                         if (formData.get('spouse_existence') !== 'あり') continue;
                     }
