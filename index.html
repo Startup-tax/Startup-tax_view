@@ -89,7 +89,7 @@
             </fieldset>
             
             <div id="main-sections">
-                </div>
+            </div>
 
             <div id="submit-button-container" class="btn-container">
                 <button type="button" onclick="showConfirm()">確認画面へ</button>
@@ -105,7 +105,7 @@
     <script src="./jquery.min.js"></script>
     <script src="./jquery.autokana.js"></script>
     <script>
-        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec'; //GASウェブアプリURL
+        const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
         const form = document.getElementById('main-form');
         const formContents = document.getElementById('form-contents');
         const confirmContents = document.getElementById('confirm-contents');
@@ -127,12 +127,9 @@
             const yearSelect = group.querySelector('.year');
             const monthSelect = group.querySelector('.month');
             const daySelect = group.querySelector('.day');
-            
             Object.keys(warekiData).forEach(era => {eraSelect.options[eraSelect.options.length] = new Option(era, era);});
-            
             for (let i = 1; i <= 12; i++) monthSelect.options[monthSelect.options.length] = new Option(i, i);
             for (let i = 1; i <= 31; i++) daySelect.options[daySelect.options.length] = new Option(i, i);
-            
             eraSelect.addEventListener('change', () => {
                 yearSelect.innerHTML = '<option value="">年</option>';
                 const era = eraSelect.value;
@@ -242,7 +239,8 @@
                         <div class="form-group"><label>収入金額</label><div class="yen-input-wrapper"><input type="text" name="spouse_income_amount" class="currency-input" inputmode="numeric"></div></div>
                         <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="spouse_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="spouse_severance_pay_existence" value="なし" checked>なし</label></div></div>
                         <div class="form-group"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="spouse_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
-                        <div class="form-group"><label>障害者区分</label><select name="spouse_disability"><option value="">--</option><option value="一般">一般</option><option value="特別">特別</option><option value="特別同居">特別同居</option></select></div>
+                        <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="spouse_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'spouse-disability-file-group')"> あり</label><label><input type="radio" name="spouse_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'spouse-disability-file-group')" checked> なし</label></div></div>
+                        <div id="spouse-disability-file-group" class="form-group hidden"><label>障害者手帳</label><input type="file" name="spouse_disability_certificate_file" multiple></div>
                     </div>
                 </fieldset>
                 <fieldset>
@@ -268,7 +266,8 @@
                                 <div class="form-group"><label>収入金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_income_amount" class="currency-input" inputmode="numeric"></div></div>
                                 <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="なし" checked>なし</label></div></div>
                                 <div class="form-group"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
-                                <div class="form-group"><label>障害者区分</label><select name="dependent_${i + 1}_disability"><option value="">--</option><option value="一般">一般</option><option value="特別">特別</option><option value="特別同居">特別同居</option></select></div>
+                                <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')"> あり</label><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')" checked> なし</label></div></div>
+                                <div id="dependent-${i + 1}-disability-file-group" class="form-group hidden"><label>障害者手帳</label><input type="file" name="dependent_${i + 1}_disability_certificate_file" multiple></div>
                             </fieldset>
                         `).join('')}
                         <div class="btn-container"><button type="button" id="add-dependent-btn" onclick="addDependentField()">＋ 扶養親族を追加</button></div>
@@ -276,7 +275,8 @@
                 </fieldset>
                 <fieldset>
                     <legend>本人該当項目</legend>
-                    <div class="form-group"><label>本人障害者区分</label><select name="user_disability"><option value="">--</option><option value="一般">一般</option><option value="特別">特別</option></select></div>
+                    <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="user_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'user-disability-file-group')"> あり</label><label><input type="radio" name="user_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'user-disability-file-group')" checked> なし</label></div></div>
+                    <div id="user-disability-file-group" class="form-group hidden"><label>障害者手帳</label><input type="file" name="user_disability_certificate_file" multiple></div>
                     <div class="form-group"><label>寡婦該当確認</label><div class="radio-group"><label><input type="radio" name="widow_status" value="該当">該当</label><label><input type="radio" name="widow_status" value="非該当" checked>非該当</label></div></div>
                     <div class="form-group"><label>ひとり親該当確認</label><div class="radio-group"><label><input type="radio" name="single_parent_status" value="該当">該当</label><label><input type="radio" name="single_parent_status" value="非該当" checked>非該当</label></div></div>
                     <div class="form-group"><label>勤労学生該当確認</label><div class="radio-group"><label><input type="radio" name="working_student_status" value="該当" onchange="toggleSection(this.value === '該当', 'student-card-group')">該当</label><label><input type="radio" name="working_student_status" value="非該当" onchange="toggleSection(this.value === '該当', 'student-card-group')" checked>非該当</label></div></div>
@@ -340,47 +340,50 @@
                 return;
             }
             
+            // 確認画面のfieldLabelsはview.htmlと同期させる
+            const fieldLabels = {
+                'company_name': '会社名', 'email_address': 'メールアドレス', 'last_name': '姓', 'first_name': '名',
+                'last_name_furigana': '姓フリガナ', 'first_name_furigana': '名フリガナ', 'birth_date': '生年月日',
+                'postal_code': '郵便番号', 'address1': '住所1', 'address2': '住所2', 'year_end_adjustment': '年末調整実施可否',
+                'previous_job': '前職有無', 'previous_job_file': '前職源泉徴収票', 'resident_tax': '住民税徴収方法',
+                'spouse_existence': '配偶者有無', 'spouse_last_name': '配偶者 姓', 'spouse_first_name': '配偶者 名',
+                'spouse_last_name_furigana': '配偶者 姓フリガナ', 'spouse_first_name_furigana': '配偶者 名フリガナ',
+                'spouse_birth_date': '配偶者 生年月日', 'spouse_address1': '配偶者 住所1', 'spouse_address2': '配偶者 住所2',
+                'spouse_income_amount': '配偶者 収入金額', 'spouse_severance_pay_existence': '配偶者 退職手当有無',
+                'spouse_severance_pay_amount': '配偶者 退職手当等金額', 'spouse_disability_certificate_existence': '配偶者 障害者手帳交付有無', 'spouse_disability_certificate_file': '配偶者 障害者手帳',
+                'dependents_existence': '扶養親族有無',
+                'user_disability_certificate_existence': '本人 障害者手帳交付有無', 'user_disability_certificate_file': '本人 障害者手帳',
+                'widow_status': '寡婦該当確認', 'single_parent_status': 'ひとり親該当確認',
+                'working_student_status': '勤労学生該当確認', 'student_card_file': '勤労学生_学生証',
+                'disaster_status': '災害者該当確認', 'foreigner_status': '外国人該当確認',
+                'life_insurance_deduction': '生命保険料控除有無', 'life_insurance_file': '生命保険料_控除証明書',
+                'earthquake_insurance_deduction': '地震保険料控除有無', 'earthquake_insurance_file': '地震保険料_控除証明書',
+                'social_insurance_deduction': '社会保険料控除有無', 'social_insurance_file': '社会保険料_控除証明書',
+                'small_business_deduction': '小規模企業共済掛金等控除有無', 'small_business_file': '小規模企業共済掛金等_控除証明書',
+                'housing_loan_deduction': '住宅ローン控除有無', 'housing_loan_file': '住宅ローン_申告書・証明書'
+            };
+
             let confirmHtml = `<h2>入力内容の確認</h2><p>以下の内容で送信します。よろしいですか？</p><table id="confirm-table"></table><div class="btn-container"><button id="confirm-back-btn" type="button" onclick="goBack()">修正する</button><button id="submit-btn" type="button" onclick="submitForm()">送信する</button></div>`;
             confirmContents.innerHTML = confirmHtml;
 
             const table = document.getElementById('confirm-table');
             const formData = new FormData(form);
 
-            const fieldLabels = {
-                'company_name': '会社名','email_address': 'メールアドレス','last_name': '姓','first_name': '名',
-                'last_name_furigana': '姓フリガナ','first_name_furigana': '名フリガナ','birth_date': '生年月日',
-                'postal_code': '郵便番号','address1': '住所1','address2': '住所2','year_end_adjustment': '年末調整実施可否',
-                'previous_job': '前職有無','previous_job_file': '前職源泉徴収票','resident_tax': '住民税徴収方法',
-                'spouse_existence': '配偶者有無','spouse_last_name': '配偶者 姓','spouse_first_name': '配偶者 名',
-                'spouse_last_name_furigana': '配偶者 姓フリガナ','spouse_first_name_furigana': '配偶者 名フリガナ',
-                'spouse_birth_date': '配偶者 生年月日', 'spouse_address1': '配偶者 住所1','spouse_address2': '配偶者 住所2',
-                'spouse_income_amount': '配偶者 収入金額','spouse_severance_pay_existence': '配偶者 退職手当有無',
-                'spouse_severance_pay_amount': '配偶者 退職手当等金額','spouse_disability': '配偶者 障害者区分',
-                'dependents_existence': '扶養親族有無','user_disability': '本人障害者区分','widow_status': '寡婦該当確認',
-                'single_parent_status': 'ひとり親該当確認','working_student_status': '勤労学生該当確認',
-                'student_card_file': '勤労学生_学生証','disaster_status': '災害者該当確認','foreigner_status': '外国人該当確認',
-                'life_insurance_deduction': '生命保険料控除有無','life_insurance_file': '生命保険料_控除証明書',
-                'earthquake_insurance_deduction': '地震保険料控除有無','earthquake_insurance_file': '地震保険料_控除証明書',
-                'social_insurance_deduction': '社会保険料控除有無','social_insurance_file': '社会保険料_控除証明書',
-                'small_business_deduction': '小規模企業共済掛金等控除有無','small_business_file': '小規模企業共済掛金等_控除証明書',
-                'housing_loan_deduction': '住宅ローン控除有無','housing_loan_file': '住宅ローン_申告書・証明書'
-            };
-            
             const addRow = (label, value) => {
                 if (value === null || value === undefined || value === '') return;
                 const row = table.insertRow();
                 row.insertCell().outerHTML = `<th>${label}</th>`;
                 row.insertCell().textContent = value;
             };
-            
+
             for (const [name, label] of Object.entries(fieldLabels)) {
                 const input = form.querySelector(`[name="${name}"]`);
                 if (input && !input.disabled) {
                     let value = formData.get(name);
                     if (value instanceof File) {
                         value = value.name || '';
-                    } else if (input.files && input.files.length > 1) {
-                         value = Array.from(input.files).map(f => f.name).join(', ');
+                    } else if (input.files && input.files.length > 0) {
+                        value = Array.from(input.files).map(f => f.name).join(', ');
                     }
                     if (input.classList.contains('currency-input') && value) {
                         value = Number(value).toLocaleString('ja-JP');
@@ -393,12 +396,24 @@
                 for (let i = 1; i <= MAX_DEPENDENTS; i++) {
                     const lastName = formData.get(`dependent_${i}_last_name`);
                     if (lastName) {
-                        addRow(`【扶養親族${i}】氏名`, `${lastName} ${formData.get(`dependent_${i}_first_name`)}`);
-                        addRow(`【扶養親族${i}】フリガナ`, `${formData.get(`dependent_${i}_last_name_furigana`)} ${formData.get(`dependent_${i}_first_name_furigana`)}`);
-                        addRow(`【扶養親族${i}】続柄`, formData.get(`dependent_${i}_relationship`));
-                        addRow(`【扶養親族${i}】生年月日`, formData.get(`dependent_${i}_birth_date`));
+                        const prefix = `【扶養親族${i}】`;
+                        addRow(`${prefix}氏名`, `${lastName} ${formData.get(`dependent_${i}_first_name`)}`);
+                        addRow(`${prefix}フリガナ`, `${formData.get(`dependent_${i}_last_name_furigana`)} ${formData.get(`dependent_${i}_first_name_furigana`)}`);
+                        addRow(`${prefix}続柄`, formData.get(`dependent_${i}_relationship`));
+                        addRow(`${prefix}生年月日`, formData.get(`dependent_${i}_birth_date`));
+                        addRow(`${prefix}住所1`, formData.get(`dependent_${i}_address1`));
+                        addRow(`${prefix}住所2`, formData.get(`dependent_${i}_address2`));
                         let income = formData.get(`dependent_${i}_income_amount`);
-                        addRow(`【扶養親族${i}】収入金額`, income ? Number(income).toLocaleString('ja-JP') : '');
+                        addRow(`${prefix}収入金額`, income ? Number(income).toLocaleString('ja-JP') : '');
+                        addRow(`${prefix}退職手当有無`, formData.get(`dependent_${i}_severance_pay_existence`));
+                        let severance = formData.get(`dependent_${i}_severance_pay_amount`);
+                        addRow(`${prefix}退職手当等金額`, severance ? Number(severance).toLocaleString('ja-JP') : '');
+                        addRow(`${prefix}障害者手帳交付有無`, formData.get(`dependent_${i}_disability_certificate_existence`));
+                        
+                        const fileInput = form.querySelector(`[name="dependent_${i}_disability_certificate_file"]`);
+                        if (fileInput && fileInput.files.length > 0) {
+                           addRow(`${prefix}障害者手帳`, Array.from(fileInput.files).map(f => f.name).join(', '));
+                        }
                     }
                 }
             }
@@ -426,7 +441,15 @@
 
             const formData = new FormData(form);
             
-            const multiFileFields = ['previous_job_file', 'life_insurance_file', 'earthquake_insurance_file', 'social_insurance_file', 'small_business_file', 'housing_loan_file'];
+            const multiFileFields = [
+                'previous_job_file', 'life_insurance_file', 'earthquake_insurance_file', 
+                'social_insurance_file', 'small_business_file', 'housing_loan_file',
+                'user_disability_certificate_file', 'spouse_disability_certificate_file'
+            ];
+            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
+                multiFileFields.push(`dependent_${i}_disability_certificate_file`);
+            }
+            
             multiFileFields.forEach(fieldName => {
                 const input = form.querySelector(`[name="${fieldName}"]`);
                 if (input && input.files.length > 0) {
@@ -456,7 +479,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // URLパラメータ処理を一番最初に実行
             try {
                 const params = new URLSearchParams(window.location.search);
                 const companyName = params.get('company');
@@ -469,14 +491,11 @@
                 }
             } catch(e) { console.error("URLパラメータ処理エラー:", e); }
 
-            // HTMLの動的部分を生成
             populateMainSections();
             
-            // 生成されたHTML要素に対してイベントリスナー等を設定
             document.querySelectorAll('.date-select-group').forEach(setupWarekiDateFields);
             toggleMainSections(form.querySelector('input[name="year_end_adjustment"]:checked').value);
             
-            // autoKanaの初期化
             $(function() {
                 const options = { katakana: true };
                 $.fn.autoKana('#name_last', '#kana_last', options);
@@ -489,7 +508,6 @@
                 }
             });
 
-            // 金額入力と動的に生成される要素にイベントリスナーを設定
             form.addEventListener('input', (event) => {
                 if (event.target.classList.contains('currency-input')) {
                     formatCurrency(event);
