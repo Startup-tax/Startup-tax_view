@@ -9,7 +9,17 @@
         h1 { color: #2c3e50; text-align: center; }
         .form-container, .confirm-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         fieldset { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
-        legend { font-weight: bold; color: #3498db; padding: 0 10px; font-size: 1.2em; display: flex; justify-content: space-between; align-items: center; }
+        
+        .fieldset-title {
+            font-weight: bold;
+            color: #3498db;
+            font-size: 1.2em;
+            margin: -10px 0 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .form-group { margin-bottom: 20px; }
         .form-row { display: flex; gap: 20px; }
         .form-row > div { flex: 1; }
@@ -44,7 +54,7 @@
             <span class="p-country-name" style="display:none;">Japan</span>
 
             <fieldset>
-                <legend>ご本人情報</legend>
+                <div class="fieldset-title">ご本人情報</div>
                 <div class="form-group"><label>会社名</label><input type="text" name="company_name" required></div>
                 <div class="form-group"><label>メールアドレス</label><input type="email" name="email_address" required></div>
                 <div class="form-row">
@@ -80,7 +90,7 @@
             </fieldset>
 
             <fieldset>
-                <legend>申告内容</legend>
+                <div class="fieldset-title">申告内容</div>
                 <div class="form-group">
                     <label>年末調整実施可否</label>
                     <div class="radio-group">
@@ -169,7 +179,7 @@
             });
             if (sectionId === 'dependents-section' && !show) {
                 for (let i = 2; i <= MAX_DEPENDENTS; i++) {
-                    removeDependentField(i); // 削除関数を呼んでリセット
+                    removeDependentField(i);
                 }
                 const addButton = document.getElementById('add-dependent-btn');
                 if (addButton) addButton.classList.remove('hidden');
@@ -227,16 +237,16 @@
         function populateMainSections() {
             mainSectionsContainer.innerHTML = `
                 <fieldset>
-                    <legend>前職情報</legend>
+                    <div class="fieldset-title">前職情報</div>
                     <div class="form-group"><label>前職有無</label><div class="radio-group"><label><input type="radio" name="previous_job" value="あり" onchange="toggleSection(this.value === 'あり', 'gensen-group')"> あり</label><label><input type="radio" name="previous_job" value="なし" onchange="toggleSection(this.value === 'あり', 'gensen-group')" checked> なし</label></div></div>
                     <div id="gensen-group" class="form-group hidden"><label>前職源泉徴収票</label><input type="file" name="previous_job_file" multiple></div>
                 </fieldset>
                 <fieldset>
-                    <legend>住民税</legend>
+                    <div class="fieldset-title">住民税</div>
                     <div class="form-group"><label>住民税徴収方法</label><select name="resident_tax"><option value="特別徴収">特別徴収</option><option value="普通徴収">普通徴収</option></select></div>
                 </fieldset>
                 <fieldset>
-                    <legend>配偶者情報</legend>
+                    <div class="fieldset-title">配偶者情報</div>
                     <div class="form-group"><label>配偶者有無</label><div class="radio-group"><label><input type="radio" name="spouse_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'spouse-group')"> あり</label><label><input type="radio" name="spouse_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'spouse-group')" checked> なし</label></div></div>
                     <div id="spouse-group" class="hidden">
                         <div class="form-row">
@@ -259,15 +269,15 @@
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend>扶養親族情報</legend>
+                    <div class="fieldset-title">扶養親族情報</div>
                     <div class="form-group"><label>扶養親族有無</label><div class="radio-group"><label><input type="radio" name="dependents_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'dependents-section')"> あり</label><label><input type="radio" name="dependents_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'dependents-section')" checked> なし</label></div></div>
                     <div id="dependents-section" class="hidden">
                         ${[...Array(MAX_DEPENDENTS)].map((_, i) => `
                             <fieldset id="dependent-group-${i + 1}" class="${i > 0 ? 'hidden' : ''}">
-                                <legend>
+                                <div class="fieldset-title">
                                     <span>扶養親族 ${i + 1}</span>
                                     ${i > 0 ? `<button type="button" class="btn-remove" onclick="removeDependentField(${i + 1})">この親族を削除</button>` : ''}
-                                </legend>
+                                </div>
                                 <div class="form-row">
                                     <div><label>姓</label><input type="text" id="dependent_${i + 1}_name_last" name="dependent_${i + 1}_last_name"></div>
                                     <div><label>名</label><input type="text" id="dependent_${i + 1}_name_first" name="dependent_${i + 1}_first_name"></div>
@@ -292,7 +302,7 @@
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend>本人該当項目</legend>
+                    <div class="fieldset-title">本人該当項目</div>
                     <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="user_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'user-disability-file-group')"> あり</label><label><input type="radio" name="user_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'user-disability-file-group')" checked> なし</label></div></div>
                     <div id="user-disability-file-group" class="form-group hidden"><label>障害者手帳</label><input type="file" name="user_disability_certificate_file" multiple></div>
                     <div class="form-group"><label>寡婦該当確認</label><div class="radio-group"><label><input type="radio" name="widow_status" value="該当">該当</label><label><input type="radio" name="widow_status" value="非該当" checked>非該当</label></div></div>
@@ -303,7 +313,7 @@
                     <div class="form-group"><label>外国人該当確認</label><div class="radio-group"><label><input type="radio" name="foreigner_status" value="該当">該当</label><label><input type="radio" name="foreigner_status" value="非該当" checked>非該当</label></div></div>
                 </fieldset>
                 <fieldset>
-                    <legend>各種控除</legend>
+                    <div class="fieldset-title">各種控除</div>
                     <div class="form-group"><label>生命保険料控除有無</label><div class="radio-group"><label><input type="radio" name="life_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'life-insurance-group')">あり</label><label><input type="radio" name="life_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'life-insurance-group')" checked>なし</label></div></div>
                     <div id="life-insurance-group" class="form-group hidden"><label>生命保険料_控除証明書</label><input type="file" name="life_insurance_file" multiple></div>
                     <div class="form-group"><label>地震保険料控除有無</label><div class="radio-group"><label><input type="radio" name="earthquake_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'earthquake-insurance-group')">あり</label><label><input type="radio" name="earthquake_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'earthquake-insurance-group')" checked>なし</label></div></div>
@@ -382,7 +392,7 @@
                 }
                 
                 if (input.classList.contains('currency-input') && value) {
-                    value = Number(value).toLocaleString('ja-JP');
+                    value = Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
                 }
                 
                 if (value === null || value === undefined || value === '') return;
@@ -446,7 +456,20 @@
                     });
 
                     if (isDependentEntered) {
-                        dependentFields.forEach(([name, label]) => addRow(label, formData.get(name)));
+                        dependentFields.forEach(([name, label]) => {
+                           let value = formData.get(name);
+                           const input = form.querySelector(`[name="${name}"]`);
+                           if (value instanceof File) {
+                               value = value.name || '';
+                           } else if (input?.files?.length > 0) {
+                               value = Array.from(input.files).map(f => f.name).join(', ');
+                           }
+                           
+                           if (input?.classList.contains('currency-input') && value) {
+                               value = Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
+                           }
+                           addRow(label, value);
+                        });
                     }
                 }
             }
