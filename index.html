@@ -340,28 +340,53 @@
                 return;
             }
             
-            // 確認画面のfieldLabelsはview.htmlと同期させる
-            const fieldLabels = {
-                'company_name': '会社名', 'email_address': 'メールアドレス', 'last_name': '姓', 'first_name': '名',
-                'last_name_furigana': '姓フリガナ', 'first_name_furigana': '名フリガナ', 'birth_date': '生年月日',
-                'postal_code': '郵便番号', 'address1': '住所1', 'address2': '住所2', 'year_end_adjustment': '年末調整実施可否',
-                'previous_job': '前職有無', 'previous_job_file': '前職源泉徴収票', 'resident_tax': '住民税徴収方法',
-                'spouse_existence': '配偶者有無', 'spouse_last_name': '配偶者 姓', 'spouse_first_name': '配偶者 名',
-                'spouse_last_name_furigana': '配偶者 姓フリガナ', 'spouse_first_name_furigana': '配偶者 名フリガナ',
-                'spouse_birth_date': '配偶者 生年月日', 'spouse_address1': '配偶者 住所1', 'spouse_address2': '配偶者 住所2',
-                'spouse_income_amount': '配偶者 収入金額', 'spouse_severance_pay_existence': '配偶者 退職手当有無',
-                'spouse_severance_pay_amount': '配偶者 退職手当等金額', 'spouse_disability_certificate_existence': '配偶者 障害者手帳交付有無', 'spouse_disability_certificate_file': '配偶者 障害者手帳',
-                'dependents_existence': '扶養親族有無',
-                'user_disability_certificate_existence': '本人 障害者手帳交付有無', 'user_disability_certificate_file': '本人 障害者手帳',
-                'widow_status': '寡婦該当確認', 'single_parent_status': 'ひとり親該当確認',
-                'working_student_status': '勤労学生該当確認', 'student_card_file': '勤労学生_学生証',
-                'disaster_status': '災害者該当確認', 'foreigner_status': '外国人該当確認',
-                'life_insurance_deduction': '生命保険料控除有無', 'life_insurance_file': '生命保険料_控除証明書',
-                'earthquake_insurance_deduction': '地震保険料控除有無', 'earthquake_insurance_file': '地震保険料_控除証明書',
-                'social_insurance_deduction': '社会保険料控除有無', 'social_insurance_file': '社会保険料_控除証明書',
-                'small_business_deduction': '小規模企業共済掛金等控除有無', 'small_business_file': '小規模企業共済掛金等_控除証明書',
-                'housing_loan_deduction': '住宅ローン控除有無', 'housing_loan_file': '住宅ローン_申告書・証明書'
-            };
+            // 表示順を固定した全項目のリスト
+            const orderedFieldList = [
+                // 基本情報
+                ['company_name', '会社名'], ['email_address', 'メールアドレス'], ['last_name', '姓'], ['first_name', '名'],
+                ['last_name_furigana', '姓フリガナ'], ['first_name_furigana', '名フリガナ'], ['birth_date', '生年月日'],
+                ['postal_code', '郵便番号'], ['address1', '住所1'], ['address2', '住所2'], ['year_end_adjustment', '年末調整実施可否'],
+                ['previous_job', '前職有無'], ['previous_job_file', '前職源泉徴収票'], ['resident_tax', '住民税徴収方法'],
+                // 配偶者情報
+                ['spouse_existence', '配偶者有無'], ['spouse_last_name', '配偶者 姓'], ['spouse_first_name', '配偶者 名'],
+                ['spouse_last_name_furigana', '配偶者 姓フリガナ'], ['spouse_first_name_furigana', '配偶者 名フリガナ'],
+                ['spouse_birth_date', '配偶者 生年月日'], ['spouse_address1', '配偶者 住所1'], ['spouse_address2', '配偶者 住所2'],
+                ['spouse_income_amount', '配偶者 収入金額'], ['spouse_severance_pay_existence', '配偶者 退職手当有無'],
+                ['spouse_severance_pay_amount', '配偶者 退職手当等金額'], ['spouse_disability_certificate_existence', '配偶者 障害者手帳交付有無'],
+                ['spouse_disability_certificate_file', '配偶者 障害者手帳'],
+                // 扶養親族情報
+                ['dependents_existence', '扶養親族有無'],
+            ];
+
+            // 扶養親族の項目を動的にリストへ追加
+            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
+                orderedFieldList.push([`dependent_${i}_last_name`, `【扶養親族${i}】姓`]);
+                orderedFieldList.push([`dependent_${i}_first_name`, `【扶養親族${i}】名`]);
+                orderedFieldList.push([`dependent_${i}_last_name_furigana`, `【扶養親族${i}】姓フリガナ`]);
+                orderedFieldList.push([`dependent_${i}_first_name_furigana`, `【扶養親族${i}】名フリガナ`]);
+                orderedFieldList.push([`dependent_${i}_relationship`, `【扶養親族${i}】続柄`]);
+                orderedFieldList.push([`dependent_${i}_birth_date`, `【扶養親族${i}】生年月日`]);
+                orderedFieldList.push([`dependent_${i}_address1`, `【扶養親族${i}】住所1`]);
+                orderedFieldList.push([`dependent_${i}_address2`, `【扶養親族${i}】住所2`]);
+                orderedFieldList.push([`dependent_${i}_income_amount`, `【扶養親族${i}】収入金額`]);
+                orderedFieldList.push([`dependent_${i}_severance_pay_existence`, `【扶養親族${i}】退職手当有無`]);
+                orderedFieldList.push([`dependent_${i}_severance_pay_amount`, `【扶養親族${i}】退職手当等金額`]);
+                orderedFieldList.push([`dependent_${i}_disability_certificate_existence`, `【扶養親族${i}】障害者手帳交付有無`]);
+                orderedFieldList.push([`dependent_${i}_disability_certificate_file`, `【扶養親族${i}】障害者手帳`]);
+            }
+
+            // 本人・各種控除項目をリストへ追加
+            orderedFieldList.push(
+                ['user_disability_certificate_existence', '本人 障害者手帳交付有無'], ['user_disability_certificate_file', '本人 障害者手帳'],
+                ['widow_status', '寡婦該当確認'], ['single_parent_status', 'ひとり親該当確認'],
+                ['working_student_status', '勤労学生該当確認'], ['student_card_file', '勤労学生_学生証'],
+                ['disaster_status', '災害者該当確認'], ['foreigner_status', '外国人該当確認'],
+                ['life_insurance_deduction', '生命保険料控除有無'], ['life_insurance_file', '生命保険料_控除証明書'],
+                ['earthquake_insurance_deduction', '地震保険料控除有無'], ['earthquake_insurance_file', '地震保険料_控除証明書'],
+                ['social_insurance_deduction', '社会保険料控除有無'], ['social_insurance_file', '社会保険料_控除証明書'],
+                ['small_business_deduction', '小規模企業共済掛金等控除有無'], ['small_business_file', '小規模企業共済掛金等_控除証明書'],
+                ['housing_loan_deduction', '住宅ローン控除有無'], ['housing_loan_file', '住宅ローン_申告書・証明書']
+            );
 
             let confirmHtml = `<h2>入力内容の確認</h2><p>以下の内容で送信します。よろしいですか？</p><table id="confirm-table"></table><div class="btn-container"><button id="confirm-back-btn" type="button" onclick="goBack()">修正する</button><button id="submit-btn" type="button" onclick="submitForm()">送信する</button></div>`;
             confirmContents.innerHTML = confirmHtml;
@@ -375,47 +400,27 @@
                 row.insertCell().outerHTML = `<th>${label}</th>`;
                 row.insertCell().textContent = value;
             };
-
-            for (const [name, label] of Object.entries(fieldLabels)) {
+            
+            // 統一されたリストでループ処理
+            for (const [name, label] of orderedFieldList) {
                 const input = form.querySelector(`[name="${name}"]`);
-                if (input && !input.disabled) {
-                    let value = formData.get(name);
-                    if (value instanceof File) {
-                        value = value.name || '';
-                    } else if (input.files && input.files.length > 0) {
-                        value = Array.from(input.files).map(f => f.name).join(', ');
-                    }
-                    if (input.classList.contains('currency-input') && value) {
-                        value = Number(value).toLocaleString('ja-JP');
-                    }
-                    addRow(label, value);
-                }
-            }
+                if (!input || input.disabled) continue;
 
-            if (formData.get('dependents_existence') === 'あり') {
-                for (let i = 1; i <= MAX_DEPENDENTS; i++) {
-                    const lastName = formData.get(`dependent_${i}_last_name`);
-                    if (lastName) {
-                        const prefix = `【扶養親族${i}】`;
-                        addRow(`${prefix}氏名`, `${lastName} ${formData.get(`dependent_${i}_first_name`)}`);
-                        addRow(`${prefix}フリガナ`, `${formData.get(`dependent_${i}_last_name_furigana`)} ${formData.get(`dependent_${i}_first_name_furigana`)}`);
-                        addRow(`${prefix}続柄`, formData.get(`dependent_${i}_relationship`));
-                        addRow(`${prefix}生年月日`, formData.get(`dependent_${i}_birth_date`));
-                        addRow(`${prefix}住所1`, formData.get(`dependent_${i}_address1`));
-                        addRow(`${prefix}住所2`, formData.get(`dependent_${i}_address2`));
-                        let income = formData.get(`dependent_${i}_income_amount`);
-                        addRow(`${prefix}収入金額`, income ? Number(income).toLocaleString('ja-JP') : '');
-                        addRow(`${prefix}退職手当有無`, formData.get(`dependent_${i}_severance_pay_existence`));
-                        let severance = formData.get(`dependent_${i}_severance_pay_amount`);
-                        addRow(`${prefix}退職手当等金額`, severance ? Number(severance).toLocaleString('ja-JP') : '');
-                        addRow(`${prefix}障害者手帳交付有無`, formData.get(`dependent_${i}_disability_certificate_existence`));
-                        
-                        const fileInput = form.querySelector(`[name="dependent_${i}_disability_certificate_file"]`);
-                        if (fileInput && fileInput.files.length > 0) {
-                           addRow(`${prefix}障害者手帳`, Array.from(fileInput.files).map(f => f.name).join(', '));
-                        }
-                    }
+                let value = formData.get(name);
+                if (value instanceof File) {
+                    value = value.name || '';
+                } else if (input.files && input.files.length > 0) {
+                    value = Array.from(input.files).map(f => f.name).join(', ');
                 }
+                
+                if (input.classList.contains('currency-input') && value) {
+                    value = Number(value).toLocaleString('ja-JP');
+                }
+
+                // 値が空の場合は行を追加しない
+                if (value === null || value === undefined || value === '') continue;
+
+                addRow(label, value);
             }
 
             formContents.classList.add('hidden');
