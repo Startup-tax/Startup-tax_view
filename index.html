@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>年末調整情報 提出フォーム</title>
-    <style>
+        <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f4f4f4; }
         h1 { color: #2c3e50; text-align: center; }
         .form-container, .confirm-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -20,7 +20,7 @@
             align-items: center;
         }
 
-        .form-group { margin-bottom: 20px; }
+        .form-group, .form-row { margin-bottom: 20px; }
         .form-row { display: flex; gap: 20px; }
         .form-row > div { flex: 1; }
         label { display: block; font-weight: bold; margin-bottom: 5px; color: #34495e; }
@@ -44,45 +44,50 @@
         .yen-input-wrapper input { padding-right: 2em; text-align: right; }
         .yen-input-wrapper::after { content: '円'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #555; pointer-events: none; }
 
+        /* ▼▼▼ スマートフォン表示用の設定 ▼▼▼ */
         @media (max-width: 600px) {
             body {
-                padding: 0 10px; /* 本体左右の余白を狭くする */
+                padding: 0 10px;
             }
 
             h1 {
-                font-size: 1.8em; /* 見出しを少し小さくする */
+                font-size: 1.8em;
             }
 
             .form-container, .confirm-container {
-                padding: 20px; /* コンテナの余白を少し狭くする */
+                padding: 20px;
             }
 
-            /* 横並びの入力欄（姓・名など）を縦に積む */
             .form-row {
                 flex-direction: column;
-                gap: 20px;
+                gap: 0; /* gapをリセットし、各要素のmarginに任せる */
             }
 
-            /* 確認画面のテーブルを見やすくする */
+            .form-row > div {
+                margin-bottom: 20px;
+            }
+            .form-row > div:last-child {
+                margin-bottom: 0;
+            }
+
             #confirm-table th, #confirm-table td,
             #result-table th, #result-table td {
-                display: block; /* 項目名と内容を縦積みにする */
-                width: 100%;    /* 横幅を100%にする */
-                text-align: left !important; /* 左揃えを徹底 */
+                display: block;
+                width: 100%;
+                text-align: left !important;
             }
             #confirm-table th, #result-table th {
-                border-bottom: none; /* 項目名の下線を消す */
-                background-color: transparent; /* 背景色をなくす */
+                border-bottom: none;
+                background-color: transparent;
                 font-size: 0.9em;
                 color: #555;
                 padding-bottom: 3px;
             }
             #confirm-table td, #result-table td {
-                border-top: none; /* 内容の上の線を消す */
+                border-top: none;
                 padding-top: 0;
             }
 
-            /* ボタンを押しやすくする */
             button {
                 width: 100%;
                 padding: 15px;
@@ -90,8 +95,22 @@
             #confirm-back-btn {
                 margin-top: 10px;
             }
-        }
 
+            .date-select-group {
+                flex-wrap: wrap;
+            }
+            .date-select-group select.era {
+                width: 35%;
+                flex-grow: 0;
+            }
+            .date-select-group select.year,
+            .date-select-group select.month,
+            .date-select-group select.day {
+                width: 18%;
+                flex-grow: 0;
+            }
+        }
+        /* ▲▲▲ スマートフォン表示用の設定はここまで ▲▲▲ */
     </style>
     
 </head>
