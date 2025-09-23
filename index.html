@@ -43,7 +43,57 @@
         .yen-input-wrapper { position: relative; }
         .yen-input-wrapper input { padding-right: 2em; text-align: right; }
         .yen-input-wrapper::after { content: '円'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #555; pointer-events: none; }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0 10px; /* 本体左右の余白を狭くする */
+            }
+
+            h1 {
+                font-size: 1.8em; /* 見出しを少し小さくする */
+            }
+
+            .form-container, .confirm-container {
+                padding: 20px; /* コンテナの余白を少し狭くする */
+            }
+
+            /* 横並びの入力欄（姓・名など）を縦に積む */
+            .form-row {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            /* 確認画面のテーブルを見やすくする */
+            #confirm-table th, #confirm-table td,
+            #result-table th, #result-table td {
+                display: block; /* 項目名と内容を縦積みにする */
+                width: 100%;    /* 横幅を100%にする */
+                text-align: left !important; /* 左揃えを徹底 */
+            }
+            #confirm-table th, #result-table th {
+                border-bottom: none; /* 項目名の下線を消す */
+                background-color: transparent; /* 背景色をなくす */
+                font-size: 0.9em;
+                color: #555;
+                padding-bottom: 3px;
+            }
+            #confirm-table td, #result-table td {
+                border-top: none; /* 内容の上の線を消す */
+                padding-top: 0;
+            }
+
+            /* ボタンを押しやすくする */
+            button {
+                width: 100%;
+                padding: 15px;
+            }
+            #confirm-back-btn {
+                margin-top: 10px;
+            }
+        }
+
     </style>
+    
 </head>
 <body>
 
