@@ -320,17 +320,28 @@
         function populateMainSections() {
             mainSectionsContainer.innerHTML = `
                 <fieldset>
-                    <div class="fieldset-title">令和7年中の前職（退職した勤務先）について</div>
-                    <div class="form-group">
-                        <label>令和7年中に退職した勤務先（アルバイト・パート含む）はありますか？</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="previous_job" value="あり" onchange="toggleSection(this.value === 'あり', 'gensen-group')"> あり</label>
-                            <label><input type="radio" name="previous_job" value="なし" onchange="toggleSection(this.value === 'あり', 'gensen-group')" checked> なし</label>
-                        </div>
-                        <p style="font-size: 0.8em; color: #555; margin-top: 5px;">※現在も勤務を継続している副業などは対象外です。今年（令和7年1月1日以降）に退職した勤務先についてのみご回答ください。</p>
-                    </div>
-                    <div id="gensen-group" class="form-group hidden"><label>退職した勤務先の源泉徴収票</label><input type="file" name="previous_job_file" multiple></div>
-                </fieldset>
+
+<div class="fieldset-title">令和7年(2025年)に入社された方</div>
+
+<div class="form-group">
+
+<label>令和7年(2025年)中に退職した勤務先はありますか？</label>
+
+<div class="radio-group">
+
+<label><input type="radio" name="previous_job" value="あり" onchange="toggleSection(this.value === 'あり', 'gensen-group')"> あり</label>
+
+<label><input type="radio" name="previous_job" value="なし" onchange="toggleSection(this.value === 'あり', 'gensen-group')" checked> なし</label>
+
+</div>
+
+</div>
+
+<div id="gensen-group" class="form-group hidden"><label>前職の源泉徴収票</label><input type="file" name="previous_job_file" multiple></div>
+
+<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※令和7年(2025年)中に退職した勤務先が複数ある場合は、すべての勤務先の源泉徴収票をアップロードしてください。</p>
+
+</fieldset>
                 <fieldset>
                     <div class="fieldset-title">その他収入について</div>
                     <div class="form-group">
