@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>年末調整情報 提出フォーム</title>
-        <style>
+    <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f4f4f4; }
         h1 { color: #2c3e50; text-align: center; }
         .form-container, .confirm-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -44,76 +44,79 @@
         .yen-input-wrapper input { padding-right: 2em; text-align: right; }
         .yen-input-wrapper::after { content: '円'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #555; pointer-events: none; }
 
-        /* ▼▼▼ スマートフォン表示用の設定 ▼▼▼ */
-        @media (max-width: 600px) {
-            body {
-                padding: 0 10px;
-            }
-
-            h1 {
-                font-size: 1.8em;
-            }
-
-            .form-container, .confirm-container {
-                padding: 20px;
-            }
-
-            .form-row {
-                flex-direction: column;
-                gap: 0; /* gapをリセットし、各要素のmarginに任せる */
-            }
-
-            .form-row > div {
-                margin-bottom: 20px;
-            }
-            .form-row > div:last-child {
-                margin-bottom: 0;
-            }
-
-            #confirm-table th, #confirm-table td,
-            #result-table th, #result-table td {
-                display: block;
-                width: 100%;
-                text-align: left !important;
-            }
-            #confirm-table th, #result-table th {
-                border-bottom: none;
-                background-color: transparent;
-                font-size: 0.9em;
-                color: #555;
-                padding-bottom: 3px;
-            }
-            #confirm-table td, #result-table td {
-                border-top: none;
-                padding-top: 0;
-            }
-
-            button {
-                width: 100%;
-                padding: 15px;
-            }
-            #confirm-back-btn {
-                margin-top: 10px;
-            }
-
-            .date-select-group {
-                flex-wrap: wrap;
-                gap: 2%;
-            }
-            .date-select-group select.era {
-                width: 30%;
-                flex-grow: 0;
-            }
-            .date-select-group select.year,
-            .date-select-group select.month,
-            .date-select-group select.day {
-                width: 26%;
-                flex-grow: 0;
-            }
+        .tooltip-wrapper {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 10px;
         }
-        /* ▲▲▲ スマートフォン表示用の設定はここまで ▲▲▲ */
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip-icon {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 20px;
+            height: 20px;
+            background-color: #bdc3c7;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            user-select: none;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            width: 250px;
+            background-color: #34495e;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            transition: opacity 0.3s;
+            font-size: 0.8em;
+        }
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #34495e transparent transparent transparent;
+        }
+        .tooltip-container:hover .tooltip-text,
+        .tooltip-container.show .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 0 10px; }
+            h1 { font-size: 1.8em; }
+            .form-container, .confirm-container { padding: 20px; }
+            .form-row { flex-direction: column; gap: 0; }
+            .form-row > div { margin-bottom: 20px; }
+            .form-row > div:last-child { margin-bottom: 0; }
+            #confirm-table th, #confirm-table td, #result-table th, #result-table td { display: block; width: 100%; text-align: left !important; }
+            #confirm-table th, #result-table th { border-bottom: none; background-color: transparent; font-size: 0.9em; color: #555; padding-bottom: 3px; }
+            #confirm-table td, #result-table td { border-top: none; padding-top: 0; }
+            button { width: 100%; padding: 15px; }
+            #confirm-back-btn { margin-top: 10px; }
+            .date-select-group { flex-wrap: wrap; gap: 2%; }
+            .date-select-group select.era { width: 30%; flex-grow: 0; }
+            .date-select-group select.year, .date-select-group select.month, .date-select-group select.day { width: 20%; flex-grow: 0; }
+        }
     </style>
-    
 </head>
 <body>
 
@@ -157,16 +160,25 @@
                     <label>住所2（建物名、部屋番号など）</label>
                     <input type="text" id="address2" name="address2">
                 </div>
+                <div class="form-group">
+                    <label>世帯主の氏名</label>
+                    <input type="text" name="householder_name">
+                </div>
+                <div class="form-group">
+                    <label>世帯主の続柄</label>
+                    <input type="text" name="householder_relationship">
+                </div>
             </fieldset>
 
             <fieldset>
-                <div class="fieldset-title">申告内容</div>
+                <div class="fieldset-title">年末調整実施確認</div>
                 <div class="form-group">
-                    <label>年末調整実施可否</label>
+                    <label>当社で年末調整をおこないますか？</label>
                     <div class="radio-group">
-                        <label><input type="radio" name="year_end_adjustment" value="自社で年末調整を行う" onchange="toggleMainSections(this.value)" checked> 自社で年末調整を行う</label>
-                        <label><input type="radio" name="year_end_adjustment" value="他社で年末調整を行う/確定申告を行う" onchange="toggleMainSections(this.value)"> 他社で年末調整を行う/確定申告を行う</label>
+                        <label><input type="radio" name="year_end_adjustment" value="はい" onchange="toggleMainSections(this.value)" checked> はい</label>
+                        <label><input type="radio" name="year_end_adjustment" value="いいえ" onchange="toggleMainSections(this.value)"> いいえ</label>
                     </div>
+                     <p style="font-size: 0.8em; color: #555; margin-top: 5px;">他社で給与収入がある場合は、原則、確定申告が必要となりますが、収入が多い勤務先で年末調整をおこなうことができます。<br>※給与収入が2,000万円を超える方は、確定申告が必要です。</p>
                 </div>
             </fieldset>
             
@@ -248,16 +260,15 @@
                 }
             });
             if (sectionId === 'dependents-section' && !show) {
-                for (let i = 2; i <= MAX_DEPENDENTS; i++) {
+                for (let i = 1; i <= MAX_DEPENDENTS; i++) {
                     removeDependentField(i);
                 }
-                const addButton = document.getElementById('add-dependent-btn');
-                if (addButton) addButton.classList.remove('hidden');
+                document.getElementById('add-dependent-btn').classList.remove('hidden');
             }
         }
 
         function toggleMainSections(value) {
-            const show = value === '自社で年末調整を行う';
+            const show = value === 'はい';
             mainSectionsContainer.style.display = show ? 'block' : 'none';
             mainSectionsContainer.querySelectorAll('input, select, button').forEach(input => {
                 input.disabled = !show;
@@ -290,7 +301,9 @@
                 el.checked = isDefaultNo;
             });
             
-            groupToRemove.classList.add('hidden');
+            if (dependentNumber > 1) {
+                groupToRemove.classList.add('hidden');
+            }
             document.getElementById('add-dependent-btn').classList.remove('hidden');
         }
         
@@ -307,9 +320,36 @@
         function populateMainSections() {
             mainSectionsContainer.innerHTML = `
                 <fieldset>
-                    <div class="fieldset-title">前職情報</div>
-                    <div class="form-group"><label>前職有無</label><div class="radio-group"><label><input type="radio" name="previous_job" value="あり" onchange="toggleSection(this.value === 'あり', 'gensen-group')"> あり</label><label><input type="radio" name="previous_job" value="なし" onchange="toggleSection(this.value === 'あり', 'gensen-group')" checked> なし</label></div></div>
-                    <div id="gensen-group" class="form-group hidden"><label>前職源泉徴収票</label><input type="file" name="previous_job_file" multiple></div>
+                    <div class="fieldset-title">令和7年中の前職（退職した勤務先）について</div>
+                    <div class="form-group">
+                        <label>令和7年中に退職した勤務先（アルバイト・パート含む）はありますか？</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="previous_job" value="あり" onchange="toggleSection(this.value === 'あり', 'gensen-group')"> あり</label>
+                            <label><input type="radio" name="previous_job" value="なし" onchange="toggleSection(this.value === 'あり', 'gensen-group')" checked> なし</label>
+                        </div>
+                        <p style="font-size: 0.8em; color: #555; margin-top: 5px;">※現在も勤務を継続している副業などは対象外です。今年（令和7年1月1日以降）に退職した勤務先についてのみご回答ください。</p>
+                    </div>
+                    <div id="gensen-group" class="form-group hidden"><label>退職した勤務先の源泉徴収票</label><input type="file" name="previous_job_file" multiple></div>
+                </fieldset>
+                <fieldset>
+                    <div class="fieldset-title">その他収入について</div>
+                    <div class="form-group">
+                        <div class="tooltip-wrapper">
+                            <label>その他収入有無</label>
+                            <div class="tooltip-container">
+                                <span class="tooltip-icon">!</span>
+                                <div class="tooltip-text">当社からの給与、および退職した勤務先の給与以外に収入がある場合に「あり」を選択してください。(例：不動産収入、個人年金、原稿料など)</div>
+                            </div>
+                        </div>
+                        <div class="radio-group">
+                            <label><input type="radio" name="other_income_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'other-income-group')"> あり</label>
+                            <label><input type="radio" name="other_income_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'other-income-group')" checked> なし</label>
+                        </div>
+                    </div>
+                    <div id="other-income-group" class="form-group hidden">
+                        <label>その他収入金額</label>
+                        <div class="yen-input-wrapper"><input type="text" name="other_income_amount" class="currency-input" inputmode="numeric"></div>
+                    </div>
                 </fieldset>
                 <fieldset>
                     <div class="fieldset-title">住民税</div>
@@ -356,7 +396,18 @@
                                     <div><label>姓フリガナ</label><input type="text" id="dependent_${i + 1}_kana_last" name="dependent_${i + 1}_last_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
                                     <div><label>名フリガナ</label><input type="text" id="dependent_${i + 1}_kana_first" name="dependent_${i + 1}_first_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
                                 </div>
-                                <div class="form-group"><label>続柄</label><input type="text" name="dependent_${i + 1}_relationship"></div>
+                                <div class="form-group">
+                                    <label>続柄</label>
+                                    <select name="dependent_${i + 1}_relationship">
+                                        <option value=""></option>
+                                        <option value="妻">妻</option><option value="夫">夫</option><option value="子">子</option>
+                                        <option value="実父">実父</option><option value="実母">実母</option><option value="義父">義父</option>
+                                        <option value="義母">義母</option><option value="祖父">祖父</option><option value="祖母">祖母</option>
+                                        <option value="孫">孫</option><option value="兄">兄</option><option value="姉">姉</option>
+                                        <option value="弟">弟</option><option value="妹">妹</option><option value="叔父">叔父</option>
+                                        <option value="叔母">叔母</option><option value="甥">甥</option><option value="姪">姪</option>
+                                    </select>
+                                </div>
                                 <div class="form-group"><label>生年月日</label><div class="date-select-group" data-prefix="dependent_${i + 1}"><select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span></div><input type="hidden" name="dependent_${i + 1}_birth_date"></div>
                                 <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('dependent_${i + 1}', this)"> 本人と住所が同じ</label></div>
                                 <div class="form-group"><label>住所1</label><input type="text" id="dependent_${i + 1}_address1" name="dependent_${i + 1}_address1"></div>
@@ -447,15 +498,11 @@
             const getDisplayValue = (name) => {
                 const input = form.querySelector(`[name="${name}"]`);
                 if (!input) return null;
-
                 if (input.type === 'file') {
                     return input.files.length > 0 ? Array.from(input.files).map(f => f.name).join(', ') : null;
                 }
-
                 let value = input.disabled ? input.value : formData.get(name);
-
                 if (value === null || value === undefined || value === '') return null;
-
                 if (input.classList.contains('currency-input')) {
                     return Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
                 }
@@ -498,8 +545,12 @@
             const preDependentsFields = [
                 ['company_name', '会社名'], ['email_address', 'メールアドレス'], ['last_name', '姓'], ['first_name', '名'],
                 ['last_name_furigana', '姓フリガナ'], ['first_name_furigana', '名フリガナ'], ['birth_date', '生年月日'],
-                ['postal_code', '郵便番号'], ['address1', '住所1'], ['address2', '住所2'], ['year_end_adjustment', '年末調整実施可否'],
-                ['previous_job', '前職有無'], ['previous_job_file', '前職源泉徴収票'], ['resident_tax', '住民税徴収方法'],
+                ['postal_code', '郵便番号'], ['address1', '住所1'], ['address2', '住所2'], 
+                ['householder_name', '世帯主の氏名'], ['householder_relationship', '世帯主の続柄'],
+                ['year_end_adjustment', '年末調整実施可否'],
+                ['previous_job', '前職有無'], ['previous_job_file', '前職源泉徴収票'], 
+                ['other_income_existence', 'その他収入有無'], ['other_income_amount', 'その他収入金額'],
+                ['resident_tax', '住民税徴収方法'],
                 ['spouse_existence', '配偶者有無'], ['spouse_last_name', '配偶者 姓'], ['spouse_first_name', '配偶者 名'],
                 ['spouse_last_name_furigana', '配偶者 姓フリガナ'], ['spouse_first_name_furigana', '配偶者 名フリガナ'],
                 ['spouse_birth_date', '配偶者 生年月日'], ['spouse_address1', '配偶者 住所1'], ['spouse_address2', '配偶者 住所2'],
@@ -664,6 +715,20 @@
             form.addEventListener('input', (event) => {
                 if (event.target.classList.contains('currency-input')) {
                     formatCurrency(event);
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('tooltip-icon')) {
+                    const parent = e.target.parentElement;
+                    const wasActive = parent.classList.contains('show');
+                    document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show'));
+                    if (!wasActive) {
+                        parent.classList.add('show');
+                    }
+                } 
+                else if (!e.target.closest('.tooltip-container')) {
+                    document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show'));
                 }
             });
         });

@@ -13,51 +13,12 @@
         #message { margin-top: 15px; font-weight: bold; }
         
         @media (max-width: 600px) {
-            body {
-                padding: 0 10px; /* 本体左右の余白を狭くする */
-            }
-
-            h1 {
-                font-size: 1.8em; /* 見出しを少し小さくする */
-            }
-
-            .form-container, .confirm-container {
-                padding: 20px; /* コンテナの余白を少し狭くする */
-            }
-
-            /* 横並びの入力欄（姓・名など）を縦に積む */
-            .form-row {
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            /* 確認画面のテーブルを見やすくする */
-            #confirm-table th, #confirm-table td,
-            #result-table th, #result-table td {
-                display: block; /* 項目名と内容を縦積みにする */
-                width: 100%;    /* 横幅を100%にする */
-                text-align: left !important; /* 左揃えを徹底 */
-            }
-            #confirm-table th, #result-table th {
-                border-bottom: none; /* 項目名の下線を消す */
-                background-color: transparent; /* 背景色をなくす */
-                font-size: 0.9em;
-                color: #555;
-                padding-bottom: 3px;
-            }
-            #confirm-table td, #result-table td {
-                border-top: none; /* 内容の上の線を消す */
-                padding-top: 0;
-            }
-
-            /* ボタンを押しやすくする */
-            button {
-                width: 100%;
-                padding: 15px;
-            }
-            #confirm-back-btn {
-                margin-top: 10px;
-            }
+            body { padding: 0 10px; }
+            h1 { font-size: 1.8em; }
+            .container { padding: 20px; }
+            #result-table th, #result-table td { display: block; width: 100%; text-align: left !important; }
+            #result-table th { border-bottom: none; background-color: transparent; font-size: 0.9em; color: #555; padding-bottom: 3px; }
+            #result-table td { border-top: none; padding-top: 0; }
         }
     </style>
 </head>
@@ -125,6 +86,7 @@
                         ['タイムスタンプ', '回答日時'], ['回答ID', '回答ID'], ['会社名', '会社名'], ['メールアドレス', 'メールアドレス'], 
                         ['姓', '姓'], ['名', '名'], ['姓フリガナ', '姓フリガナ'], ['名フリガナ', '名フリガナ'], 
                         ['生年月日', '生年月日'], ['郵便番号', '郵便番号'], ['住所1', '住所1'], ['住所2', '住所2'], 
+                        ['世帯主の氏名', '世帯主の氏名'], ['世帯主の続柄', '世帯主の続柄'],
                         ['年末調整実施可否', '年末調整実施可否'], ['前職有無', '前職有無'], ['前職源泉徴収票URL', '前職源泉徴収票'], 
                         ['住民税徴収方法', '住民税徴収方法'], ['配偶者有無', '配偶者有無'], 
                         ['配偶者姓', '配偶者 姓'], ['配偶者名', '配偶者 名'], ['配偶者姓フリガナ', '配偶者 姓フリガナ'], 
