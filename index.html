@@ -114,7 +114,7 @@
             #confirm-back-btn { margin-top: 10px; }
             .date-select-group { flex-wrap: wrap; gap: 2%; }
             .date-select-group select.era { width: 30%; flex-grow: 0; }
-            .date-select-group select.year, .date-select-group select.month, .date-select-group select.day { width: 20%; flex-grow: 0; }
+            .date-select-group select.year, .date-select-group select.month, .date-select-group select.day { width: 24%; flex-grow: 0; }
         }
     </style>
 </head>
@@ -148,17 +148,21 @@
                     </div>
                     <input type="hidden" name="birth_date">
                 </div>
-                <div class="form-group">
+                <div class="form-group"><div class="tooltip-wrapper">
                     <label>郵便番号</label>
-                    <input type="text" name="postal_code" class="p-postal-code" placeholder="例: 1638001 (ハイフンなし)" required>
+                    <div class="tooltip-container">
+                    	<span class="tooltip-icon">!</span>
+                        <div class="tooltip-text">住民票住所を記載してください</div>
+                     </div></div>
+                    <input type="text" name="postal_code" class="p-postal-code" placeholder="例: 1600022 (ハイフンなし)" required>
                 </div>
                 <div class="form-group">
                     <label>住所1（市区町村、番地）</label>
-                    <input type="text" id="address1" name="address1" class="p-region p-locality p-street-address" required>
+                    <input type="text" id="address1" name="address1" class="p-region p-locality p-street-address" placeholder="例: 東京都新宿区新宿4-3-17" required>
                 </div>
                 <div class="form-group">
                     <label>住所2（建物名、部屋番号など）</label>
-                    <input type="text" id="address2" name="address2">
+                    <input type="text" id="address2" name="address2" placeholder="例: FORECAST新宿SOUTH">
                 </div>
                 <div class="form-group">
                     <label>世帯主の氏名</label>
@@ -166,7 +170,15 @@
                 </div>
                 <div class="form-group">
                     <label>世帯主の続柄</label>
-                    <input type="text" name="householder_relationship">
+                    <select name="dependent_${i + 1}_relationship">
+                    	<option value=""></option>
+                        <option value="妻">妻</option><option value="夫">夫</option><option value="子">子</option>
+                        <option value="実父">実父</option><option value="実母">実母</option><option value="義父">義父</option>
+                        <option value="義母">義母</option><option value="祖父">祖父</option><option value="祖母">祖母</option>
+                        <option value="孫">孫</option><option value="兄">兄</option><option value="姉">姉</option>
+                        <option value="弟">弟</option><option value="妹">妹</option><option value="叔父">叔父</option>
+                        <option value="叔母">叔母</option><option value="甥">甥</option><option value="姪">姪</option><option value="その他">その他</option>
+                    </select>
                 </div>
             </fieldset>
 
@@ -192,7 +204,7 @@
     </div>
 
     <div id="confirm-contents" class="confirm-container hidden"></div>
-    <div id="loading" class="hidden"><p>送信中です...</p></div>
+    <div id="loading" class="hidden"><p>送信しています</p></div>
     <div id="complete" class="hidden"></div>
     
     <script src="https://yubinbango.github.io/yubinbango/yubinbango.js" charset="UTF-8"></script>
@@ -328,26 +340,27 @@
 							<label><input type="radio" name="previous_job" value="なし" onchange="toggleSection(this.value === 'あり', 'gensen-group')" checked> なし</label>
 						</div>
 					</div>
-					<div id="gensen-group" class="form-group hidden"><label>前職の源泉徴収票</label><input type="file" name="previous_job_file" multiple></div>
-						<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※令和7年(2025年)中に退職した勤務先が複数ある場合は、すべての勤務先の源泉徴収票をアップロードしてください。</p>
+					<div id="gensen-group" class="form-group hidden"><label>前職の源泉徴収票</label><input type="file" name="previous_job_file" multiple>
+						<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※令和7年(2025年)中に退職した勤務先が複数ある場合は、すべての勤務先の源泉徴収票をアップロードしてください。</p></div>
 				</fieldset>
                 <fieldset>
                     <div class="fieldset-title">その他収入について</div>
                     <div class="form-group">
-                        <div class="tooltip-wrapper">
-                            <label>その他収入有無</label>
-                            <div class="tooltip-container">
-                                <span class="tooltip-icon">!</span>
-                                <div class="tooltip-text">当社からの給与、および退職した勤務先の給与以外に収入がある場合に「あり」を選択してください。(例：不動産収入、個人年金、原稿料など)</div>
-                            </div>
-                        </div>
+                            <label>給与収入以外の収入がある場合は「あり」を選択してください。</label>
+                            <p style="font-size: 0.8em; color: #555; margin-top: 5px;">※例：公的年金、不動産収入、原稿料など</p>
+                            <p style="font-size: 0.8em; color: #555; margin-top: 5px;">※国や自治体から支給される手当や給付金は収入には含みません。</p>
                         <div class="radio-group">
                             <label><input type="radio" name="other_income_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'other-income-group')"> あり</label>
                             <label><input type="radio" name="other_income_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'other-income-group')" checked> なし</label>
                         </div>
                     </div>
-                    <div id="other-income-group" class="form-group hidden">
+                    <div id="other-income-group" class="form-group hidden"><div class="tooltip-wrapper">
                         <label>その他収入金額</label>
+                        <div class="tooltip-container">
+                                <span class="tooltip-icon">!</span>
+                                <div class="tooltip-text">令和7年1月1日～12月31日の間の収入を記載してください。</div>
+                            </div>
+                        </div>
                         <div class="yen-input-wrapper"><input type="text" name="other_income_amount" class="currency-input" inputmode="numeric"></div>
                     </div>
                 </fieldset>
@@ -371,7 +384,13 @@
                         <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('spouse', this)"> 本人と住所が同じ</label></div>
                         <div class="form-group"><label>住所1</label><input type="text" id="spouse_address1" name="spouse_address1"></div>
                         <div class="form-group"><label>住所2</label><input type="text" id="spouse_address2" name="spouse_address2"></div>
-                        <div class="form-group"><label>収入金額</label><div class="yen-input-wrapper"><input type="text" name="spouse_income_amount" class="currency-input" inputmode="numeric"></div></div>
+                        <div class="form-group"><div class="tooltip-wrapper"><label>収入金額</label>
+                        	<div class="tooltip-container">
+                                <span class="tooltip-icon">!</span>
+                                <div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>給与収入の場合は総支給額から非課税交通費を除いた金額です。</div>
+                            </div>
+                        </div>
+                        	<div class="yen-input-wrapper"><input type="text" name="spouse_income_amount" class="currency-input" inputmode="numeric"></div></div>
                         <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="spouse_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="spouse_severance_pay_existence" value="なし" checked>なし</label></div></div>
                         <div class="form-group"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="spouse_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
                         <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="spouse_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'spouse-disability-file-group')"> あり</label><label><input type="radio" name="spouse_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'spouse-disability-file-group')" checked> なし</label></div></div>
@@ -412,7 +431,13 @@
                                 <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('dependent_${i + 1}', this)"> 本人と住所が同じ</label></div>
                                 <div class="form-group"><label>住所1</label><input type="text" id="dependent_${i + 1}_address1" name="dependent_${i + 1}_address1"></div>
                                 <div class="form-group"><label>住所2</label><input type="text" id="dependent_${i + 1}_address2" name="dependent_${i + 1}_address2"></div>
-                                <div class="form-group"><label>収入金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_income_amount" class="currency-input" inputmode="numeric"></div></div>
+                                <div class="form-group"><div class="tooltip-wrapper"><label>収入金額</label>
+                                	<div class="tooltip-container">
+                                		<span class="tooltip-icon">!</span>
+                                		<div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>給与収入の場合は総支給額から非課税交通費を除いた金額です。</div>
+                            		</div>
+                            	</div>
+                                	<div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_income_amount" class="currency-input" inputmode="numeric"></div></div>
                                 <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="なし" checked>なし</label></div></div>
                                 <div class="form-group"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
                                 <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')"> あり</label><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')" checked> なし</label></div></div>
@@ -426,9 +451,24 @@
                     <div class="fieldset-title">本人該当項目</div>
                     <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="user_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'user-disability-file-group')"> あり</label><label><input type="radio" name="user_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'user-disability-file-group')" checked> なし</label></div></div>
                     <div id="user-disability-file-group" class="form-group hidden"><label>障害者手帳</label><input type="file" name="user_disability_certificate_file" multiple></div>
-                    <div class="form-group"><label>寡婦該当確認</label><div class="radio-group"><label><input type="radio" name="widow_status" value="該当">該当</label><label><input type="radio" name="widow_status" value="非該当" checked>非該当</label></div></div>
-                    <div class="form-group"><label>ひとり親該当確認</label><div class="radio-group"><label><input type="radio" name="single_parent_status" value="該当">該当</label><label><input type="radio" name="single_parent_status" value="非該当" checked>非該当</label></div></div>
-                    <div class="form-group"><label>勤労学生該当確認</label><div class="radio-group"><label><input type="radio" name="working_student_status" value="該当" onchange="toggleSection(this.value === '該当', 'student-card-group')">該当</label><label><input type="radio" name="working_student_status" value="非該当" onchange="toggleSection(this.value === '該当', 'student-card-group')" checked>非該当</label></div></div>
+                    <div class="form-group"><div class="tooltip-wrapper"><label>寡婦該当確認</label>
+                    	<div class="tooltip-container">
+                        	<span class="tooltip-icon">!</span>
+                            <div class="tooltip-text">ひとり親に該当しない女性で、下記のいずれかに該当する場合は該当を選択してください。<br>・夫と離婚後に再婚しておらず、子以外の扶養親族がいる場合<br>・夫と死別後に再婚していない場合</div>
+                        </div></div>
+                    	<div class="radio-group"><label><input type="radio" name="widow_status" value="該当">該当</label><label><input type="radio" name="widow_status" value="非該当" checked>非該当</label></div></div>
+                    <div class="form-group"><div class="tooltip-wrapper"><label>ひとり親該当確認</label>
+                    	<div class="tooltip-container">
+                        	<span class="tooltip-icon">!</span>
+                            <div class="tooltip-text">現在、事実婚を含む婚姻されていない方で、生計を一にする子がいる場合は該当を選択してください。</div>
+                        </div></div>
+                    	<div class="radio-group"><label><input type="radio" name="single_parent_status" value="該当">該当</label><label><input type="radio" name="single_parent_status" value="非該当" checked>非該当</label></div></div>
+                    <div class="form-group"><div class="tooltip-wrapper"><label>勤労学生該当確認</label>
+                    	<div class="tooltip-container">
+                        	<span class="tooltip-icon">!</span>
+                            <div class="tooltip-text">学生の方で令和7年(2025年)中の収入金額が130万円以下の場合は該当を選択し、学生証をアップロードしてください。</div>
+                        </div></div>
+                    	<div class="radio-group"><label><input type="radio" name="working_student_status" value="該当" onchange="toggleSection(this.value === '該当', 'student-card-group')">該当</label><label><input type="radio" name="working_student_status" value="非該当" onchange="toggleSection(this.value === '該当', 'student-card-group')" checked>非該当</label></div></div>
                     <div id="student-card-group" class="form-group hidden"><label>勤労学生_学生証</label><input type="file" name="student_card_file"></div>
                     <div class="form-group"><label>災害者該当確認</label><div class="radio-group"><label><input type="radio" name="disaster_status" value="該当">該当</label><label><input type="radio" name="disaster_status" value="非該当" checked>非該当</label></div></div>
                     <div class="form-group"><label>外国人該当確認</label><div class="radio-group"><label><input type="radio" name="foreigner_status" value="該当">該当</label><label><input type="radio" name="foreigner_status" value="非該当" checked>非該当</label></div></div>
@@ -436,15 +476,33 @@
                 <fieldset>
                     <div class="fieldset-title">各種控除</div>
                     <div class="form-group"><label>生命保険料控除有無</label><div class="radio-group"><label><input type="radio" name="life_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'life-insurance-group')">あり</label><label><input type="radio" name="life_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'life-insurance-group')" checked>なし</label></div></div>
-                    <div id="life-insurance-group" class="form-group hidden"><label>生命保険料_控除証明書</label><input type="file" name="life_insurance_file" multiple></div>
+                    <div id="life-insurance-group" class="form-group hidden"><label>生命保険料_控除証明書</label><input type="file" name="life_insurance_file" multiple>
+                    	<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※複数ある場合は、すべてアップロードしてください。</p></div>
                     <div class="form-group"><label>地震保険料控除有無</label><div class="radio-group"><label><input type="radio" name="earthquake_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'earthquake-insurance-group')">あり</label><label><input type="radio" name="earthquake_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'earthquake-insurance-group')" checked>なし</label></div></div>
-                    <div id="earthquake-insurance-group" class="form-group hidden"><label>地震保険料_控除証明書</label><input type="file" name="earthquake_insurance_file" multiple></div>
-                    <div class="form-group"><label>社会保険料控除有無</label><div class="radio-group"><label><input type="radio" name="social_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')">あり</label><label><input type="radio" name="social_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')" checked>なし</label></div></div>
-                    <div id="social-insurance-group" class="form-group hidden"><label>社会保険料_控除証明書</label><input type="file" name="social_insurance_file" multiple></div>
-                    <div class="form-group"><label>小規模企業共済掛金等控除有無</label><div class="radio-group"><label><input type="radio" name="small_business_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'small-business-group')">あり</label><label><input type="radio" name="small_business_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'small-business-group')" checked>なし</label></div></div>
-                    <div id="small-business-group" class="form-group hidden"><label>小規模企業共済掛金等_控除証明書</label><input type="file" name="small_business_file" multiple></div>
+                    <div id="earthquake-insurance-group" class="form-group hidden"><label>地震保険料_控除証明書</label><input type="file" name="earthquake_insurance_file" multiple>
+                    	<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※複数ある場合は、すべてアップロードしてください。</p></div>
+                    <div class="form-group"><div class="tooltip-wrapper"><label>社会保険料控除有無</label>
+                    	<div class="tooltip-container">
+                                <span class="tooltip-icon">!</span>
+                                <div class="tooltip-text">ご自身でお支払いされた国民健康保険料、国民年金保険料が対象です。<br>給与から控除されている健康保険料や厚生年金は含みません。</div>
+                            </div>
+                        </div>
+                    	<div class="radio-group"><label><input type="radio" name="social_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')">あり</label><label><input type="radio" name="social_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')" checked>なし</label></div></div>                    
+                    <div id="social-insurance-group" class="form-group hidden"><label>社会保険料_控除証明書</label><input type="file" name="social_insurance_file" multiple>
+                    	<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※複数ある場合は、すべてアップロードしてください。</p></div>
+                    <div class="form-group"> <div class="tooltip-wrapper"><label>小規模企業共済掛金等控除有無</label>
+                    	<div class="tooltip-container">
+                                <span class="tooltip-icon">!</span>
+                                <div class="tooltip-text">・中小企業基盤整備機構の共済契約の掛金<br>・企業型年金加入者掛金<br>・個人型年金加入者掛金<br>・心身障害者扶養共済制度に関する契約の掛金</div>
+                            </div>
+                        </div>
+                    	<div class="radio-group"><label><input type="radio" name="small_business_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'small-business-group')">あり</label><label><input type="radio" name="small_business_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'small-business-group')" checked>なし</label></div></div>
+                    <div id="small-business-group" class="form-group hidden"><label>小規模企業共済掛金等_控除証明書</label><input type="file" name="small_business_file" multiple>
+                    	<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※複数ある場合は、すべてアップロードしてください。</p></div>
                     <div class="form-group"><label>住宅ローン控除有無</label><div class="radio-group"><label><input type="radio" name="housing_loan_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'housing-loan-group')">あり</label><label><input type="radio" name="housing_loan_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'housing-loan-group')" checked>なし</label></div></div>
-                    <div id="housing-loan-group" class="form-group hidden"><label>住宅ローン_申告書・証明書</label><input type="file" name="housing_loan_file" multiple></div>
+                    <div id="housing-loan-group" class="form-group hidden"><label>住宅ローン_申告書・証明書</label><input type="file" name="housing_loan_file" multiple>
+                    	<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※令和7年分の「給与所得者の(特定増改築等)住宅借入金等特別控除申告書」と「住宅取得資金に係る借入金の年末残高等証明書」をアップロードしてください。</p>
+                    	<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※「住宅取得資金に係る借入金の年末残高等証明書」が複数ある場合はすべてアップロードしてください。</p></div>
                 </fieldset>
             `;
         }
