@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>年末調整情報 提出フォーム</title>
+    
+    <link rel="icon" href="./favicon.jpg" type="image/jpeg">
+    <link rel="apple-touch-icon" href="./mark-color.jpg
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f4f4f4; }
         h1 { color: #2c3e50; text-align: center; }
@@ -45,7 +48,7 @@
         .yen-input-wrapper::after { content: '円'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #555; pointer-events: none; }
 
         .tooltip-wrapper {
-            display: inline-flex;
+            display: flex;
             align-items: baseline;
             gap: 10px;
         }
@@ -99,6 +102,28 @@
             visibility: visible;
             opacity: 1;
         }
+        
+        .form-group-ssmall input,
+        .form-group-ssmall select {
+            max-width: 100px;
+        }
+        .form-group-small .yen-input-wrapper {
+            display: block; 
+            max-width: 200px;
+        }
+        .form-group-small input,
+        .form-group-small select{
+            max-width: 200px;
+        }
+        .form-group-medium input,
+        .form-group-medium select {
+            max-width: 400px;
+        }
+        .form-group-large input,
+        .form-group-large select {
+            max-width: 500px;
+        }
+        
 
         @media (max-width: 600px) {
             body { padding: 0 10px; }
@@ -128,8 +153,8 @@
 
             <fieldset>
                 <div class="fieldset-title">ご本人情報</div>
-                <div class="form-group"><label>会社名</label><input type="text" name="company_name" required></div>
-                <div class="form-group"><label>メールアドレス</label><input type="email" name="email_address" required></div>
+                <div class="form-group form-group-medium"><label>会社名</label><input type="text" name="company_name" required></div>
+                <div class="form-group form-group-medium"><label>メールアドレス</label><input type="email" name="email_address" required></div>
                 <div class="form-row">
                     <div><label>姓</label><input type="text" id="name_last" name="last_name" required></div>
                     <div><label>名</label><input type="text" id="name_first" name="first_name" required></div>
@@ -148,27 +173,29 @@
                     </div>
                     <input type="hidden" name="birth_date">
                 </div>
-                <div class="form-group"><div class="tooltip-wrapper">
-                    <label>郵便番号</label>
-                    <div class="tooltip-container">
-                    	<span class="tooltip-icon">!</span>
-                        <div class="tooltip-text">住民票住所を記載してください</div>
-                     </div></div>
-                    <input type="text" name="postal_code" class="p-postal-code" placeholder="例: 1600022 (ハイフンなし)" required>
-                </div>
-                <div class="form-group">
+                <div class="form-group form-group-small">
+    				<div class="tooltip-wrapper">
+        				<label>郵便番号</label>
+        				<div class="tooltip-container">
+            				<span class="tooltip-icon">!</span>
+            				<div class="tooltip-text">住民票住所を記載してください</div>
+        				</div>
+    				</div>
+   					 <input type="text" name="postal_code" class="p-postal-code" placeholder="例: 1600022 (ハイフンなし)" required>
+				</div>
+                <div class="form-group form-group-large">
                     <label>住所1（市区町村、番地）</label>
                     <input type="text" id="address1" name="address1" class="p-region p-locality p-street-address" placeholder="例: 東京都新宿区新宿4-3-17" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group form-group-large">
                     <label>住所2（建物名、部屋番号など）</label>
                     <input type="text" id="address2" name="address2" placeholder="例: FORECAST新宿SOUTH">
                 </div>
-                <div class="form-group">
+                <div class="form-group form-group-medium">
                     <label>世帯主の氏名</label>
                     <input type="text" name="householder_name">
                 </div>
-                <div class="form-group">
+                <div class="form-group form-group-ssmall">
                     <label>世帯主の続柄</label>
                     <select name="dependent_${i + 1}_relationship">
                     	<option value=""></option>
@@ -354,7 +381,7 @@
                             <label><input type="radio" name="other_income_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'other-income-group')" checked> なし</label>
                         </div>
                     </div>
-                    <div id="other-income-group" class="form-group hidden"><div class="tooltip-wrapper">
+                    <div id="other-income-group" class="form-group form-group-small hidden"><div class="tooltip-wrapper">
                         <label>その他収入金額</label>
                         <div class="tooltip-container">
                                 <span class="tooltip-icon">!</span>
@@ -366,7 +393,7 @@
                 </fieldset>
                 <fieldset>
                     <div class="fieldset-title">住民税</div>
-                    <div class="form-group"><label>住民税徴収方法</label><select name="resident_tax"><option value="特別徴収">特別徴収</option><option value="普通徴収">普通徴収</option></select></div>
+                    <div class="form-group form-group-small"><label>住民税徴収方法</label><select name="resident_tax"><option value="特別徴収">特別徴収</option><option value="普通徴収">普通徴収</option></select></div>
                 </fieldset>
                 <fieldset>
                     <div class="fieldset-title">配偶者情報</div>
@@ -382,9 +409,9 @@
                         </div>
                         <div class="form-group"><label>生年月日</label><div class="date-select-group" data-prefix="spouse"><select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span></div><input type="hidden" name="spouse_birth_date"></div>
                         <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('spouse', this)"> 本人と住所が同じ</label></div>
-                        <div class="form-group"><label>住所1</label><input type="text" id="spouse_address1" name="spouse_address1"></div>
-                        <div class="form-group"><label>住所2</label><input type="text" id="spouse_address2" name="spouse_address2"></div>
-                        <div class="form-group"><div class="tooltip-wrapper"><label>収入金額</label>
+                        <div class="form-group form-group-large"><label>住所1</label><input type="text" id="spouse_address1" name="spouse_address1"></div>
+                        <div class="form-group form-group-large"><label>住所2</label><input type="text" id="spouse_address2" name="spouse_address2"></div>
+                        <div class="form-group form-group-small"><div class="tooltip-wrapper"><label>収入金額</label>
                         	<div class="tooltip-container">
                                 <span class="tooltip-icon">!</span>
                                 <div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>給与収入の場合は総支給額から非課税交通費を除いた金額です。</div>
@@ -392,7 +419,7 @@
                         </div>
                         	<div class="yen-input-wrapper"><input type="text" name="spouse_income_amount" class="currency-input" inputmode="numeric"></div></div>
                         <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="spouse_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="spouse_severance_pay_existence" value="なし" checked>なし</label></div></div>
-                        <div class="form-group"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="spouse_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
+                        <div class="form-group form-group-small"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="spouse_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
                         <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="spouse_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'spouse-disability-file-group')"> あり</label><label><input type="radio" name="spouse_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'spouse-disability-file-group')" checked> なし</label></div></div>
                         <div id="spouse-disability-file-group" class="form-group hidden"><label>障害者手帳</label><input type="file" name="spouse_disability_certificate_file" multiple></div>
                     </div>
@@ -415,12 +442,11 @@
                                     <div><label>姓フリガナ</label><input type="text" id="dependent_${i + 1}_kana_last" name="dependent_${i + 1}_last_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
                                     <div><label>名フリガナ</label><input type="text" id="dependent_${i + 1}_kana_first" name="dependent_${i + 1}_first_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group form-group-ssmall">
                                     <label>続柄</label>
                                     <select name="dependent_${i + 1}_relationship">
                                         <option value=""></option>
-                                        <option value="妻">妻</option><option value="夫">夫</option><option value="子">子</option>
-                                        <option value="実父">実父</option><option value="実母">実母</option><option value="義父">義父</option>
+                                        <option value="子">子</option><option value="実父">実父</option><option value="実母">実母</option><option value="義父">義父</option>
                                         <option value="義母">義母</option><option value="祖父">祖父</option><option value="祖母">祖母</option>
                                         <option value="孫">孫</option><option value="兄">兄</option><option value="姉">姉</option>
                                         <option value="弟">弟</option><option value="妹">妹</option><option value="叔父">叔父</option>
@@ -429,9 +455,9 @@
                                 </div>
                                 <div class="form-group"><label>生年月日</label><div class="date-select-group" data-prefix="dependent_${i + 1}"><select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span></div><input type="hidden" name="dependent_${i + 1}_birth_date"></div>
                                 <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('dependent_${i + 1}', this)"> 本人と住所が同じ</label></div>
-                                <div class="form-group"><label>住所1</label><input type="text" id="dependent_${i + 1}_address1" name="dependent_${i + 1}_address1"></div>
-                                <div class="form-group"><label>住所2</label><input type="text" id="dependent_${i + 1}_address2" name="dependent_${i + 1}_address2"></div>
-                                <div class="form-group"><div class="tooltip-wrapper"><label>収入金額</label>
+                                <div class="form-group form-group-large"><label>住所1</label><input type="text" id="dependent_${i + 1}_address1" name="dependent_${i + 1}_address1"></div>
+                                <div class="form-group form-group-large"><label>住所2</label><input type="text" id="dependent_${i + 1}_address2" name="dependent_${i + 1}_address2"></div>
+                                <div class="form-group form-group-small"><div class="tooltip-wrapper"><label>収入金額</label>
                                 	<div class="tooltip-container">
                                 		<span class="tooltip-icon">!</span>
                                 		<div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>給与収入の場合は総支給額から非課税交通費を除いた金額です。</div>
@@ -439,7 +465,7 @@
                             	</div>
                                 	<div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_income_amount" class="currency-input" inputmode="numeric"></div></div>
                                 <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="なし" checked>なし</label></div></div>
-                                <div class="form-group"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
+                                <div class="form-group form-group-small"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
                                 <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')"> あり</label><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')" checked> なし</label></div></div>
                                 <div id="dependent-${i + 1}-disability-file-group" class="form-group hidden"><label>障害者手帳</label><input type="file" name="dependent_${i + 1}_disability_certificate_file" multiple></div>
                             </fieldset>
