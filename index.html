@@ -7,33 +7,20 @@
     
     <link rel="icon" href="./favicon.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="./favicon.jpg">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f4f4f4; }
         h1 { color: #2c3e50; text-align: center; }
         .form-container, .confirm-container { background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        fieldset {
-            border: 1px solid #ddd;
-            padding: 20px;
-            padding-top: 30px; /* legendとの余白を確保 */
-            margin-bottom: 20px;
-            border-radius: 5px;
-            position: relative;
-        }
+        fieldset { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
         
-        legend {
+        .fieldset-title {
             font-weight: bold;
             color: #3498db;
             font-size: 1.2em;
-            padding: 0 10px;
-            margin-left: 10px;
-            width: auto;
-            border: none;
+            margin: -10px 0 20px 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: calc(100% - 20px);
         }
 
         .form-group, .form-row { margin-bottom: 20px; }
@@ -52,7 +39,7 @@
         #confirm-back-btn { background-color: #95a5a6; }
         .btn-remove { background-color: #e74c3c; font-size: 12px; padding: 4px 10px; }
         .btn-remove:hover { background-color: #c0392b; }
-        
+        #loading, #complete { text-align: center; padding: 40px; }
         #confirm-table { width: 100%; border-collapse: collapse; }
         #confirm-table th, #confirm-table td { border: 1px solid #ddd; padding: 12px; text-align: left; word-break: break-all; }
         #confirm-table th { background-color: #ecf0f1; width: 35%; }
@@ -136,54 +123,8 @@
         .form-group-large select {
             max-width: 500px;
         }
-
-        /* --- ローディング画面と完了画面のスタイル --- */
-        #loading, #complete {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        #loading {
-            background-color: rgba(255, 255, 255, 0.9);
-        }
-        #complete {
-            background-color: #f1f5f9; /* Tailwindのbg-slate-100 */
-        }
-        .fly {
-            animation: fly 1.5s ease-in-out infinite;
-        }
-        @keyframes fly {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-        .trail span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: currentColor;
-            opacity: 0;
-            animation: trail 1.5s linear infinite;
-        }
-        .trail span:nth-child(1) { animation-delay: -0.1s; }
-        .trail span:nth-child(2) { animation-delay: -0.2s; }
-        .trail span:nth-child(3) { animation-delay: -0.3s; }
-        .trail span:nth-child(4) { animation-delay: -0.4s; }
-        .trail span:nth-child(5) { animation-delay: -0.5s; }
-        @keyframes trail {
-            0% { transform: translateX(20px) scale(0.5); opacity: 0; }
-            50% { transform: translateX(0) scale(1); opacity: 1; }
-            100% { transform: translateX(-80px) scale(0.5); opacity: 0; }
-        }
         
+
         @media (max-width: 600px) {
             body { padding: 0 10px; }
             h1 { font-size: 1.8em; }
@@ -211,7 +152,7 @@
             <span class="p-country-name" style="display:none;">Japan</span>
 
             <fieldset>
-                <legend>ご本人情報</legend>
+                <div class="fieldset-title">ご本人情報</div>
                 <div class="form-group form-group-medium"><label>事業者名</label><input type="text" name="company_name" required></div>
                 <div class="form-group form-group-medium"><label>メールアドレス</label><input type="email" name="email_address" required></div>
                 <div class="form-row">
@@ -240,7 +181,7 @@
     					<div class="tooltip-text">令和7年12月31日時点の住民票住所を記載してください</div>
     				</div>
 				</div>
-					 <input type="text" name="postal_code" class="p-postal-code" placeholder="例: 1600022 (ハイフンなし)" required>
+					 <input type="text" name="postal_code" class="p-postal-code" placeholder="例: 1600022" required>
 				</div>
                 <div class="form-group form-group-large">
                     <label>住所1（市区町村、番地）</label>
@@ -269,7 +210,7 @@
             </fieldset>
 
             <fieldset>
-                <legend>年末調整実施確認</legend>
+                <div class="fieldset-title">年末調整実施確認</div>
                 <div class="form-group">
                     <label>当社で年末調整をおこないますか？</label>
                     <div class="radio-group">
@@ -290,31 +231,12 @@
     </div>
 
     <div id="confirm-contents" class="confirm-container hidden"></div>
-    
-    <div id="loading" class="hidden">
-        <div class="flex flex-col items-center justify-center p-8 rounded-lg">
-            <div class="relative w-36 h-36 flex items-center justify-center">
-                <div>
-                    <img src="./mark-color.png" alt="送信中ロゴ" class="w-24 h-24 fly">
-                </div>
-                <div class="trail absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-cyan-400" aria-hidden="true">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </div>
-            <p class="mt-4 text-xl font-semibold text-slate-600 animate-pulse">送信しています...</p>
-            <p class="mt-2 text-sm text-slate-500">しばらくお待ちください</p>
-        </div>
-    </div>
-
+    <div id="loading" class="hidden"><p>送信しています</p></div>
     <div id="complete" class="hidden"></div>
     
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="./jquery.min.js"></script>
     <script src="https://yubinbango.github.io/yubinbango/yubinbango.js" charset="UTF-8"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.autokana/1.2.2/jquery.autokana.js"></script>
+    <script src="./jquery.autokana.js"></script>
     
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
@@ -436,60 +358,9 @@
         }
 
         function populateMainSections() {
-            let dependentsHtml = '';
-            for (let i = 0; i < MAX_DEPENDENTS; i++) {
-                dependentsHtml += `
-                    <fieldset id="dependent-group-${i + 1}" class="${i > 0 ? 'hidden' : ''}">
-                        <legend>
-                            <span>扶養親族 ${i + 1}</span>
-                            ${i > 0 ? `<button type="button" class="btn-remove" onclick="removeDependentField(${i + 1})">この親族を削除</button>` : ''}
-                        </legend>
-                        <div class="form-row">
-                            <div><label>姓</label><input type="text" id="dependent_${i + 1}_name_last" name="dependent_${i + 1}_last_name"></div>
-                            <div><label>名</label><input type="text" id="dependent_${i + 1}_name_first" name="dependent_${i + 1}_first_name"></div>
-                        </div>
-                        <div class="form-row">
-                            <div><label>姓フリガナ</label><input type="text" id="dependent_${i + 1}_kana_last" name="dependent_${i + 1}_last_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
-                            <div><label>名フリガナ</label><input type="text" id="dependent_${i + 1}_kana_first" name="dependent_${i + 1}_first_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
-                        </div>
-                        <div class="form-group form-group-ssmall">
-                            <label>続柄</label>
-                            <select name="dependent_${i + 1}_relationship">
-                                <option value=""></option>
-                                <option value="息子">息子</option><option value="娘">娘</option><option value="実父">実父</option><option value="実母">実母</option><option value="義父">義父</option>
-                                <option value="義母">義母</option><option value="祖父">祖父</option><option value="祖母">祖母</option>
-                                <option value="孫">孫</option><option value="兄">兄</option><option value="姉">姉</option>
-                                <option value="弟">弟</option><option value="妹">妹</option><option value="叔父">叔父</option>
-                                <option value="叔母">叔母</option><option value="甥">甥</option><option value="姪">姪</option>
-                            </select>
-                        </div>
-                        <div class="form-group"><label>生年月日</label><div class="date-select-group" data-prefix="dependent_${i + 1}"><select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span></div><input type="hidden" name="dependent_${i + 1}_birth_date"></div>
-                        <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('dependent_${i + 1}', this)"> 本人と住所が同じ</label></div>
-                        <div class="form-group form-group-large"><label>住所1</label><input type="text" id="dependent_${i + 1}_address1" name="dependent_${i + 1}_address1"></div>
-                        <div class="form-group form-group-large"><label>住所2</label><input type="text" id="dependent_${i + 1}_address2" name="dependent_${i + 1}_address2"></div>
-                        <div class="form-group form-group-small"><div class="tooltip-wrapper"><label>収入金額</label>
-                            <div class="tooltip-container">
-                                <span class="tooltip-icon">!</span>
-                                <div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>給与収入の場合は総支給額から非課税交通費を除いた金額です。</div>
-                            </div>
-                        </div>
-                            <div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_income_amount" class="currency-input" inputmode="numeric"></div></div>
-                        <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="なし" checked>なし</label></div></div>
-                        <div class="form-group form-group-small"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
-                        <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')"> あり</label><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')" checked> なし</label></div></div>
-                        <div id="dependent-${i + 1}-disability-file-group" class="form-group hidden">
-                            <label>障害者手帳</label>
-                            <input type="file" name="dependent_${i + 1}_disability_certificate_file" multiple>
-                            <label style="margin-top:15px;">備考</label>
-                            <textarea name="dependent_${i + 1}_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、等級」をご記入ください"></textarea>
-                        </div>
-                    </fieldset>
-                `;
-            }
-
             mainSectionsContainer.innerHTML = `
                 <fieldset>
-					<legend>令和7年(2025年)に入社された方</legend>
+					<div class="fieldset-title">令和7年(2025年)に入社された方</div>
 					<div class="form-group">
 						<label>令和7年(2025年)中に退職した勤務先はありますか？</label>
 						<div class="radio-group">
@@ -501,7 +372,7 @@
 						<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※令和7年(2025年)中に退職した勤務先が複数ある場合は、すべての勤務先の源泉徴収票をアップロードしてください。</p></div>
 				</fieldset>
                 <fieldset>
-                    <legend>その他収入について</legend>
+                    <div class="fieldset-title">その他収入について</div>
                     <div class="form-group">
                             <label>給与収入以外の収入がある場合は「あり」を選択してください。</label>
                             <p style="font-size: 0.8em; color: #555; margin-top: 5px;">※例：公的年金、不動産収入、原稿料など<br> ※国や自治体から支給される手当や給付金は収入には含みません。</p>
@@ -521,7 +392,7 @@
                     </div>
                 </fieldset>
                 <fieldset>
-                    <legend>住民税</legend>
+                    <div class="fieldset-title">住民税</div>
                     <div class="form-group form-group-small"><label>住民税徴収方法</label>
                     	<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※原則、特別徴収を選択してください。</p></div>
                     	<div class="radio-group">
@@ -530,7 +401,7 @@
                         </div>
                 </fieldset>
                 <fieldset>
-                    <legend>配偶者情報</legend>
+                    <div class="fieldset-title">配偶者情報</div>
                     <div class="form-group"><label>配偶者有無</label><div class="radio-group"><label><input type="radio" name="spouse_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'spouse-group')"> あり</label><label><input type="radio" name="spouse_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'spouse-group')" checked> なし</label></div></div>
                     <div id="spouse-group" class="hidden">
                         <div class="form-row">
@@ -563,17 +434,62 @@
                         </div>
                     </div>
                 </fieldset>
-
                 <fieldset>
-                    <legend>扶養親族情報</legend>
+                    <div class="fieldset-title">扶養親族情報</div>
                     <div class="form-group"><label>扶養親族有無</label><div class="radio-group"><label><input type="radio" name="dependents_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'dependents-section')"> あり</label><label><input type="radio" name="dependents_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'dependents-section')" checked> なし</label></div></div>
+                    <div id="dependents-section" class="hidden">
+                        ${[...Array(MAX_DEPENDENTS)].map((_, i) => `
+                            <fieldset id="dependent-group-${i + 1}" class="${i > 0 ? 'hidden' : ''}">
+                                <div class="fieldset-title">
+                                    <span>扶養親族 ${i + 1}</span>
+                                    ${i > 0 ? `<button type="button" class="btn-remove" onclick="removeDependentField(${i + 1})">この親族を削除</button>` : ''}
+                                </div>
+                                <div class="form-row">
+                                    <div><label>姓</label><input type="text" id="dependent_${i + 1}_name_last" name="dependent_${i + 1}_last_name"></div>
+                                    <div><label>名</label><input type="text" id="dependent_${i + 1}_name_first" name="dependent_${i + 1}_first_name"></div>
+                                </div>
+                                <div class="form-row">
+                                    <div><label>姓フリガナ</label><input type="text" id="dependent_${i + 1}_kana_last" name="dependent_${i + 1}_last_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
+                                    <div><label>名フリガナ</label><input type="text" id="dependent_${i + 1}_kana_first" name="dependent_${i + 1}_first_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
+                                </div>
+                                <div class="form-group form-group-ssmall">
+                                    <label>続柄</label>
+                                    <select name="dependent_${i + 1}_relationship">
+                                        <option value=""></option>
+                                        <option value="息子">息子</option><option value="娘">娘</option><option value="実父">実父</option><option value="実母">実母</option><option value="義父">義父</option>
+                                        <option value="義母">義母</option><option value="祖父">祖父</option><option value="祖母">祖母</option>
+                                        <option value="孫">孫</option><option value="兄">兄</option><option value="姉">姉</option>
+                                        <option value="弟">弟</option><option value="妹">妹</option><option value="叔父">叔父</option>
+                                        <option value="叔母">叔母</option><option value="甥">甥</option><option value="姪">姪</option>
+                                    </select>
+                                </div>
+                                <div class="form-group"><label>生年月日</label><div class="date-select-group" data-prefix="dependent_${i + 1}"><select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span></div><input type="hidden" name="dependent_${i + 1}_birth_date"></div>
+                                <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('dependent_${i + 1}', this)"> 本人と住所が同じ</label></div>
+                                <div class="form-group form-group-large"><label>住所1</label><input type="text" id="dependent_${i + 1}_address1" name="dependent_${i + 1}_address1"></div>
+                                <div class="form-group form-group-large"><label>住所2</label><input type="text" id="dependent_${i + 1}_address2" name="dependent_${i + 1}_address2"></div>
+                                <div class="form-group form-group-small"><div class="tooltip-wrapper"><label>収入金額</label>
+                                	<div class="tooltip-container">
+                                		<span class="tooltip-icon">!</span>
+                                		<div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>給与収入の場合は総支給額から非課税交通費を除いた金額です。</div>
+                            		</div>
+                            	</div>
+                                	<div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_income_amount" class="currency-input" inputmode="numeric"></div></div>
+                                <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="なし" checked>なし</label></div></div>
+                                <div class="form-group form-group-small"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
+                                <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')"> あり</label><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')" checked> なし</label></div></div>
+                                <div id="dependent-${i + 1}-disability-file-group" class="form-group hidden">
+                                    <label>障害者手帳</label>
+                                    <input type="file" name="dependent_${i + 1}_disability_certificate_file" multiple>
+                                    <label style="margin-top:15px;">備考</label>
+                                    <textarea name="dependent_${i + 1}_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、等級」をご記入ください"></textarea>
+                                </div>
+                            </fieldset>
+                        `).join('')}
+                        <div class="btn-container"><button type="button" id="add-dependent-btn" onclick="addDependentField()">＋ 扶養親族を追加</button></div>
+                    </div>
                 </fieldset>
-                <div id="dependents-section" class="hidden">
-                    ${dependentsHtml}
-                    <div class="btn-container"><button type="button" id="add-dependent-btn" onclick="addDependentField()">＋ 扶養親族を追加</button></div>
-                </div>
                 <fieldset>
-                    <legend>本人該当項目</legend>
+                    <div class="fieldset-title">本人該当項目</div>
                     <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="user_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'user-disability-file-group')"> あり</label><label><input type="radio" name="user_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'user-disability-file-group')" checked> なし</label></div></div>
                     <div id="user-disability-file-group" class="form-group hidden">
                         <label>障害者手帳</label>
@@ -600,15 +516,10 @@
                         </div></div>
                     	<div class="radio-group"><label><input type="radio" name="working_student_status" value="該当" onchange="toggleSection(this.value === '該当', 'student-card-group')">該当</label><label><input type="radio" name="working_student_status" value="非該当" onchange="toggleSection(this.value === '該当', 'student-card-group')" checked>非該当</label></div></div>
                     <div id="student-card-group" class="form-group hidden"><label>勤労学生_学生証</label><input type="file" name="student_card_file"></div>
-                    <div class="form-group"><div class="tooltip-wrapper"><label>災害者該当確認</label>
-                    	<div class="tooltip-container">
-                        	<span class="tooltip-icon">!</span>
-                            <div class="tooltip-text">災害によって住宅や家財に損害を受けた方で、下記3つを満たす場合は該当を選択してください。<br>①災害のあった年分の所得金額が1,000万円以下<br>②災害によって受けた損害額が住宅または家財の1/2の価値<br>③雑損控除の適用をうけない</div>
-                        </div></div>
-                    	<div class="radio-group"><label><input type="radio" name="disaster_status" value="該当">該当</label><label><input type="radio" name="disaster_status" value="非該当" checked>非該当</label></div></div>
+                    <div class="form-group"><label>災害者該当確認</label><div class="radio-group"><label><input type="radio" name="disaster_status" value="該当">該当</label><label><input type="radio" name="disaster_status" value="非該当" checked>非該当</label></div></div>
                 </fieldset>
                 <fieldset>
-                    <legend>各種控除</legend>
+                    <div class="fieldset-title">各種控除</div>
                     <div class="form-group"><label>生命保険料控除有無</label><div class="radio-group"><label><input type="radio" name="life_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'life-insurance-group')">あり</label><label><input type="radio" name="life_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'life-insurance-group')" checked>なし</label></div></div>
                     <div id="life-insurance-group" class="form-group hidden"><label>生命保険料_控除証明書</label><input type="file" name="life_insurance_file" multiple>
                     	<p style="font-size: 0.8em; color: #555; margin-top: 5px;">※複数ある場合は、すべてアップロードしてください。</p></div>
@@ -621,7 +532,7 @@
                                 <div class="tooltip-text">ご自身でお支払いされた国民健康保険料、国民年金保険料が対象です。<br>給与から控除されている健康保険料や厚生年金は含みません。</div>
                             </div>
                         </div>
-                    	<div class="radio-group"><label><input type="radio" name="social_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')">あり</label><label><input type="radio" name="social_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')" checked>なし</label></div></div>
+                    	<div class="radio-group"><label><input type="radio" name="social_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')">あり</label><label><input type="radio" name="social_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')" checked>なし</label></div></div>                        
                     <div id="social-insurance-group" class="hidden" style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
                         <div class="form-group">
                             <label style="font-size: 1.1em; color: #333;">国民健康保険料</label>
@@ -826,8 +737,8 @@
                         ];
                         dependentFields.forEach(([name, label]) => {
                              if (name.endsWith('_file') || name.endsWith('_remarks')) {
-                                 if (formData.get(`dependent_${i}_disability_certificate_existence`) !== 'あり') return;
-                             }
+                                if (formData.get(`dependent_${i}_disability_certificate_existence`) !== 'あり') return;
+                            }
                             const value = getDisplayValue(name);
                             if (value !== null) {
                                 addRow(label, value);
@@ -909,48 +820,7 @@
                 
                 loading.classList.add('hidden');
                 if (result.result === 'success') {
-                    complete.innerHTML = `
-                    <div class="w-full max-w-2xl bg-white rounded-lg shadow-lg p-8">
-                        <div class="text-center">
-                            <i class="fas fa-check-circle text-5xl text-green-500 mb-4"></i>
-                            <h2 class="text-2xl font-bold text-slate-800">ご提出ありがとうございます</h2>
-                            <p class="text-slate-600 mt-2">年末調整情報の送信が完了しました。</p>
-                            <div class="bg-slate-50 p-3 rounded-md mt-4 text-sm text-slate-700">
-                                <p><span class="font-semibold">回答ID:</span> ${result.submissionId}</p>
-                                <p class="mt-1 text-xs text-slate-500">このIDは回答内容の確認に必要ですので、大切に保管してください。</p>
-                            </div>
-                        </div>
-        
-                        <hr class="my-8 border-slate-200">
-        
-                        <div>
-                            <div class="mb-6 text-center">
-                                <img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 ロゴ" class="h-12 mx-auto">
-                            </div>
-                            <p class="text-slate-600 mb-4">
-                                ご提出いただいた情報は、<span class="font-semibold text-blue-600">「スタートアップ税理士法人」</span>が年末調整手続きを代行するために利用します。
-                            </p>
-                            <ul class="space-y-3 text-slate-600">
-                                <li class="flex items-start">
-                                    <i class="fas fa-user-check text-blue-500 mt-1 mr-3 fa-fw"></i>
-                                    <span>税務の専門家が、提出内容を責任をもって確認いたします。</span>
-                                </li>
-                                <li class="flex items-start">
-                                    <i class="fas fa-file-signature text-blue-500 mt-1 mr-3 fa-fw"></i>
-                                    <span>内容確認後、法令に基づき行政機関への適切な手続きを行います。</span>
-                                </li>
-                            </ul>
-                            <div class="mt-6 p-4 bg-slate-50 rounded-lg flex items-start">
-                                <i class="fas fa-shield-halved text-slate-500 mt-1 mr-3 fa-fw"></i>
-                                <div>
-                                    <h4 class="font-semibold text-slate-700">個人情報の取り扱いについて</h4>
-                                    <p class="text-sm text-slate-600 mt-1">
-                                        お預かりした個人情報は、個人情報保護法に則り厳重に管理し、年末調整の目的以外では一切使用いたしません。
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
+                    complete.innerHTML = `<h2>送信が完了しました</h2><p>ご回答ありがとうございました。</p><p><strong>回答ID: ${result.submissionId}</strong></p><p>このIDは回答内容の確認に必要ですので、大切に保管してください。</p>`;
                     complete.classList.remove('hidden');
                 } else {
                     alert(`送信に失敗しました: ${result.message}`);
