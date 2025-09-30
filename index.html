@@ -30,16 +30,86 @@
         input[type="text"], input[type="email"], input[type="file"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit; font-size: inherit; }
         input[readonly] { background-color: #e9e9e9; }
         .radio-group label, .checkbox-group label { display: inline-block; margin-right: 15px; font-weight: normal; }
-        .hidden { display: none; }
+        .hidden { display: none; } /* 初期非表示のために残します */
         .date-select-group { display: flex; gap: 10px; align-items: center; }
         .date-select-group select { flex-grow: 1; }
         .btn-container { text-align: center; margin-top: 30px; }
-        button { background-color: #3498db; color: white; padding: 12px 25px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button { background-color: #3498db; color: white; padding: 12px 25px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s; }
         button:hover { background-color: #2980b9; }
         #confirm-back-btn { background-color: #95a5a6; }
         .btn-remove { background-color: #e74c3c; font-size: 12px; padding: 4px 10px; }
         .btn-remove:hover { background-color: #c0392b; }
-        #loading, #complete { text-align: center; padding: 40px; }
+        
+        /* --- ▼ ここからローディングと完了画面のスタイル ▼ --- */
+        #loading {
+            /* 修正: display: flex; はJSで制御するため削除 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.85);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+        
+        .loading-logo {
+            max-width: 120px;
+            margin-bottom: 20px;
+        }
+
+        #loading p {
+            color: #333;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        #loading p.sub-text {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .dots-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 40px;
+        }
+        .dots-loader div {
+            width: 15px;
+            height: 15px;
+            background-color: #3498db;
+            border-radius: 50%;
+            margin: 0 5px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .dots-loader .dot1 { animation-delay: -0.32s; }
+        .dots-loader .dot2 { animation-delay: -0.16s; }
+        .dots-loader .dot3 { animation-delay: 0s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+
+        #complete {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+            margin: 40px auto;
+        }
+        .complete-icon { color: #27ae60; margin-bottom: 20px; }
+        #complete h2 { color: #2c3e50; margin-bottom: 15px; }
+        #complete p { color: #34495e; line-height: 1.8; }
+        #complete p strong { background-color: #ecf0f1; padding: 5px 10px; border-radius: 4px; font-family: monospace; color: #c0392b; }
+        /* --- ▲ ここまで --- */
+
         #confirm-table { width: 100%; border-collapse: collapse; }
         #confirm-table th, #confirm-table td { border: 1px solid #ddd; padding: 12px; text-align: left; word-break: break-all; }
         #confirm-table th { background-color: #ecf0f1; width: 35%; }
@@ -47,82 +117,18 @@
         .yen-input-wrapper input { padding-right: 2em; text-align: right; }
         .yen-input-wrapper::after { content: '円'; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #555; pointer-events: none; }
 
-        .tooltip-wrapper {
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-        }
-        .tooltip-container {
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip-icon {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 20px;
-            height: 20px;
-            background-color: #bdc3c7;
-            color: white;
-            border-radius: 50%;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-            user-select: none;
-        }
-        .tooltip-text {
-            visibility: hidden;
-            opacity: 0;
-            width: 250px;
-            background-color: #34495e;
-            color: #fff;
-            text-align: left;
-            border-radius: 6px;
-            padding: 10px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -125px;
-            transition: opacity 0.3s;
-            font-size: 0.8em;
-        }
-        .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #34495e transparent transparent transparent;
-        }
-        .tooltip-container:hover .tooltip-text,
-        .tooltip-container.show .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
+        .tooltip-wrapper { display: flex; align-items: baseline; gap: 10px; }
+        .tooltip-container { position: relative; display: inline-block; }
+        .tooltip-icon { display: flex; justify-content: center; align-items: center; width: 20px; height: 20px; background-color: #bdc3c7; color: white; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 14px; user-select: none; }
+        .tooltip-text { visibility: hidden; opacity: 0; width: 250px; background-color: #34495e; color: #fff; text-align: left; border-radius: 6px; padding: 10px; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -125px; transition: opacity 0.3s; font-size: 0.8em; }
+        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #34495e transparent transparent transparent; }
+        .tooltip-container:hover .tooltip-text, .tooltip-container.show .tooltip-text { visibility: visible; opacity: 1; }
         
-        .form-group-ssmall input,
-        .form-group-ssmall select {
-            max-width: 100px;
-        }
-        .form-group-small .yen-input-wrapper {
-            display: block; 
-            max-width: 200px;
-        }
-        .form-group-small input,
-        .form-group-small select{
-            max-width: 200px;
-        }
-        .form-group-medium input,
-        .form-group-medium select {
-            max-width: 400px;
-        }
-        .form-group-large input,
-        .form-group-large select {
-            max-width: 500px;
-        }
+        .form-group-ssmall input, .form-group-ssmall select { max-width: 100px; }
+        .form-group-small .yen-input-wrapper { display: block;  max-width: 200px; }
+        .form-group-small input, .form-group-small select { max-width: 200px; }
+        .form-group-medium input, .form-group-medium select { max-width: 400px; }
+        .form-group-large input, .form-group-large select { max-width: 500px; }
         
 
         @media (max-width: 600px) {
@@ -148,9 +154,9 @@
     <h1>年末調整情報 提出フォーム</h1>
 
     <div id="form-contents" class="form-container">
-        <form id="main-form" class="h-adr" novalidate>
+         <form id="main-form" class="h-adr" novalidate>
             <span class="p-country-name" style="display:none;">Japan</span>
-
+            <!-- フォームのフィールドは変更がないため省略 -->
             <fieldset>
                 <div class="fieldset-title">ご本人情報</div>
                 <div class="form-group form-group-medium"><label>事業者名</label><input type="text" name="company_name" required></div>
@@ -231,12 +237,28 @@
     </div>
 
     <div id="confirm-contents" class="confirm-container hidden"></div>
-    <div id="loading" class="hidden"><p>送信しています</p></div>
-    <div id="complete" class="hidden"></div>
+
+    <div id="loading" class="hidden">
+        <img src="./favicon.jpg" alt="Logo" class="loading-logo">
+        <div class="dots-loader">
+            <div class="dot1"></div>
+            <div class="dot2"></div>
+            <div class="dot3"></div>
+        </div>
+        <p>送信しています...</p>
+        <p class="sub-text">この処理には数秒かかることがあります。<br>画面を閉じずにお待ちください。</p>
+    </div>
     
-    <script src="./jquery.min.js"></script>
+    <div id="complete" class="hidden">
+        <div class="complete-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        </div>
+        <div id="complete-message-content"></div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://yubinbango.github.io/yubinbango/yubinbango.js" charset="UTF-8"></script>
-    <script src="./jquery.autokana.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.autokana@1.0.2/jquery.autokana.min.js"></script>
     
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
@@ -430,7 +452,7 @@
                             <label>障害者手帳</label>
                             <input type="file" name="spouse_disability_certificate_file" multiple>
                             <label style="margin-top:15px;">備考</label>
-                            <textarea name="spouse_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、等級」をご記入ください"></textarea>
+                            <textarea name="spouse_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
                         </div>
                     </div>
                 </fieldset>
@@ -481,7 +503,7 @@
                                     <label>障害者手帳</label>
                                     <input type="file" name="dependent_${i + 1}_disability_certificate_file" multiple>
                                     <label style="margin-top:15px;">備考</label>
-                                    <textarea name="dependent_${i + 1}_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、等級」をご記入ください"></textarea>
+                                    <textarea name="dependent_${i + 1}_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
                                 </div>
                             </fieldset>
                         `).join('')}
@@ -495,28 +517,33 @@
                         <label>障害者手帳</label>
                         <input type="file" name="user_disability_certificate_file" multiple>
                         <label style="margin-top:15px;">備考</label>
-                        <textarea name="user_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、等級」をご記入ください"></textarea>
+                        <textarea name="user_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
                     </div>
                     <div class="form-group"><div class="tooltip-wrapper"><label>寡婦該当確認</label>
                     	<div class="tooltip-container">
-                        	<span class="tooltip-icon">!</span>
-                            <div class="tooltip-text">ひとり親に該当しない女性で、下記のいずれかに該当する場合は該当を選択してください。<br>・夫と離婚後に再婚しておらず、子以外の扶養親族がいる場合<br>・夫と死別後に再婚していない場合</div>
-                        </div></div>
+                            	<span class="tooltip-icon">!</span>
+                                <div class="tooltip-text">ひとり親に該当しない女性で、下記のいずれかに該当する場合は該当を選択してください。<br>・夫と離婚後に再婚しておらず、子以外の扶養親族がいる場合<br>・夫と死別後に再婚していない場合</div>
+                            </div></div>
                     	<div class="radio-group"><label><input type="radio" name="widow_status" value="該当">該当</label><label><input type="radio" name="widow_status" value="非該当" checked>非該当</label></div></div>
                     <div class="form-group"><div class="tooltip-wrapper"><label>ひとり親該当確認</label>
                     	<div class="tooltip-container">
-                        	<span class="tooltip-icon">!</span>
-                            <div class="tooltip-text">現在、事実婚を含む婚姻されていない方で、生計を一にする子がいる場合は該当を選択してください。</div>
-                        </div></div>
+                            	<span class="tooltip-icon">!</span>
+                                <div class="tooltip-text">現在、事実婚を含む婚姻されていない方で、生計を一にする子がいる場合は該当を選択してください。</div>
+                            </div></div>
                     	<div class="radio-group"><label><input type="radio" name="single_parent_status" value="該当">該当</label><label><input type="radio" name="single_parent_status" value="非該当" checked>非該当</label></div></div>
                     <div class="form-group"><div class="tooltip-wrapper"><label>勤労学生該当確認</label>
                     	<div class="tooltip-container">
-                        	<span class="tooltip-icon">!</span>
-                            <div class="tooltip-text">学生の方で令和7年(2025年)中の収入金額が130万円以下の場合は該当を選択し、学生証をアップロードしてください。</div>
-                        </div></div>
+                            	<span class="tooltip-icon">!</span>
+                                <div class="tooltip-text">学生の方で令和7年(2025年)中の収入金額が130万円以下の場合は該当を選択し、学生証をアップロードしてください。</div>
+                            </div></div>
                     	<div class="radio-group"><label><input type="radio" name="working_student_status" value="該当" onchange="toggleSection(this.value === '該当', 'student-card-group')">該当</label><label><input type="radio" name="working_student_status" value="非該当" onchange="toggleSection(this.value === '該当', 'student-card-group')" checked>非該当</label></div></div>
                     <div id="student-card-group" class="form-group hidden"><label>勤労学生_学生証</label><input type="file" name="student_card_file"></div>
-                    <div class="form-group"><label>災害者該当確認</label><div class="radio-group"><label><input type="radio" name="disaster_status" value="該当">該当</label><label><input type="radio" name="disaster_status" value="非該当" checked>非該当</label></div></div>
+                    <div class="form-group"><div class="tooltip-wrapper"><label>災害者該当確認</label>
+                    	<div class="tooltip-container">
+                            	<span class="tooltip-icon">!</span>
+                                <div class="tooltip-text">災害によって住宅や家財に損害を受けた方で、下記3つを満たす場合は該当を選択してください。<br>①災害のあった年分の所得金額が1,000万円以下<br>②災害によって受けた損害額が住宅または家財の1/2の価値<br>③雑損控除の適用をうけない</div>
+                            </div></div>
+                    	<div class="radio-group"><label><input type="radio" name="disaster_status" value="該当">該当</label><label><input type="radio" name="disaster_status" value="非該当" checked>非該当</label></div></div>
                 </fieldset>
                 <fieldset>
                     <div class="fieldset-title">各種控除</div>
@@ -532,7 +559,7 @@
                                 <div class="tooltip-text">ご自身でお支払いされた国民健康保険料、国民年金保険料が対象です。<br>給与から控除されている健康保険料や厚生年金は含みません。</div>
                             </div>
                         </div>
-                    	<div class="radio-group"><label><input type="radio" name="social_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')">あり</label><label><input type="radio" name="social_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')" checked>なし</label></div></div>                        
+                    	<div class="radio-group"><label><input type="radio" name="social_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')">あり</label><label><input type="radio" name="social_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')" checked>なし</label></div></div>                                
                     <div id="social-insurance-group" class="hidden" style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
                         <div class="form-group">
                             <label style="font-size: 1.1em; color: #333;">国民健康保険料</label>
@@ -737,7 +764,7 @@
                         ];
                         dependentFields.forEach(([name, label]) => {
                              if (name.endsWith('_file') || name.endsWith('_remarks')) {
-                                if (formData.get(`dependent_${i}_disability_certificate_existence`) !== 'あり') return;
+                                 if (formData.get(`dependent_${i}_disability_certificate_existence`) !== 'あり') return;
                             }
                             const value = getDisplayValue(name);
                             if (value !== null) {
@@ -750,8 +777,9 @@
             
             processFields(postDependentsFields);
 
-            formContents.classList.add('hidden');
-            confirmContents.classList.remove('hidden');
+            // 修正: classListの代わりにstyle.displayを使用
+            formContents.style.display = 'none';
+            confirmContents.style.display = 'block';
             window.scrollTo(0, 0);
         }
 
@@ -759,13 +787,15 @@
             form.querySelectorAll('.currency-input').forEach(input => {
                 if(input.value) input.value = Number(input.value.replace(/,/g, '')).toLocaleString('ja-JP');
             });
-            confirmContents.classList.add('hidden');
-            formContents.classList.remove('hidden');
+            // 修正: classListの代わりにstyle.displayを使用
+            confirmContents.style.display = 'none';
+            formContents.style.display = 'block';
         }
 
         async function submitForm() {
-            confirmContents.classList.add('hidden');
-            loading.classList.remove('hidden');
+            // 修正: classListの代わりにstyle.displayを使用
+            confirmContents.style.display = 'none';
+            loading.style.display = 'flex'; // flexで中央揃え
             
             form.querySelectorAll('.currency-input').forEach(input => {
                 input.value = input.value.replace(/,/g, '');
@@ -818,22 +848,31 @@
                 
                 const result = await response.json();
                 
-                loading.classList.add('hidden');
+                // 修正: classListの代わりにstyle.displayを使用
+                loading.style.display = 'none';
                 if (result.result === 'success') {
-                    complete.innerHTML = `<h2>送信が完了しました</h2><p>ご回答ありがとうございました。</p><p><strong>回答ID: ${result.submissionId}</strong></p><p>このIDは回答内容の確認に必要ですので、大切に保管してください。</p>`;
-                    complete.classList.remove('hidden');
+                    const completeMessageDiv = document.getElementById('complete-message-content');
+                    completeMessageDiv.innerHTML = `<h2>送信が完了しました</h2><p>ご回答ありがとうございました。</p><p><strong>回答ID: ${result.submissionId}</strong></p><p>このIDは回答内容の確認に必要ですので、大切に保管してください。</p>`;
+                    complete.style.display = 'block';
                 } else {
                     alert(`送信に失敗しました: ${result.message}`);
                     goBack();
                 }
             } catch (error) {
-                loading.classList.add('hidden');
+                // 修正: classListの代わりにstyle.displayを使用
+                loading.style.display = 'none';
                 alert(`送信中にエラーが発生しました: ${error}`);
                 goBack();
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        $(function() {
+            // 修正: ページの初期表示状態をJSで確実に設定
+            formContents.style.display = 'block';
+            confirmContents.style.display = 'none';
+            loading.style.display = 'none';
+            complete.style.display = 'none';
+
             try {
                 const params = new URLSearchParams(window.location.search);
                 const companyName = params.get('company');
@@ -851,17 +890,15 @@
             document.querySelectorAll('.date-select-group').forEach(setupWarekiDateFields);
             toggleMainSections(form.querySelector('input[name="year_end_adjustment"]:checked').value);
             
-            $(function() {
-                const options = { katakana: true };
-                $.fn.autoKana('#name_last', '#kana_last', options);
-                $.fn.autoKana('#name_first', '#kana_first', options);
-                $.fn.autoKana('#spouse_name_last', '#spouse_kana_last', options);
-                $.fn.autoKana('#spouse_name_first', '#spouse_kana_first', options);
-                for (let i = 1; i <= MAX_DEPENDENTS; i++) {
-                    $.fn.autoKana(`#dependent_${i}_name_last`, `#dependent_${i}_kana_last`, options);
-                    $.fn.autoKana(`#dependent_${i}_name_first`, `#dependent_${i}_kana_first`, options);
-                }
-            });
+            const options = { katakana: true };
+            $.fn.autoKana('#name_last', '#kana_last', options);
+            $.fn.autoKana('#name_first', '#kana_first', options);
+            $.fn.autoKana('#spouse_name_last', '#spouse_kana_last', options);
+            $.fn.autoKana('#spouse_name_first', '#spouse_kana_first', options);
+            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
+                $.fn.autoKana(`#dependent_${i}_name_last`, `#dependent_${i}_kana_last`, options);
+                $.fn.autoKana(`#dependent_${i}_name_first`, `#dependent_${i}_kana_first`, options);
+            }
 
             form.addEventListener('input', (event) => {
                 if (event.target.classList.contains('currency-input')) {
@@ -886,3 +923,4 @@
     </script>
 </body>
 </html>
+
