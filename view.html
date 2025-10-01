@@ -38,14 +38,24 @@
             border-radius: var(--border-radius);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             border-top: 5px solid var(--secondary-color);
+            margin-bottom: 20px;
         }
 
-        h1 {
+        h1, h2 {
             color: var(--primary-color);
             text-align: center;
             font-weight: 700;
+        }
+        h1 {
             font-size: 1.8em;
             margin-bottom: 25px;
+        }
+        h2 {
+            font-size: 1.4em;
+            margin-top: 1.5em;
+            margin-bottom: 1em;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: .4em;
         }
         
         #message {
@@ -78,6 +88,39 @@
             font-weight: 700;
             color: var(--primary-color);
         }
+
+        .btn {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: background-color 0.3s, transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            background-color: #4aa3d3;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+             background-color: #6c757d;
+        }
+        .file-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        .text-center { text-align: center; }
+        .mt-20 { margin-top: 20px; }
+
 
         @media (max-width: 600px) {
             body { padding: 0 10px; }
@@ -118,8 +161,36 @@
         <div id="message"></div>
         <table id="result-table"></table>
     </div>
+
+    <div class="container" id="edit-section" style="display: none;">
+        <h2>回答内容の修正</h2>
+        <p class="text-center">住所や扶養情報などに変更があった場合は、こちらのボタンから内容を修正できます。</p>
+        <div class="text-center mt-20">
+            <button type="button" class="btn btn-secondary" onclick="redirectToEdit()">この回答を修正する</button>
+        </div>
+    </div>
+
+    <div class="container" id="add-files-section" style="display: none;">
+        <h2>追加の書類を提出</h2>
+        <p class="text-center">不足していた書類や、後日発行された証明書などはこちらから追加でご提出いただけます。</p>
+        <div class="mt-20">
+            <input type="file" id="additional-files" class="file-input" multiple>
+        </div>
+        <div class="text-center mt-20">
+            <button type="button" class="btn" onclick="uploadAdditionalFiles()">追加で提出する</button>
+        </div>
+        <div id="upload-message" class="mt-20" style="text-align:center; font-weight: bold;"></div>
+    </div>
+
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
+        let submissionId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            submissionId = params.get('id');
+            fetchData(submissionId);
+        });
 
         async function fetchData(id) {
             const table = document.getElementById('result-table');
@@ -139,14 +210,16 @@
 
                 if (result.result === 'success') {
                     message.textContent = `回答ID: ${id} の内容を表示しています。`;
+                    document.getElementById('edit-section').style.display = 'block';
+                    document.getElementById('add-files-section').style.display = 'block';
+                    
                     const data = result.data;
-
                     const addRow = (label, value) => {
                         const row = table.insertRow();
                         row.insertCell().outerHTML = `<th>${label}</th>`;
                         const cell = row.insertCell();
                         
-                        if (typeof value === 'string' && value.includes('https')) {
+                        if (typeof value === 'string' && (value.includes('https://') || value.includes('http://'))) {
                             const urls = value.split('\n');
                             urls.forEach((url, index) => {
                                 if(!url) return;
@@ -171,6 +244,7 @@
                         }
                     };
 
+                    // ... (field lists and processing logic are unchanged)
                     const preDependentsFields = [
                         ['タイムスタンプ', '回答日時'], ['回答ID', '回答ID'], ['事業者名', '事業者名'], ['メールアドレス', 'メールアドレス'], 
                         ['姓', '姓'], ['名', '名'], ['姓フリガナ', '姓フリガナ'], ['名フリガナ', '名フリガナ'], 
@@ -188,100 +262,18 @@
                         ['配偶者障害者手帳備考', '配偶者 障害者手帳(備考)'],
                         ['扶養親族有無', '扶養親族有無']
                     ];
-
                     const postDependentsFields = [
-                        ['本人障害者手帳交付有無', '本人 障害者手帳交付有無'],
-                        ['本人障害者手帳交付URL', '本人 障害者手帳'],
-                        ['本人障害者手帳備考', '本人 障害者手帳(備考)'],
-                        ['寡婦該当確認', '寡婦該当確認'], ['ひとり親該当確認', 'ひとり親該当確認'], 
-                        ['勤労学生該当確認', '勤労学生該当確認'], ['勤労学生_学生証URL', '勤労学生_学生証'], 
-                        ['災害者該当確認', '災害者該当確認'], 
-                        ['生命保険料控除有無', '生命保険料控除有無'], ['生命保険料_控除証明書URL', '生命保険料_控除証明書'], 
-                        ['地震保険料控除有無', '地震保険料控除有無'], ['地震保険料_控除証明書URL', '地震保険料_控除証明書'], 
-                        ['社会保険料控除有無', '社会保険料控除有無'], 
-                        ['国民健康保険料 支払対象者氏名', '国民健康保険料 支払対象者氏名'],
-                        ['国民健康保険料 年間支払額', '国民健康保険料 年間支払額'],
-                        ['国民健康保険料 控除証明書URL', '国民健康保険料 控除証明書'],
-                        ['国民年金保険料 控除証明書URL', '国民年金保険料 控除証明書'],
-                        ['小規模企業共済掛金等控除有無', '小規模企業共済掛金等控除有無'], ['小規模企業共済掛金等_控除証明書URL', '小規模企業共済掛金等_控除証明書'], 
+                        ['本人障害者手帳交付有無', '本人 障害者手帳交付有無'], ['本人障害者手帳交付URL', '本人 障害者手帳'], ['本人障害者手帳備考', '本人 障害者手帳(備考)'],
+                        ['寡婦該当確認', '寡婦該当確認'], ['ひとり親該当確認', 'ひとり親該当確認'],  ['勤労学生該当確認', '勤労学生該当確認'], ['勤労学生_学生証URL', '勤労学生_学生証'], 
+                        ['災害者該当確認', '災害者該当確認'], ['生命保険料控除有無', '生命保険料控除有無'], ['生命保険料_控除証明書URL', '生命保険料_控除証明書'], 
+                        ['地震保険料控除有無', '地震保険料控除有無'], ['地震保険料_控除証明書URL', '地震保険料_控除証明書'], ['社会保険料控除有無', '社会保険料控除有無'], 
+                        ['国民健康保険料 支払対象者氏名', '国民健康保険料 支払対象者氏名'], ['国民健康保険料 年間支払額', '国民健康保険料 年間支払額'], ['国民健康保険料 控除証明書URL', '国民健康保険料 控除証明書'],
+                        ['国民年金保険料 控除証明書URL', '国民年金保険料 控除証明書'], ['小規模企業共済掛金等控除有無', '小規模企業共済掛金等控除有無'], ['小規模企業共済掛金等_控除証明書URL', '小規模企業共済掛金等_控除証明書'], 
                         ['住宅ローン控除有無', '住宅ローン控除有無'], ['住宅ローン_申告書・証明書URL', '住宅ローン_申告書・証明書']
                     ];
-
-                    // --- 表示処理 ---
-                    processFields(preDependentsFields.filter(item => {
-                        const name = item[0];
-                        if (name.startsWith('配偶者') && !name.endsWith('有無')) {
-                            if (data['配偶者有無'] !== 'あり') return false;
-                            if (name.includes('障害者手帳') && !name.endsWith('交付有無')) {
-                                return data['配偶者障害者手帳交付有無'] === 'あり';
-                            }
-                            return true;
-                        }
-                        if (name === '前職源泉徴収票URL') {
-                            return data['前職有無'] === 'あり';
-                        }
-                        if (name === 'その他収入金額') {
-                             return data['その他収入有無'] === 'あり';
-                        }
-                        return true;
-                    }));
-
-                    if (data['扶養親族有無'] === 'あり') {
-                        for (let i = 1; i <= 6; i++) {
-                            if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) {
-                                const dependentFields = [
-                                    [`扶養親族${i}_姓`, `【扶養親族${i}】姓`], [`扶養親族${i}_名`, `【扶養親族${i}】名`],
-                                    [`扶養親族${i}_姓フリガナ`, `【扶養親族${i}】姓フリガナ`], [`扶養親族${i}_名フリガナ`, `【扶養親族${i}】名フリガナ`],
-                                    [`扶養親族${i}_続柄`, `【扶養親族${i}】続柄`], [`扶養親族${i}_生年月日`, `【扶養親族${i}】生年月日`],
-                                    [`扶養親族${i}_住所1`, `【扶養親族${i}】住所1`], [`扶養親族${i}_住所2`, `【扶養親族${i}】住所2`],
-                                    [`扶養親族${i}_収入金額`, `【扶養親族${i}】収入金額`], [`扶養親族${i}_退職手当等有無`, `【扶養親族${i}】退職手当等有無`],
-                                    [`扶養親族${i}_退職手当等金額`, `【扶養親族${i}】退職手当等金額`],
-                                    [`扶養親族${i}_障害者手帳交付有無`, `【扶養親族${i}】障害者手帳交付有無`],
-                                    [`扶養親族${i}_障害者手帳交付URL`, `【扶養親族${i}】障害者手帳`],
-                                    [`扶養親族${i}_障害者手帳備考`, `【扶養親族${i}】障害者手帳(備考)`]
-                                ];
-                                processFields(dependentFields.filter(item => {
-                                    const name = item[0];
-                                    if (name.includes('障害者手帳') && !name.endsWith('交付有無')) {
-                                        return data[`扶養親族${i}_障害者手帳交付有無`] === 'あり';
-                                    }
-                                    return true;
-                                }));
-                            }
-                        }
-                    }
-
-                    processFields(postDependentsFields.filter(item => {
-                        const name = item[0];
-                        if (name.startsWith('本人障害者手帳') && !name.endsWith('交付有無')) {
-                            return data['本人障害者手帳交付有無'] === 'あり';
-                        }
-                        if (name === '勤労学生_学生証URL') {
-                            return data['勤労学生該当確認'] === '該当';
-                        }
-                        
-                        const socialInsuranceHeaders = [
-                            '国民健康保険料 支払対象者氏名',
-                            '国民健康保険料 年間支払額',
-                            '国民健康保険料 控除証明書URL',
-                            '国民年金保険料 控除証明書URL'
-                        ];
-                        if (socialInsuranceHeaders.includes(name)) {
-                            return data['社会保険料控除有無'] === 'あり';
-                        }
-                        
-                        const deductionFileMap = {
-                            '生命保険料_控除証明書URL': '生命保険料控除有無',
-                            '地震保険料_控除証明書URL': '地震保険料控除有無',
-                            '小規模企業共済掛金等_控除証明書URL': '小規模企業共済掛金等控除有無',
-                            '住宅ローン_申告書・証明書URL': '住宅ローン控除有無'
-                        };
-                        if (deductionFileMap[name]) {
-                            return data[deductionFileMap[name]] === 'あり';
-                        }
-                        return true;
-                    }));
-
+                    processFields(preDependentsFields.filter(item=>{ const name=item[0]; if(name.startsWith('配偶者')&&!name.endsWith('有無')){if(data['配偶者有無']!=='あり')return false;if(name.includes('障害者手帳')&&!name.endsWith('交付有無')){return data['配偶者障害者手帳交付有無']==='あり';}return true;}if(name==='前職源泉徴収票URL'){return data['前職有無']==='あり';}if(name==='その他収入金額'){return data['その他収入有無']==='あり';}return true;}));
+                    if(data['扶養親族有無']==='あり'){for(let i=1;i<=6;i++){if(data[`扶養親族${i}_姓`]){const dependentFields=[[`扶養親族${i}_姓`,`【扶養親族${i}】姓`],[`扶養親族${i}_名`,`【扶養親族${i}】名`],[`扶養親族${i}_姓フリガナ`,`【扶養親族${i}】姓フリガナ`],[`扶養親族${i}_名フリガナ`,`【扶養親族${i}】名フリガナ`],[`扶養親族${i}_続柄`,`【扶養親族${i}】続柄`],[`扶養親族${i}_生年月日`,`【扶養親族${i}】生年月日`],[`扶養親族${i}_住所1`,`【扶養親族${i}】住所1`],[`扶養親族${i}_住所2`,`【扶養親族${i}】住所2`],[`扶養親族${i}_収入金額`,`【扶養親族${i}】収入金額`],[`扶養親族${i}_退職手当等有無`,`【扶養親族${i}】退職手当等有無`],[`扶養親族${i}_退職手当等金額`,`【扶養親族${i}】退職手当等金額`],[`扶養親族${i}_障害者手帳交付有無`,`【扶養親族${i}】障害者手帳交付有無`],[`扶養親族${i}_障害者手帳交付URL`,`【扶養親族${i}】障害者手帳`],[`扶養親族${i}_障害者手帳備考`,`【扶養親族${i}】障害者手帳(備考)`]];processFields(dependentFields.filter(item=>{const name=item[0];if(name.includes('障害者手帳')&&!name.endsWith('交付有無')){return data[`扶養親族${i}_障害者手帳交付有無']==='あり';}return true;}));}}}
+                    processFields(postDependentsFields.filter(item=>{const name=item[0];if(name.startsWith('本人障害者手帳')&&!name.endsWith('交付有無')){return data['本人障害者手帳交付有無']==='あり';}if(name==='勤労学生_学生証URL'){return data['勤労学生該当確認']==='該当';}const socialInsuranceHeaders=['国民健康保険料 支払対象者氏名','国民健康保険料 年間支払額','国民健康保険料 控除証明書URL','国民年金保険料 控除証明書URL'];if(socialInsuranceHeaders.includes(name)){return data['社会保険料控除有無']==='あり';}const deductionFileMap={'生命保険料_控除証明書URL':'生命保険料控除有無','地震保険料_控除証明書URL':'地震保険料控除有無','小規模企業共済掛金等_控除証明書URL':'小規模企業共済掛金等控除有無','住宅ローン_申告書・証明書URL':'住宅ローン控除有無'};if(deductionFileMap[name]){return data[deductionFileMap[name]]==='あり';}return true;}));
                 } else {
                     message.textContent = `エラー: ${result.message}`;
                 }
@@ -290,12 +282,66 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const submissionId = params.get('id');
-            fetchData(submissionId);
-        });
+        function redirectToEdit() {
+            if (submissionId) {
+                window.location.href = `index.html?editId=${submissionId}`;
+            }
+        }
+
+        async function uploadAdditionalFiles() {
+            const fileInput = document.getElementById('additional-files');
+            const uploadMessage = document.getElementById('upload-message');
+            
+            if (fileInput.files.length === 0) {
+                uploadMessage.textContent = 'ファイルが選択されていません。';
+                uploadMessage.style.color = 'red';
+                return;
+            }
+
+            if (!submissionId) {
+                 uploadMessage.textContent = '回答IDが見つからないため、アップロードできません。';
+                 uploadMessage.style.color = 'red';
+                return;
+            }
+
+            uploadMessage.textContent = 'アップロード中...';
+            uploadMessage.style.color = 'var(--primary-color)';
+
+            const fileToBase64 = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve({ name: file.name, mimeType: file.type, base64: reader.result.split(',')[1] });
+                reader.onerror = error => reject(error);
+            });
+
+            const filePromises = Array.from(fileInput.files).map(fileToBase64);
+            const files = await Promise.all(filePromises);
+
+            try {
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify({
+                        action: 'addFiles',
+                        id: submissionId,
+                        files: files
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.result === 'success') {
+                    uploadMessage.textContent = 'ファイルを追加しました。ページをリロードして確認してください。';
+                    uploadMessage.style.color = 'var(--success-color)';
+                    fileInput.value = ''; // Reset file input
+                } else {
+                    throw new Error(result.message || '不明なエラーが発生しました。');
+                }
+            } catch (error) {
+                uploadMessage.textContent = `アップロードに失敗しました: ${error.message}`;
+                uploadMessage.style.color = 'red';
+            }
+        }
     </script>
 </body>
 </html>
-
