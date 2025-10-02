@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>年末調整情報 提出フォーム</title>
     
-    <link rel="icon" href="./logo-color-2.jpg" type="image/jpeg">
+    <link rel="icon" href="./favicon.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="./logo-color-2.jpg">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -194,7 +194,7 @@
     					<div class="tooltip-text">令和7年12月31日時点の住民票住所を記載してください</div>
     				</div>
 				</div>
-					 <input type="text" name="postal_code" class="p-postal-code" placeholder="例: 1600_SUB" required>
+					 <input type="text" name="postal_code" class="p-postal-code" placeholder="例: 1600022" required>
 				</div>
                 <div class="form-group form-group-large">
                     <label>住所1（市区町村、番地）</label>
@@ -268,6 +268,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery.autokana@1.0.2/jquery.autokana.min.js"></script>
     
     <script>
+        
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
         const form = document.getElementById('main-form');
         const formContents = document.getElementById('form-contents');
@@ -275,17 +276,13 @@
         const loading = document.getElementById('loading');
         const complete = document.getElementById('complete');
         const mainSectionsContainer = document.getElementById('main-sections');
-        
         const MAX_DEPENDENTS = 6;
-
         const warekiData = {
             '令和': { start: 2019, years: new Date().getFullYear() - 2019 + 1 },
             '平成': { start: 1989, years: 31 },
             '昭和': { start: 1926, years: 64 }
         };
-        
-        // --- ▼ ここからが完全なJavaScriptコードです ▼ ---
-        
+
         function setupWarekiDateFields(group) {
             const eraSelect = group.querySelector('.era');
             const yearSelect = group.querySelector('.year');
@@ -654,7 +651,8 @@
                 });
                 return;
             }
-
+            
+            const isEditing = !!document.getElementById('edit-id').value;
             let confirmHtml = `
                 <div style="text-align:center;">
                     <img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 Logo" style="max-width: 180px; margin-bottom: 20px;">
@@ -664,7 +662,7 @@
                 <table id="confirm-table"></table>
                 <div class="btn-container">
                     <button id="confirm-back-btn" type="button" onclick="goBack()">修正する</button>
-                    <button id="submit-btn" type="button" onclick="submitForm()">送信する</button>
+                    <button id="submit-btn" type="button" onclick="submitForm()">${isEditing ? '更新する' : '送信する'}</button>
                 </div>`;
             confirmContents.innerHTML = confirmHtml;
 
@@ -673,12 +671,19 @@
 
             const getDisplayValue = (name) => {
                 const input = form.querySelector(`[name="${name}"]`);
-                if (!input) return null;
+                if (!input || input.disabled || input.closest('.hidden')) {
+                    return null;
+                }
+
                 if (input.type === 'file') {
                     return input.files.length > 0 ? Array.from(input.files).map(f => f.name).join(', ') : null;
                 }
-                let value = input.disabled ? input.value : formData.get(name);
-                if (value === null || value === undefined || value === '') return null;
+                
+                let value = formData.get(name);
+                if (value === null || value === undefined || value === '') {
+                    return null;
+                }
+
                 if (input.classList.contains('currency-input')) {
                     return Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
                 }
@@ -691,51 +696,16 @@
                 row.insertCell().textContent = value;
             };
 
-            const processFields = (fieldList) => {
-                for (const [name, label] of fieldList) {
-                    if (name.startsWith('spouse_') && name !== 'spouse_existence') {
-                        if (formData.get('spouse_existence') !== 'あり') continue;
-                    }
-                    if (name === 'spouse_disability_certificate_file' || name === 'spouse_disability_certificate_remarks') {
-                        if(formData.get('spouse_disability_certificate_existence') !== 'あり') continue;
-                    }
-                    if (name === 'previous_job_file') {
-                        if (formData.get('previous_job') !== 'あり') continue;
-                    }
-                    if (name === 'user_disability_certificate_file' || name === 'user_disability_certificate_remarks') {
-                        if (formData.get('user_disability_certificate_existence') !== 'あり') continue;
-                    }
-                    if (name === 'student_card_file') {
-                        if (formData.get('working_student_status') !== '該当') continue;
-                    }
-                    const deductionFile = ['life_insurance_file', 'earthquake_insurance_file', 'small_business_file', 'housing_loan_file'];
-                    if (deductionFile.includes(name)) {
-                        const radioName = name.replace('_file', '_deduction');
-                        if (formData.get(radioName) !== 'あり') continue;
-                    }
-                    
-                    const socialInsuranceFields = ['national_health_insurance_payer_name', 'national_health_insurance_amount', 'national_health_insurance_file', 'national_pension_insurance_file'];
-                    if (socialInsuranceFields.includes(name)) {
-                        if (formData.get('social_insurance_deduction') !== 'あり') continue;
-                    }
-
-                    const value = getDisplayValue(name);
-                    if (value !== null) {
-                        addRow(label, value);
-                    }
-                }
-            };
-            
-            const preDependentsFields = [
-                ['company_name', '会社名'], ['email_address', 'メールアドレス'], ['last_name', '姓'], ['first_name', '名'],
+            const allFields = [
+                ['company_name', '事業者名'], ['email_address', 'メールアドレス'], ['last_name', '姓'], ['first_name', '名'],
                 ['last_name_furigana', '姓フリガナ'], ['first_name_furigana', '名フリガナ'], ['birth_date', '生年月日'],
                 ['postal_code', '郵便番号'], ['address1', '住所1'], ['address2', '住所2'], 
                 ['householder_name', '世帯主の氏名'], ['householder_relationship', '世帯主の続柄'],
                 ['year_end_adjustment', '年末調整実施可否'],
                 ['previous_job', '前職有無'], ['previous_job_file', '前職源泉徴収票'], 
                 ['other_income_existence', 'その他収入有無'], ['other_income_amount', 'その他収入金額'],
-                ['resident_tax', '住民税徴収方法'],
-                ['spouse_existence', '配偶者有無'], ['spouse_last_name', '配偶者 姓'], ['spouse_first_name', '配偶者 名'],
+                ['resident_tax', '住民税徴収方法'], ['spouse_existence', '配偶者有無'], 
+                ['spouse_last_name', '配偶者 姓'], ['spouse_first_name', '配偶者 名'],
                 ['spouse_last_name_furigana', '配偶者 姓フリガナ'], ['spouse_first_name_furigana', '配偶者 名フリガナ'],
                 ['spouse_birth_date', '配偶者 生年月日'], ['spouse_address1', '配偶者 住所1'], ['spouse_address2', '配偶者 住所2'],
                 ['spouse_income_amount', '配偶者 収入金額'], ['spouse_severance_pay_existence', '配偶者 退職手当有無'],
@@ -746,7 +716,20 @@
                 ['dependents_existence', '扶養親族有無'],
             ];
 
-            const postDependentsFields = [
+            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
+                allFields.push(
+                    [`dependent_${i}_last_name`, `【扶養親族${i}】姓`], [`dependent_${i}_first_name`, `【扶養親族${i}】名`],
+                    [`dependent_${i}_last_name_furigana`, `【扶養親族${i}】姓フリガナ`], [`dependent_${i}_first_name_furigana`, `【扶養親族${i}】名フリガナ`],
+                    [`dependent_${i}_relationship`, `【扶養親族${i}】続柄`], [`dependent_${i}_birth_date`, `【扶養親族${i}】生年月日`],
+                    [`dependent_${i}_address1`, `【扶養親族${i}】住所1`], [`dependent_${i}_address2`, `【扶養親族${i}】住所2`],
+                    [`dependent_${i}_income_amount`, `【扶養親族${i}】収入金額`], [`dependent_${i}_severance_pay_existence`, `【扶養親族${i}】退職手当有無`],
+                    [`dependent_${i}_severance_pay_amount`, `【扶養親族${i}】退職手当等金額`],
+                    [`dependent_${i}_disability_certificate_existence`, `【扶養親族${i}】障害者手帳交付有無`],
+                    [`dependent_${i}_disability_certificate_file`, `【扶養親族${i}】障害者手帳`],
+                    [`dependent_${i}_disability_certificate_remarks`, `【扶養親族${i}】障害者手帳(備考)`]
+                );
+            }
+            allFields.push(
                 ['user_disability_certificate_existence', '本人 障害者手帳交付有無'],
                 ['user_disability_certificate_file', '本人 障害者手帳'],
                 ['user_disability_certificate_remarks', '本人 障害者手帳(備考)'],
@@ -762,39 +745,15 @@
                 ['national_pension_insurance_file', '国民年金保険料 控除証明書'],
                 ['small_business_deduction', '小規模企業共済掛金等控除有無'], ['small_business_file', '小規模企業共済掛金等_控除証明書'],
                 ['housing_loan_deduction', '住宅ローン控除有無'], ['housing_loan_file', '住宅ローン_申告書・証明書']
-            ];
+            );
 
-            processFields(preDependentsFields);
-
-            if (formData.get('dependents_existence') === 'あり') {
-                for (let i = 1; i <= MAX_DEPENDENTS; i++) {
-                    const isDependentEntered = formData.get(`dependent_${i}_last_name`) || formData.get(`dependent_${i}_first_name`);
-                    if (isDependentEntered) {
-                        const dependentFields = [
-                            [`dependent_${i}_last_name`, `【扶養親族${i}】姓`], [`dependent_${i}_first_name`, `【扶養親族${i}】名`],
-                            [`dependent_${i}_last_name_furigana`, `【扶養親族${i}】姓フリガナ`], [`dependent_${i}_first_name_furigana`, `【扶養親族${i}】名フリガナ`],
-                            [`dependent_${i}_relationship`, `【扶養親族${i}】続柄`], [`dependent_${i}_birth_date`, `【扶養親族${i}】生年月日`],
-                            [`dependent_${i}_address1`, `【扶養親族${i}】住所1`], [`dependent_${i}_address2`, `【扶養親族${i}】住所2`],
-                            [`dependent_${i}_income_amount`, `【扶養親族${i}】収入金額`], [`dependent_${i}_severance_pay_existence`, `【扶養親族${i}】退職手当有無`],
-                            [`dependent_${i}_severance_pay_amount`, `【扶養親族${i}】退職手当等金額`],
-                            [`dependent_${i}_disability_certificate_existence`, `【扶養親族${i}】障害者手帳交付有無`],
-                            [`dependent_${i}_disability_certificate_file`, `【扶養親族${i}】障害者手帳`],
-                            [`dependent_${i}_disability_certificate_remarks`, `【扶養親族${i}】障害者手帳(備考)`]
-                        ];
-                        dependentFields.forEach(([name, label]) => {
-                             if (name.endsWith('_file') || name.endsWith('_remarks')) {
-                                 if (formData.get(`dependent_${i}_disability_certificate_existence`) !== 'あり') return;
-                            }
-                            const value = getDisplayValue(name);
-                            if (value !== null) {
-                                addRow(label, value);
-                            }
-                        });
-                    }
+            allFields.forEach(([name, label]) => {
+                const value = getDisplayValue(name);
+                if (value !== null) {
+                    addRow(label, value);
                 }
-            }
-            
-            processFields(postDependentsFields);
+            });
+
             formContents.classList.add('hidden');
             confirmContents.classList.remove('hidden');
             window.scrollTo(0, 0);
@@ -858,7 +817,7 @@
                     const completeMessageDiv = document.getElementById('complete-message-content');
                     completeMessageDiv.innerHTML = `
                         <h2>ご回答ありがとうございました</h2>
-                        <p>送信が完了いたしました。</p>
+                        <p>${dataObject.editId ? '更新' : '送信'}が完了いたしました。</p>
                         <div class="answer-id-box">
                             <p>お問い合わせの際には、以下の回答IDをお知らせください。</p>
                             <div class="id-code">${result.submissionId}</div>
@@ -881,16 +840,100 @@
                 goBack();
             }
         }
+        
+        async function loadDataForEdit(id) {
+            try {
+                const response = await fetch(`${GAS_WEB_APP_URL}?id=${id}`);
+                const result = await response.json();
+                if (result.result === 'success') {
+                    populateForm(result.data);
+                } else {
+                    alert('データの読み込みに失敗しました: ' + result.message);
+                    window.location.search = '';
+                }
+            } catch (error) {
+                alert('データの読み込み中にエラーが発生しました。');
+                window.location.search = '';
+            }
+        }
+        
+        function populateForm(data) {
+            let dependentCount = 0;
+            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
+                if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) { dependentCount++; }
+            }
+            for (let i = 1; i < dependentCount; i++) { addDependentField(); }
 
+            const fieldMapping = {'事業者名': 'company_name', 'メールアドレス': 'email_address', '姓': 'last_name', '名': 'first_name', '姓フリガナ': 'last_name_furigana', '名フリガナ': 'first_name_furigana', '郵便番号': 'postal_code', '住所1': 'address1', '住所2': 'address2', '世帯主の氏名': 'householder_name', '世帯主の続柄': 'householder_relationship', '年末調整実施可否': 'year_end_adjustment', '前職有無': 'previous_job', 'その他収入有無': 'other_income_existence', 'その他収入金額': 'other_income_amount', '住民税徴収方法': 'resident_tax', '配偶者有無': 'spouse_existence', '配偶者姓': 'spouse_last_name', '配偶者名': 'spouse_first_name', '配偶者姓フリガナ': 'spouse_last_name_furigana', '配偶者名フリガナ': 'spouse_first_name_furigana', '配偶者住所1': 'spouse_address1', '配偶者住所2': 'spouse_address2', '配偶者収入金額': 'spouse_income_amount', '配偶者退職手当有無': 'spouse_severance_pay_existence', '配偶者退職手当等金額': 'spouse_severance_pay_amount', '配偶者障害者手帳交付有無': 'spouse_disability_certificate_existence', '配偶者障害者手帳備考': 'spouse_disability_certificate_remarks', '扶養親族有無': 'dependents_existence', '本人障害者手帳交付有無': 'user_disability_certificate_existence', '本人障害者手帳備考': 'user_disability_certificate_remarks', '寡婦該当確認': 'widow_status', 'ひとり親該当確認': 'single_parent_status', '勤労学生該当確認': 'working_student_status', '災害者該当確認': 'disaster_status', '生命保険料控除有無': 'life_insurance_deduction', '地震保険料控除有無': 'earthquake_insurance_deduction', '社会保険料控除有無': 'social_insurance_deduction', '国民健康保険料 支払対象者氏名': 'national_health_insurance_payer_name', '国民健康保険料 年間支払額': 'national_health_insurance_amount', '小規模企業共済掛金等控除有無': 'small_business_deduction', '住宅ローン控除有無': 'housing_loan_deduction'};
+            for (let i = 1; i <= dependentCount; i++) { Object.assign(fieldMapping, { [`扶養親族${i}_姓`]: `dependent_${i}_last_name`, [`扶養親族${i}_名`]: `dependent_${i}_first_name`, [`扶養親族${i}_姓フリガナ`]: `dependent_${i}_last_name_furigana`, [`扶養親族${i}_名フリガナ`]: `dependent_${i}_first_name_furigana`, [`扶養親族${i}_続柄`]: `dependent_${i}_relationship`, [`扶養親族${i}_住所1`]: `dependent_${i}_address1`, [`扶養親族${i}_住所2`]: `dependent_${i}_address2`, [`扶養親族${i}_収入金額`]: `dependent_${i}_income_amount`, [`扶養親族${i}_退職手当有無`]: `dependent_${i}_severance_pay_existence`, [`扶養親族${i}_退職手当等金額`]: `dependent_${i}_severance_pay_amount`, [`扶養親族${i}_障害者手帳交付有無`]: `dependent_${i}_disability_certificate_existence`, [`扶養親族${i}_障害者手帳備考`]: `dependent_${i}_disability_certificate_remarks` }); }
+
+            for (const key in fieldMapping) {
+                const el = form.querySelector(`[name="${fieldMapping[key]}"]`);
+                if (el) {
+                    const value = data[key] || '';
+                    if (el.type === 'radio') {
+                        const targetRadio = form.querySelector(`[name="${fieldMapping[key]}"][value="${value}"]`);
+                        if (targetRadio) {
+                            targetRadio.checked = true;
+                            targetRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    } else if (el.type === 'checkbox') {
+                        el.checked = !!value;
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        el.value = value;
+                        if(el.classList.contains('currency-input') && value) {
+                            el.value = Number(value).toLocaleString('ja-JP');
+                        }
+                    }
+                }
+            }
+
+            const dateFields = { '生年月日': 'user', '配偶者生年月日': 'spouse' };
+             for (let i = 1; i <= dependentCount; i++) { dateFields[`扶養親族${i}_生年月日`] = `dependent_${i}`; }
+            for(const key in dateFields) {
+                const dateString = data[key];
+                if(dateString) {
+                    const match = dateString.match(/^(令和|平成|昭和)(元|\d+)年(\d+)月(\d+)日$/);
+                    if (match) {
+                        const [, era, yearText, month, day] = match;
+                        const year = yearText === '元' ? 1 : parseInt(yearText);
+                        const group = document.querySelector(`.date-select-group[data-prefix="${dateFields[key]}"]`);
+                        if (group) {
+                            const eraSelect = group.querySelector('.era');
+                            eraSelect.value = era;
+                            eraSelect.dispatchEvent(new Event('change'));
+                            setTimeout(() => {
+                                group.querySelector('.year').value = year;
+                                group.querySelector('.month').value = month;
+                                group.querySelector('.day').value = day;
+                            }, 100);
+                        }
+                    }
+                }
+            }
+        }
+        
         $(function() {
             formContents.classList.remove('hidden');
             confirmContents.classList.add('hidden');
             loading.classList.add('hidden');
             complete.classList.add('hidden');
-
+            
+            populateMainSections();
+            
             try {
                 const params = new URLSearchParams(window.location.search);
+                const editId = params.get('editId');
                 const companyName = params.get('company');
+
+                if (editId) {
+                    document.getElementById('form-title').textContent = '年末調整情報の修正';
+                    document.getElementById('main-submit-btn').textContent = '更新する';
+                    document.getElementById('edit-id').value = editId;
+                    setTimeout(() => loadDataForEdit(editId), 100);
+                }
+
                 if (companyName) {
                     const companyInput = form.querySelector('[name="company_name"]');
                     if (companyInput) {
@@ -899,39 +942,21 @@
                     }
                 }
             } catch(e) { console.error("URLパラメータ処理エラー:", e); }
-
-            populateMainSections();
             
             document.querySelectorAll('.date-select-group').forEach(setupWarekiDateFields);
             toggleMainSections(form.querySelector('input[name="year_end_adjustment"]:checked').value);
             
             const options = { katakana: true };
-            $.fn.autoKana('#name_last', '#kana_last', options);
-            $.fn.autoKana('#name_first', '#kana_first', options);
-            $.fn.autoKana('#spouse_name_last', '#spouse_kana_last', options);
-            $.fn.autoKana('#spouse_name_first', '#spouse_kana_first', options);
-            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
-                $.fn.autoKana(`#dependent_${i}_name_last`, `#dependent_${i}_kana_last`, options);
-                $.fn.autoKana(`#dependent_${i}_name_first`, `#dependent_${i}_kana_first`, options);
-            }
-
-            form.addEventListener('input', (event) => {
-                if (event.target.classList.contains('currency-input')) {
-                    formatCurrency(event);
-                }
-            });
-
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('tooltip-icon')) {
-                    const parent = e.target.parentElement;
-                    const wasActive = parent.classList.contains('show');
-                    document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show'));
-                    if (!wasActive) { parent.classList.add('show'); }
-                } 
-                else if (!e.target.closest('.tooltip-container')) {
-                    document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show'));
-                }
-            });
+            $('#name_last').autoKana('#kana_last', options);
+            $('#name_first').autoKana('#kana_first', options);
+            $('#spouse_name_last').autoKana('#spouse_kana_last', options);
+            $('#spouse_name_first').autoKana('#spouse_kana_first', options);
+            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
+                $(`#dependent_${i}_name_last`).autoKana(`#dependent_${i}_kana_last`, options);
+                $(`#dependent_${i}_name_first`).autoKana(`#dependent_${i}_kana_first`, options);
+            }
+            form.addEventListener('input', (event) => { if (event.target.classList.contains('currency-input')) { formatCurrency(event); } });
+            document.addEventListener('click', function(e) { if (e.target.classList.contains('tooltip-icon')) { const parent = e.target.parentElement; const wasActive = parent.classList.contains('show'); document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show')); if (!wasActive) { parent.classList.add('show'); } } else if (!e.target.closest('.tooltip-container')) { document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show')); } });
         });
     </script>
 </body>
