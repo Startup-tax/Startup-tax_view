@@ -157,6 +157,26 @@
         .current-files a:hover {
             text-decoration: underline;
         }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+        }
+        .btn-delete-file {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .btn-delete-file:hover {
+            background-color: #c0392b;
+        }
         
         @media (max-width: 600px) {
             body { padding: 0 10px; } h1 { font-size: 1.8em; }
@@ -407,12 +427,10 @@
     		const input = event.target;
     		let value = input.value;
 
-    		// 全角英数字を半角に変換
     		value = value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
         		return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
     		});	
 
-    		// 数字以外の文字を削除
     		value = value.replace(/[^0-9]/g, '');
 
     		if (value === '') {
@@ -721,7 +739,10 @@
                     }
                     const currentFilesDiv = input.nextElementSibling;
                     if (currentFilesDiv && currentFilesDiv.classList.contains('current-files')) {
-                        return currentFilesDiv.innerText.replace('現在アップロード済みのファイル:\n', '');
+                        const links = currentFilesDiv.querySelectorAll('a');
+                        if (links.length > 0) {
+                            return Array.from(links).map(a => a.textContent).join(', ');
+                        }
                     }
                     return null;
                 }
@@ -921,12 +942,11 @@
         }
         
         function populateForm(data) {
-            // 既存のファイル表示があれば一旦クリア
+        
             document.querySelectorAll('.current-files').forEach(el => el.remove());
             
             let dependentCount = 0;
             for (let i = 1; i <= 6; i++) {
-                // 扶養親族のヘッダー名をより正確に指定
                 if (data[`扶養${i}_姓`] || data[`扶養${i}_名`]) { dependentCount++; }
             }
             for (let i = 1; i < dependentCount; i++) { addDependentField(); }
@@ -1037,12 +1057,15 @@
                     let html = '<div class="current-files"><strong>現在アップロード済みのファイル:</strong><br>';
                     urls.split('\n').forEach(url => {
                         if (!url) return;
-                        // Google DriveのURLからファイル名を抽出するロジック
                         const fileName = decodeURIComponent(url.substring(url.lastIndexOf('/') + 1).split('?')[0].split('-').slice(2).join('-'));
-                        html += `<a href="${url}" target="_blank" rel="noopener noreferrer">${fileName || 'ファイルを開く'}</a><br>`;
+                        html += `
+                            <div class="file-item">
+                                <a href="${url}" target="_blank" rel="noopener noreferrer">${fileName || 'ファイルを開く'}</a>
+                                <button type="button" class="btn-delete-file" data-url="${url}">削除</button>
+                            </div>
+                        `;
                     });
                     html += '</div>';
-                    // ファイル選択フォームの直後に生成したHTMLを挿入
                     fileInput.insertAdjacentHTML('afterend', html);
                 }
             }
@@ -1111,6 +1134,27 @@
             form.addEventListener('compositionend', (event) => {
                 if (event.target.classList.contains('currency-input')) {
                     formatCurrency(event);
+                }
+            });
+
+            form.addEventListener('click', function(event) {
+                if (event.target.classList.contains('btn-delete-file')) {
+                    event.preventDefault(); // ボタンのデフォルト動作を停止
+                    const fileItem = event.target.closest('.file-item');
+                    const urlToDelete = event.target.dataset.url;
+
+                    // 削除対象URLを保持する隠しフィールドを追加/更新
+                    let urlsToDeleteInput = form.querySelector('[name="urls_to_delete"]');
+                    if (!urlsToDeleteInput) {
+                        urlsToDeleteInput = document.createElement('input');
+                        urlsToDeleteInput.type = 'hidden';
+                        urlsToDeleteInput.name = 'urls_to_delete';
+                        form.appendChild(urlsToDeleteInput);
+                    }
+                    urlsToDeleteInput.value += (urlsToDeleteInput.value ? '\n' : '') + urlToDelete;
+
+                    // 画面からファイル表示を削除
+                    fileItem.remove();
                 }
             });
 
