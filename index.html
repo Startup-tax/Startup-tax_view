@@ -921,11 +921,12 @@
         }
         
         function populateForm(data) {
-        
+            // 既存のファイル表示があれば一旦クリア
             document.querySelectorAll('.current-files').forEach(el => el.remove());
             
             let dependentCount = 0;
             for (let i = 1; i <= 6; i++) {
+                // 扶養親族のヘッダー名をより正確に指定
                 if (data[`扶養${i}_姓`] || data[`扶養${i}_名`]) { dependentCount++; }
             }
             for (let i = 1; i < dependentCount; i++) { addDependentField(); }
@@ -1036,10 +1037,12 @@
                     let html = '<div class="current-files"><strong>現在アップロード済みのファイル:</strong><br>';
                     urls.split('\n').forEach(url => {
                         if (!url) return;
+                        // Google DriveのURLからファイル名を抽出するロジック
                         const fileName = decodeURIComponent(url.substring(url.lastIndexOf('/') + 1).split('?')[0].split('-').slice(2).join('-'));
                         html += `<a href="${url}" target="_blank" rel="noopener noreferrer">${fileName || 'ファイルを開く'}</a><br>`;
                     });
                     html += '</div>';
+                    // ファイル選択フォームの直後に生成したHTMLを挿入
                     fileInput.insertAdjacentHTML('afterend', html);
                 }
             }
