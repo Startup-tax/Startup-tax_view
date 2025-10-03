@@ -137,7 +137,6 @@
         .form-group-medium input, .form-group-medium select { max-width: 400px; }
         .form-group-large input, .form-group-large select { max-width: 500px; }
 
-        /* ★★★ 修正箇所 ★★★ (ファイル表示用のCSS) */
         .current-files {
             font-size: 0.9em;
             background-color: #f8f9fa;
@@ -1012,15 +1011,28 @@
                 }
             });
 
-            const fileUrlHeaders = headers.filter(h => h.includes('URL'));
-            fileUrlHeaders.forEach(header => {
-                const urls = data[header];
-                if (!urls) return;
+            const fileUrlMap = {
+                '前職源泉徴収票URL': 'previous_job_file',
+                '配偶者障害者手帳URL': 'spouse_disability_certificate_file',
+                '本人障害者手帳URL': 'user_disability_certificate_file',
+                '勤労学生_学生証URL': 'student_card_file',
+                '生命保険料_控除証明書URL': 'life_insurance_file',
+                '地震保険料_控除証明書URL': 'earthquake_insurance_file',
+                '国民健康保険料 控除証明書URL': 'national_health_insurance_file',
+                '国民年金保険料 控除証明書URL': 'national_pension_insurance_file',
+                '小規模企業共済掛金等_控除証明書URL': 'small_business_file',
+                '住宅ローン_申告書・証明書URL': 'housing_loan_file'
+            };
+            for (let i = 1; i <= 6; i++) {
+                fileUrlMap[`扶養${i}_障害者手帳URL`] = `dependent_${i}_disability_certificate_file`;
+            }
 
-                const name = nameAttrMap[header.replace('URL', '')] || nameAttrMap[header.replace('URL', '_ファイル')];
-                const fileInput = form.querySelector(`[name="${name}"]`) || form.querySelector(`[name="${name}_file"]`);
-                
-                if (fileInput) {
+            for (const header in fileUrlMap) {
+                const urls = data[header];
+                const inputName = fileUrlMap[header];
+                const fileInput = form.querySelector(`[name="${inputName}"]`);
+
+                if (urls && fileInput) {
                     let html = '<div class="current-files"><strong>現在アップロード済みのファイル:</strong><br>';
                     urls.split('\n').forEach(url => {
                         if (!url) return;
@@ -1030,7 +1042,7 @@
                     html += '</div>';
                     fileInput.insertAdjacentHTML('afterend', html);
                 }
-            });
+            }
         }
         
         $(function() {
