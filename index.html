@@ -265,9 +265,9 @@
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://yubinbango.github.io/yubinbango/yubinbango.js" charset="UTF-8"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jquery.autokana@1.0.2/jquery.autokana.min.js"></script>
-    
+    <script src="https://unpkg.com/wanakana"></script>
     <script>
+        // --- ▼▼▼ ここからJavaScriptの全コード（フリガナ自動入力部分を修正）▼▼▼
         
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
         const form = document.getElementById('main-form');
@@ -500,7 +500,7 @@
                                 		<span class="tooltip-icon">!</span>
                                 		<div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>給与収入の場合は総支給額から非課税交通費を除いた金額です。</div>
                             		</div>
-                            	</div>
+                                	</div>
                                 	<div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_income_amount" class="currency-input" inputmode="numeric"></div></div>
                                 <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="なし" checked>なし</label></div></div>
                                 <div class="form-group form-group-small"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
@@ -946,15 +946,44 @@
             document.querySelectorAll('.date-select-group').forEach(setupWarekiDateFields);
             toggleMainSections(form.querySelector('input[name="year_end_adjustment"]:checked').value);
             
-            const options = { katakana: true };
-            $('#name_last').autoKana('#kana_last', options);
-            $('#name_first').autoKana('#kana_first', options);
-            $('#spouse_name_last').autoKana('#spouse_kana_last', options);
-            $('#spouse_name_first').autoKana('#spouse_kana_first', options);
-            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
-                $(`#dependent_${i}_name_last`).autoKana(`#dependent_${i}_kana_last`, options);
-                $(`#dependent_${i}_name_first`).autoKana(`#dependent_${i}_kana_first`, options);
-            }
+           const fieldsToKana = [
+                { id: 'name_last', kanaId: 'kana_last' },
+                { id: 'name_first', kanaId: 'kana_first' },
+                { id: 'spouse_name_last', kanaId: 'spouse_kana_last' },
+                { id: 'spouse_name_first', kanaId: 'spouse_kana_first' }
+            ];
+
+            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
+                fieldsToKana.push({ id: `dependent_${i}_name_last`, kanaId: `dependent_${i}_kana_last` });
+                fieldsToKana.push({ id: `dependent_${i}_name_first`, kanaId: `dependent_${i}_kana_first` });
+            }
+
+            fieldsToKana.forEach(field => {
+                const nameInput = document.getElementById(field.id);
+                const kanaInput = document.getElementById(field.kanaId);
+                if (nameInput && kanaInput) {
+                    nameInput.addEventListener('input', () => {
+                        const inputValue = nameInput.value;
+
+                        // もし氏名欄が完全に空になったら、フリガナ欄も空にして処理を終了する
+                        if (inputValue === '') {
+                            kanaInput.value = '';
+                            return;
+                        }
+
+                        // ひらがな・カタカナのみを抽出
+                        const kanaString = [...inputValue].filter(char => {
+                            return wanakana.isHiragana(char) || wanakana.isKatakana(char);
+                        }).join('');
+
+                        // 抽出したカナ文字列があればフリガナ欄を更新
+                        if (kanaString) {
+                            kanaInput.value = wanakana.toKatakana(kanaString);
+                        }
+                    });
+                }
+            });
+            
             form.addEventListener('input', (event) => { if (event.target.classList.contains('currency-input')) { formatCurrency(event); } });
             document.addEventListener('click', function(e) { if (e.target.classList.contains('tooltip-icon')) { const parent = e.target.parentElement; const wasActive = parent.classList.contains('show'); document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show')); if (!wasActive) { parent.classList.add('show'); } } else if (!e.target.closest('.tooltip-container')) { document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show')); } });
         });
