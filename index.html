@@ -136,6 +136,27 @@
         .form-group-small input, .form-group-small select { max-width: 200px; }
         .form-group-medium input, .form-group-medium select { max-width: 400px; }
         .form-group-large input, .form-group-large select { max-width: 500px; }
+
+        /* ★★★ 追加したCSS ★★★ */
+        .current-files {
+            font-size: 0.9em;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 8px;
+        }
+        .current-files strong {
+            font-weight: bold;
+            color: #495057;
+        }
+        .current-files a {
+            color: #1e3656;
+            text-decoration: none;
+        }
+        .current-files a:hover {
+            text-decoration: underline;
+        }
         
         @media (max-width: 600px) {
             body { padding: 0 10px; } h1 { font-size: 1.8em; }
@@ -266,9 +287,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://yubinbango.github.io/yubinbango/yubinbango.js" charset="UTF-8"></script>
     <script src="https://unpkg.com/wanakana"></script>
+    
     <script>
-        // --- ▼▼▼ ここからJavaScriptの全コード（フリガナ自動入力部分を修正）▼▼▼
-        
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
         const form = document.getElementById('main-form');
         const formContents = document.getElementById('form-contents');
@@ -302,19 +322,27 @@
             });
         }
 
+        /**
+         * ★★★ 修正後 ★★★
+         * 住所同期チェックボックスの処理（隠しフィールドも操作）
+         */
         function syncAddress(destPrefix, checkbox) {
+            const hiddenInput = form.querySelector(`[name="${destPrefix}_address_same_as_user"]`);
             const userAddr1 = document.getElementById('address1').value;
             const userAddr2 = document.getElementById('address2').value;
             const destAddr1 = document.getElementById(`${destPrefix}_address1`);
             const destAddr2 = document.getElementById(`${destPrefix}_address2`);
+            
             if (checkbox.checked) {
                 destAddr1.value = userAddr1;
                 destAddr2.value = userAddr2;
                 destAddr1.disabled = true;
                 destAddr2.disabled = true;
+                if(hiddenInput) hiddenInput.value = "true";
             } else {
                 destAddr1.disabled = false;
                 destAddr2.disabled = false;
+                if(hiddenInput) hiddenInput.value = "false";
             }
         }
 
@@ -375,16 +403,33 @@
             document.getElementById('add-dependent-btn').classList.remove('hidden');
         }
         
+        /**
+         * ★★★ 修正後 ★★★
+         * 金額入力のフォーマット（全角数字に対応）
+         */
         function formatCurrency(event) {
             const input = event.target;
-            let value = input.value.replace(/,/g, '');
-            if (value === '' || isNaN(value)) {
+            let value = input.value;
+
+            // 全角英数字を半角に変換
+            value = value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+                return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+            });
+
+            // 数字以外の文字を削除
+            value = value.replace(/[^0-9]/g, '');
+
+            if (value === '') {
                 input.value = '';
                 return;
             }
             input.value = Number(value).toLocaleString('ja-JP');
         }
 
+        /**
+         * ★★★ 修正後 ★★★
+         * HTMLの動的部分を生成（隠しフィールドを追加）
+         */
         function populateMainSections() {
             mainSectionsContainer.innerHTML = `
                 <fieldset>
@@ -442,6 +487,7 @@
                         </div>
                         <div class="form-group"><label>生年月日</label><div class="date-select-group" data-prefix="spouse"><select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span></div><input type="hidden" name="spouse_birth_date"></div>
                         <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('spouse', this)"> 本人と住所が同じ</label></div>
+                        <input type="hidden" name="spouse_address_same_as_user" value="false">
                         <div class="form-group form-group-large"><label>住所1</label><input type="text" id="spouse_address1" name="spouse_address1"></div>
                         <div class="form-group form-group-large"><label>住所2</label><input type="text" id="spouse_address2" name="spouse_address2"></div>
                         <div class="form-group form-group-small"><div class="tooltip-wrapper"><label>収入金額</label>
@@ -493,6 +539,7 @@
                                 </div>
                                 <div class="form-group"><label>生年月日</label><div class="date-select-group" data-prefix="dependent_${i + 1}"><select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span></div><input type="hidden" name="dependent_${i + 1}_birth_date"></div>
                                 <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('dependent_${i + 1}', this)"> 本人と住所が同じ</label></div>
+                                <input type="hidden" name="dependent_${i + 1}_address_same_as_user" value="false">
                                 <div class="form-group form-group-large"><label>住所1</label><input type="text" id="dependent_${i + 1}_address1" name="dependent_${i + 1}_address1"></div>
                                 <div class="form-group form-group-large"><label>住所2</label><input type="text" id="dependent_${i + 1}_address2" name="dependent_${i + 1}_address2"></div>
                                 <div class="form-group form-group-small"><div class="tooltip-wrapper"><label>収入金額</label>
@@ -676,11 +723,21 @@
                 }
 
                 if (input.type === 'file') {
-                    return input.files.length > 0 ? Array.from(input.files).map(f => f.name).join(', ') : null;
+                    // ★★★ 修正 ★★★
+                    // 新しいファイルをアップロードしようとしている場合のみファイル名を表示
+                    if (input.files.length > 0) {
+                        return Array.from(input.files).map(f => f.name).join(', ');
+                    }
+                    // 既存のファイル表示を探す
+                    const currentFilesDiv = input.nextElementSibling;
+                    if (currentFilesDiv && currentFilesDiv.classList.contains('current-files')) {
+                        return currentFilesDiv.innerText.replace('現在アップロード済みのファイル:\n', '');
+                    }
+                    return null;
                 }
                 
                 let value = formData.get(name);
-                if (value === null || value === undefined || value === '') {
+                if (value === null || value === undefined || value === '' || value === 'false') { // 'false'も非表示に
                     return null;
                 }
 
@@ -707,7 +764,9 @@
                 ['resident_tax', '住民税徴収方法'], ['spouse_existence', '配偶者有無'], 
                 ['spouse_last_name', '配偶者 姓'], ['spouse_first_name', '配偶者 名'],
                 ['spouse_last_name_furigana', '配偶者 姓フリガナ'], ['spouse_first_name_furigana', '配偶者 名フリガナ'],
-                ['spouse_birth_date', '配偶者 生年月日'], ['spouse_address1', '配偶者 住所1'], ['spouse_address2', '配偶者 住所2'],
+                ['spouse_birth_date', '配偶者 生年月日'], 
+                ['spouse_address_same_as_user', '配偶者住所'], // ★変更: フラグを表示
+                ['spouse_address1', '配偶者 住所1'], ['spouse_address2', '配偶者 住所2'],
                 ['spouse_income_amount', '配偶者 収入金額'], ['spouse_severance_pay_existence', '配偶者 退職手当有無'],
                 ['spouse_severance_pay_amount', '配偶者 退職手当等金額'], 
                 ['spouse_disability_certificate_existence', '配偶者 障害者手帳交付有無'],
@@ -721,6 +780,7 @@
                     [`dependent_${i}_last_name`, `【扶養親族${i}】姓`], [`dependent_${i}_first_name`, `【扶養親族${i}】名`],
                     [`dependent_${i}_last_name_furigana`, `【扶養親族${i}】姓フリガナ`], [`dependent_${i}_first_name_furigana`, `【扶養親族${i}】名フリガナ`],
                     [`dependent_${i}_relationship`, `【扶養親族${i}】続柄`], [`dependent_${i}_birth_date`, `【扶養親族${i}】生年月日`],
+                    [`dependent_${i}_address_same_as_user`, `【扶養親族${i}】住所`], // ★変更: フラグを表示
                     [`dependent_${i}_address1`, `【扶養親族${i}】住所1`], [`dependent_${i}_address2`, `【扶養親族${i}】住所2`],
                     [`dependent_${i}_income_amount`, `【扶養親族${i}】収入金額`], [`dependent_${i}_severance_pay_existence`, `【扶養親族${i}】退職手当有無`],
                     [`dependent_${i}_severance_pay_amount`, `【扶養親族${i}】退職手当等金額`],
@@ -748,9 +808,25 @@
             );
 
             allFields.forEach(([name, label]) => {
-                const value = getDisplayValue(name);
+                let value = getDisplayValue(name);
+                // ★★★ 修正 ★★★
+                // 住所フラグの表示名を「本人と同じ」に変換
+                if (name.includes('_address_same_as_user') && value === 'true') {
+                    value = '本人と同じ';
+                }
+                
                 if (value !== null) {
-                    addRow(label, value);
+                    // 住所が「本人と同じ」の場合、個別の住所1,2は表示しない
+                    if(name.includes('_address_same_as_user') && value === '本人と同じ') {
+                       addRow(label, value);
+                    } else if (name.endsWith('_address1') || name.endsWith('_address2')) {
+                        const prefix = name.substring(0, name.lastIndexOf('_'));
+                        if (getDisplayValue(`${prefix}_address_same_as_user`) !== 'true') {
+                            addRow(label, value);
+                        }
+                    } else {
+                        addRow(label, value);
+                    }
                 }
             });
 
@@ -768,6 +844,7 @@
         }
 
         async function submitForm() {
+            // (この関数は変更なし)
             confirmContents.classList.add('hidden');
             loading.classList.remove('hidden');
             
@@ -841,6 +918,10 @@
             }
         }
         
+        /**
+         * ★★★ 修正後 ★★★
+         * 編集データをフォームにセットする（住所同期・ファイル表示に対応）
+         */
         async function loadDataForEdit(id) {
             try {
                 const response = await fetch(`${GAS_WEB_APP_URL}?id=${id}`);
@@ -858,52 +939,78 @@
         }
         
         function populateForm(data) {
+            // 既存のファイル表示をクリア
+            document.querySelectorAll('.current-files').forEach(el => el.remove());
+            
             let dependentCount = 0;
-            for (let i = 1; i <= MAX_DEPENDENTS; i++) {
-                if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) { dependentCount++; }
+            for (let i = 1; i <= 6; i++) {
+                if (data[`扶養${i}_姓`] || data[`扶養${i}_名`]) { dependentCount++; }
             }
             for (let i = 1; i < dependentCount; i++) { addDependentField(); }
 
-            const fieldMapping = {'事業者名': 'company_name', 'メールアドレス': 'email_address', '姓': 'last_name', '名': 'first_name', '姓フリガナ': 'last_name_furigana', '名フリガナ': 'first_name_furigana', '郵便番号': 'postal_code', '住所1': 'address1', '住所2': 'address2', '世帯主の氏名': 'householder_name', '世帯主の続柄': 'householder_relationship', '年末調整実施可否': 'year_end_adjustment', '前職有無': 'previous_job', 'その他収入有無': 'other_income_existence', 'その他収入金額': 'other_income_amount', '住民税徴収方法': 'resident_tax', '配偶者有無': 'spouse_existence', '配偶者姓': 'spouse_last_name', '配偶者名': 'spouse_first_name', '配偶者姓フリガナ': 'spouse_last_name_furigana', '配偶者名フリガナ': 'spouse_first_name_furigana', '配偶者住所1': 'spouse_address1', '配偶者住所2': 'spouse_address2', '配偶者収入金額': 'spouse_income_amount', '配偶者退職手当有無': 'spouse_severance_pay_existence', '配偶者退職手当等金額': 'spouse_severance_pay_amount', '配偶者障害者手帳交付有無': 'spouse_disability_certificate_existence', '配偶者障害者手帳備考': 'spouse_disability_certificate_remarks', '扶養親族有無': 'dependents_existence', '本人障害者手帳交付有無': 'user_disability_certificate_existence', '本人障害者手帳備考': 'user_disability_certificate_remarks', '寡婦該当確認': 'widow_status', 'ひとり親該当確認': 'single_parent_status', '勤労学生該当確認': 'working_student_status', '災害者該当確認': 'disaster_status', '生命保険料控除有無': 'life_insurance_deduction', '地震保険料控除有無': 'earthquake_insurance_deduction', '社会保険料控除有無': 'social_insurance_deduction', '国民健康保険料 支払対象者氏名': 'national_health_insurance_payer_name', '国民健康保険料 年間支払額': 'national_health_insurance_amount', '小規模企業共済掛金等控除有無': 'small_business_deduction', '住宅ローン控除有無': 'housing_loan_deduction'};
-            for (let i = 1; i <= dependentCount; i++) { Object.assign(fieldMapping, { [`扶養親族${i}_姓`]: `dependent_${i}_last_name`, [`扶養親族${i}_名`]: `dependent_${i}_first_name`, [`扶養親族${i}_姓フリガナ`]: `dependent_${i}_last_name_furigana`, [`扶養親族${i}_名フリガナ`]: `dependent_${i}_first_name_furigana`, [`扶養親族${i}_続柄`]: `dependent_${i}_relationship`, [`扶養親族${i}_住所1`]: `dependent_${i}_address1`, [`扶養親族${i}_住所2`]: `dependent_${i}_address2`, [`扶養親族${i}_収入金額`]: `dependent_${i}_income_amount`, [`扶養親族${i}_退職手当有無`]: `dependent_${i}_severance_pay_existence`, [`扶養親族${i}_退職手当等金額`]: `dependent_${i}_severance_pay_amount`, [`扶養親族${i}_障害者手帳交付有無`]: `dependent_${i}_disability_certificate_existence`, [`扶養親族${i}_障害者手帳備考`]: `dependent_${i}_disability_certificate_remarks` }); }
+            // ★★★ 修正 ★★★ スプレッドシートの列名とフォームのname属性をマッピング
+            const headers = Object.keys(data);
+            const nameAttrMap = {
+                '事業者名':'company_name', 'メールアドレス':'email_address', '姓':'last_name', '名':'first_name', '姓フリガナ':'last_name_furigana', '名フリガナ':'first_name_furigana',
+                '郵便番号':'postal_code', '住所1':'address1', '住所2':'address2', '世帯主の氏名':'householder_name', '世帯主の続柄':'householder_relationship',
+                '年末調整実施可否':'year_end_adjustment', '前職有無':'previous_job', 'その他収入有無':'other_income_existence', 'その他収入金額':'other_income_amount', '住民税徴収方法':'resident_tax',
+                '配偶者有無':'spouse_existence', '配偶者姓':'spouse_last_name', '配偶者名':'spouse_first_name', '配偶者姓フリガナ':'spouse_last_name_furigana', '配偶者名フリガナ':'spouse_first_name_furigana',
+                '配偶者住所1':'spouse_address1', '配偶者住所2':'spouse_address2', '配偶者_住所同じ':'spouse_address_same_as_user',
+                '配偶者収入金額':'spouse_income_amount', '配偶者退職手当有無':'spouse_severance_pay_existence', '配偶者退職手当等金額':'spouse_severance_pay_amount',
+                '配偶者障害者手帳交付有無':'spouse_disability_certificate_existence', '配偶者障害者手帳備考':'spouse_disability_certificate_remarks',
+                '扶養親族有無':'dependents_existence', '本人障害者手帳交付有無':'user_disability_certificate_existence', '本人障害者手帳備考':'user_disability_certificate_remarks',
+                '寡婦該当確認':'widow_status', 'ひとり親該当確認':'single_parent_status', '勤労学生該当確認':'working_student_status', '災害者該当確認':'disaster_status',
+                '生命保険料控除有無':'life_insurance_deduction', '地震保険料控除有無':'earthquake_insurance_deduction', '社会保険料控除有無':'social_insurance_deduction',
+                '国民健康保険料 支払対象者氏名':'national_health_insurance_payer_name', '国民健康保険料 年間支払額':'national_health_insurance_amount',
+                '小規模企業共済掛金等控除有無':'small_business_deduction', '住宅ローン控除有無':'housing_loan_deduction',
+            };
+            for(let i=1; i<=6; i++){
+                nameAttrMap[`扶養${i}_姓`] = `dependent_${i}_last_name`; nameAttrMap[`扶養${i}_名`] = `dependent_${i}_first_name`;
+                nameAttrMap[`扶養${i}_姓フリガナ`] = `dependent_${i}_last_name_furigana`; nameAttrMap[`扶養${i}_名フリガナ`] = `dependent_${i}_first_name_furigana`;
+                nameAttrMap[`扶養${i}_続柄`] = `dependent_${i}_relationship`; nameAttrMap[`扶養${i}_住所1`] = `dependent_${i}_address1`; nameAttrMap[`扶養${i}_住所2`] = `dependent_${i}_address2`;
+                nameAttrMap[`扶養${i}_住所同じ`] = `dependent_${i}_address_same_as_user`; nameAttrMap[`扶養${i}_収入金額`] = `dependent_${i}_income_amount`;
+                nameAttrMap[`扶養${i}_退職手当有無`] = `dependent_${i}_severance_pay_existence`; nameAttrMap[`扶養${i}_退職手当等金額`] = `dependent_${i}_severance_pay_amount`;
+                nameAttrMap[`扶養${i}_障害者手帳交付有無`] = `dependent_${i}_disability_certificate_existence`; nameAttrMap[`扶養${i}_障害者手帳備考`] = `dependent_${i}_disability_certificate_remarks`;
+            }
 
-            for (const key in fieldMapping) {
-                const el = form.querySelector(`[name="${fieldMapping[key]}"]`);
+            headers.forEach(header => {
+                const name = nameAttrMap[header];
+                if (!name) return;
+                
+                const el = form.querySelector(`[name="${name}"]`);
                 if (el) {
-                    const value = data[key] || '';
+                    const value = data[header];
                     if (el.type === 'radio') {
-                        const targetRadio = form.querySelector(`[name="${fieldMapping[key]}"][value="${value}"]`);
+                        const targetRadio = form.querySelector(`[name="${name}"][value="${value}"]`);
                         if (targetRadio) {
                             targetRadio.checked = true;
                             targetRadio.dispatchEvent(new Event('change', { bubbles: true }));
                         }
-                    } else if (el.type === 'checkbox') {
-                        el.checked = !!value;
-                        el.dispatchEvent(new Event('change', { bubbles: true }));
-                    } else {
-                        el.value = value;
-                        if(el.classList.contains('currency-input') && value) {
+                    } else if (el.type !== 'file') { // ファイル以外
+                        el.value = value || '';
+                         if(el.classList.contains('currency-input') && value) {
                             el.value = Number(value).toLocaleString('ja-JP');
                         }
                     }
                 }
-            }
+            });
 
-            const dateFields = { '生年月日': 'user', '配偶者生年月日': 'spouse' };
-             for (let i = 1; i <= dependentCount; i++) { dateFields[`扶養親族${i}_生年月日`] = `dependent_${i}`; }
-            for(const key in dateFields) {
-                const dateString = data[key];
-                if(dateString) {
+            // ★★★ 修正 ★★★ 日付フィールドの復元
+            const dateHeaders = {'生年月日':'user', '配偶者生年月日':'spouse'};
+            for(let i=1; i<=6; i++) { dateHeaders[`扶養${i}_生年月日`] = `dependent_${i}`; }
+            Object.keys(dateHeaders).forEach(header => {
+                const dateString = data[header];
+                if (dateString) {
                     const match = dateString.match(/^(令和|平成|昭和)(元|\d+)年(\d+)月(\d+)日$/);
                     if (match) {
                         const [, era, yearText, month, day] = match;
-                        const year = yearText === '元' ? 1 : parseInt(yearText);
-                        const group = document.querySelector(`.date-select-group[data-prefix="${dateFields[key]}"]`);
+                        const year = yearText === '元' ? 1 : parseInt(yearText, 10);
+                        const group = document.querySelector(`.date-select-group[data-prefix="${dateHeaders[header]}"]`);
                         if (group) {
                             const eraSelect = group.querySelector('.era');
                             eraSelect.value = era;
-                            eraSelect.dispatchEvent(new Event('change'));
-                            setTimeout(() => {
+                            eraSelect.dispatchEvent(new Event('change')); // 年リストを生成
+                            setTimeout(() => { // 年リスト生成を待つ
                                 group.querySelector('.year').value = year;
                                 group.querySelector('.month').value = month;
                                 group.querySelector('.day').value = day;
@@ -911,7 +1018,41 @@
                         }
                     }
                 }
-            }
+            });
+
+            // ★★★ 修正 ★★★ 住所同期チェックボックスの復元
+            ['spouse', ...Array.from({length: 6}, (_, i) => `dependent_${i + 1}`)].forEach(prefix => {
+                const headerName = (prefix === 'spouse' ? '配偶者' : `扶養${prefix.split('_')[1]}`) + '_住所同じ';
+                if (data[headerName] === 'true' || data[headerName] === true) {
+                    const checkbox = form.querySelector(`[onchange="syncAddress('${prefix}', this)"]`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+            });
+
+            // ★★★ 修正 ★★★ アップロード済みファイルの表示
+            const fileUrlHeaders = headers.filter(h => h.includes('URL'));
+            fileUrlHeaders.forEach(header => {
+                const urls = data[header];
+                if (!urls) return;
+
+                // 対応するinput[type="file"]を見つける（命名規則に依存）
+                const name = nameAttrMap[header.replace('URL', '')] || nameAttrMap[header.replace('URL', '_ファイル')];
+                const fileInput = form.querySelector(`[name="${name}"]`) || form.querySelector(`[name="${name}_file"]`);
+                
+                if (fileInput) {
+                    let html = '<div class="current-files"><strong>現在アップロード済みのファイル:</strong><br>';
+                    urls.split('\n').forEach(url => {
+                        if (!url) return;
+                        const fileName = decodeURIComponent(url.substring(url.lastIndexOf('/') + 1).split('?')[0].split('-').slice(2).join('-'));
+                        html += `<a href="${url}" target="_blank" rel="noopener noreferrer">${fileName || 'ファイルを開く'}</a><br>`;
+                    });
+                    html += '</div>';
+                    fileInput.insertAdjacentHTML('afterend', html);
+                }
+            });
         }
         
         $(function() {
@@ -929,7 +1070,7 @@
 
                 if (editId) {
                     document.getElementById('form-title').textContent = '年末調整情報の修正';
-                    document.getElementById('main-submit-btn').textContent = '更新する';
+                    document.getElementById('main-submit-btn').textContent = '更新内容の確認へ';
                     document.getElementById('edit-id').value = editId;
                     setTimeout(() => loadDataForEdit(editId), 100);
                 }
@@ -946,37 +1087,25 @@
             document.querySelectorAll('.date-select-group').forEach(setupWarekiDateFields);
             toggleMainSections(form.querySelector('input[name="year_end_adjustment"]:checked').value);
             
-           const fieldsToKana = [
-                { id: 'name_last', kanaId: 'kana_last' },
-                { id: 'name_first', kanaId: 'kana_first' },
-                { id: 'spouse_name_last', kanaId: 'spouse_kana_last' },
-                { id: 'spouse_name_first', kanaId: 'spouse_kana_first' }
+            const fieldsToKana = [
+                { id: 'name_last', kanaId: 'kana_last' }, { id: 'name_first', kanaId: 'kana_first' },
+                { id: 'spouse_name_last', kanaId: 'spouse_kana_last' }, { id: 'spouse_name_first', kanaId: 'spouse_kana_first' }
             ];
-
             for (let i = 1; i <= MAX_DEPENDENTS; i++) {
                 fieldsToKana.push({ id: `dependent_${i}_name_last`, kanaId: `dependent_${i}_kana_last` });
                 fieldsToKana.push({ id: `dependent_${i}_name_first`, kanaId: `dependent_${i}_kana_first` });
             }
-
             fieldsToKana.forEach(field => {
                 const nameInput = document.getElementById(field.id);
                 const kanaInput = document.getElementById(field.kanaId);
                 if (nameInput && kanaInput) {
                     nameInput.addEventListener('input', () => {
                         const inputValue = nameInput.value;
-
-                        // もし氏名欄が完全に空になったら、フリガナ欄も空にして処理を終了する
                         if (inputValue === '') {
                             kanaInput.value = '';
                             return;
                         }
-
-                        // ひらがな・カタカナのみを抽出
-                        const kanaString = [...inputValue].filter(char => {
-                            return wanakana.isHiragana(char) || wanakana.isKatakana(char);
-                        }).join('');
-
-                        // 抽出したカナ文字列があればフリガナ欄を更新
+                        const kanaString = [...inputValue].filter(char => wanakana.isHiragana(char) || wanakana.isKatakana(char)).join('');
                         if (kanaString) {
                             kanaInput.value = wanakana.toKatakana(kanaString);
                         }
