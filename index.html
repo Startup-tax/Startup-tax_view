@@ -1139,11 +1139,10 @@
 
             form.addEventListener('click', function(event) {
                 if (event.target.classList.contains('btn-delete-file')) {
-                    event.preventDefault(); // ボタンのデフォルト動作を停止
+                    event.preventDefault();
                     const fileItem = event.target.closest('.file-item');
                     const urlToDelete = event.target.dataset.url;
 
-                    // 削除対象URLを保持する隠しフィールドを追加/更新
                     let urlsToDeleteInput = form.querySelector('[name="urls_to_delete"]');
                     if (!urlsToDeleteInput) {
                         urlsToDeleteInput = document.createElement('input');
@@ -1153,7 +1152,6 @@
                     }
                     urlsToDeleteInput.value += (urlsToDeleteInput.value ? '\n' : '') + urlToDelete;
 
-                    // 画面からファイル表示を削除
                     fileItem.remove();
                 }
             });
