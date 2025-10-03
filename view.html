@@ -201,7 +201,7 @@
             message.textContent = 'データを取得中...';
 
             if (!id) {
-                message.textContent = '回答を表示できません。';
+                message.textContent = '回答IDが見つからないため、回答を表示できません。';
                 return;
             }
 
@@ -209,81 +209,186 @@
                 const response = await fetch(`${GAS_WEB_APP_URL}?id=${id}`);
                 const result = await response.json();
 
-                if (result.result === 'success') {
-                    message.textContent = `回答ID: ${id} の内容を表示しています。`;
-                    document.getElementById('edit-section').style.display = 'block';
-                    document.getElementById('add-files-section').style.display = 'block';
-                    
-                    const data = result.data;
-                    const addRow = (label, value) => {
-                        const row = table.insertRow();
-                        row.insertCell().outerHTML = `<th>${label}</th>`;
-                        const cell = row.insertCell();
-                        
-                        if (typeof value === 'string' && (value.includes('https://') || value.includes('http://'))) {
-                            const urls = value.split('\n');
-                            urls.forEach((url, index) => {
-                                if(!url) return;
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.textContent = `添付ファイル${urls.length > 1 ? index + 1 : ''}`;
-                                a.target = '_blank';
-                                cell.appendChild(a);
-                                cell.appendChild(document.createElement('br'));
-                            });
-                        } else {
-                            cell.textContent = value;
-                        }
-                    };
-                    
-                    const processFields = (fieldList) => {
-                        for (const [header, label] of fieldList) {
-                            const value = data[header];
-                            if (value !== null && value !== undefined && value !== '') {
-                                addRow(label, value);
-                            }
-                        }
-                    };
-
-                    const preDependentsFields = [
-                        ['タイムスタンプ', '回答日時'], ['回答ID', '回答ID'], ['事業者名', '事業者名'], ['メールアドレス', 'メールアドレス'], 
-                        ['姓', '姓'], ['名', '名'], ['姓フリガナ', '姓フリガナ'], ['名フリガナ', '名フリガナ'], 
-                        ['生年月日', '生年月日'], ['郵便番号', '郵便番号'], ['住所1', '住所1'], ['住所2', '住所2'], 
-                        ['世帯主の氏名', '世帯主の氏名'], ['世帯主の続柄', '世帯主の続柄'],
-                        ['年末調整実施可否', '年末調整実施可否'], ['前職有無', '前職有無'], ['前職源泉徴収票URL', '前職源泉徴収票'], 
-                        ['その他収入有無', 'その他収入有無'], ['その他収入金額', 'その他収入金額'],
-                        ['住民税徴収方法', '住民税徴収方法'], ['配偶者有無', '配偶者有無'], 
-                        ['配偶者姓', '配偶者 姓'], ['配偶者名', '配偶者 名'], ['配偶者姓フリガナ', '配偶者 姓フリガナ'], 
-                        ['配偶者名フリガナ', '配偶者 名フリガナ'], ['配偶者生年月日', '配偶者 生年月日'], 
-                        ['配偶者住所1', '配偶者 住所1'], ['配偶者住所2', '配偶者 住所2'], ['配偶者収入金額', '配偶者 収入金額'], 
-                        ['配偶者退職手当有無', '配偶者 退職手当有無'], ['配偶者退職手当等金額', '配偶者 退職手当等金額'], 
-                        ['配偶者障害者手帳交付有無', '配偶者 障害者手帳交付有無'],
-                        ['配偶者障害者手帳URL', '配偶者 障害者手帳'],
-                        ['配偶者障害者手帳備考', '配偶者 障害者手帳(備考)'],
-                        ['扶養親族有無', '扶養親族有無']
-                    ];
-                    const postDependentsFields = [
-                        ['本人障害者手帳交付有無', '本人 障害者手帳交付有無'], ['本人障害者手帳交付URL', '本人 障害者手帳'], ['本人障害者手帳備考', '本人 障害者手帳(備考)'],
-                        ['寡婦該当確認', '寡婦該当確認'], ['ひとり親該当確認', 'ひとり親該当確認'],  ['勤労学生該当確認', '勤労学生該当確認'], ['勤労学生_学生証URL', '勤労学生_学生証'], 
-                        ['災害者該当確認', '災害者該当確認'], ['生命保険料控除有無', '生命保険料控除有無'], ['生命保険料_控除証明書URL', '生命保険料_控除証明書'], 
-                        ['地震保険料控除有無', '地震保険料控除有無'], ['地震保険料_控除証明書URL', '地震保険料_控除証明書'], ['社会保険料控除有無', '社会保険料控除有無'], 
-                        ['国民健康保険料 支払対象者氏名', '国民健康保険料 支払対象者氏名'], ['国民健康保険料 年間支払額', '国民健康保険料 年間支払額'], ['国民健康保険料 控除証明書URL', '国民健康保険料 控除証明書'],
-                        ['国民年金保険料 控除証明書URL', '国民年金保険料 控除証明書'], ['小規模企業共済掛金等控除有無', '小規模企業共済掛金等控除有無'], ['小規模企業共済掛金等_控除証明書URL', '小規模企業共済掛金等_控除証明書'], 
-                        ['住宅ローン控除有無', '住宅ローン控除有無'], ['住宅ローン_申告書・証明書URL', '住宅ローン_申告書・証明書']
-                    ];
-                    processFields(preDependentsFields.filter(item=>{ const name=item[0]; if(name.startsWith('配偶者')&&!name.endsWith('有無')){if(data['配偶者有無']!=='あり')return false;if(name.includes('障害者手帳')&&!name.endsWith('交付有無')){return data['配偶者障害者手帳交付有無']==='あり';}return true;}if(name==='前職源泉徴収票URL'){return data['前職有無']==='あり';}if(name==='その他収入金額'){return data['その他収入有無']==='あり';}return true;}));
-                    if(data['扶養親族有無']==='あり'){for(let i=1;i<=6;i++){if(data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]){const dependentFields=[[`扶養親族${i}_姓`,`【扶養親族${i}】姓`],[`扶養親族${i}_名`,`【扶養親族${i}】名`],[`扶養親族${i}_姓フリガナ`,`【扶養親族${i}】姓フリガナ`],[`扶養親族${i}_名フリガナ`,`【扶養親族${i}】名フリガナ`],[`扶養親族${i}_続柄`,`【扶養親族${i}】続柄`],[`扶養親族${i}_生年月日`,`【扶養親族${i}】生年月日`],[`扶養親族${i}_住所1`,`【扶養親族${i}】住所1`],[`扶養親族${i}_住所2`,`【扶養親族${i}】住所2`],[`扶養親族${i}_収入金額`,`【扶養親族${i}】収入金額`],[`扶養親族${i}_退職手当等有無`,`【扶養親族${i}】退職手当等有無`],[`扶養親族${i}_退職手当等金額`,`【扶養親族${i}】退職手当等金額`],[`扶養親族${i}_障害者手帳交付有無`,`【扶養親族${i}】障害者手帳交付有無`],[`扶養親族${i}_障害者手帳交付URL`,`【扶養親族${i}】障害者手帳`],[`扶養親族${i}_障害者手帳備考`,`【扶養親族${i}】障害者手帳(備考)`]];processFields(dependentFields.filter(item=>{const name=item[0];if(name.includes('障害者手帳')&&!name.endsWith('交付有無')){return data[`扶養親族${i}_障害者手帳交付有無']==='あり';}return true;}));}}}
-                    processFields(postDependentsFields.filter(item=>{const name=item[0];if(name.startsWith('本人障害者手帳')&&!name.endsWith('交付有無')){return data['本人障害者手帳交付有無']==='あり';}if(name==='勤労学生_学生証URL'){return data['勤労学生該当確認']==='該当';}const socialInsuranceHeaders=['国民健康保険料 支払対象者氏名','国民健康保険料 年間支払額','国民健康保険料 控除証明書URL','国民年金保険料 控除証明書URL'];if(socialInsuranceHeaders.includes(name)){return data['社会保険料控除有無']==='あり';}const deductionFileMap={'生命保険料_控除証明書URL':'生命保険料控除有無','地震保険料_控除証明書URL':'地震保険料控除有無','小規模企業共済掛金等_控除証明書URL':'小規模企業共済掛金等控除有無','住宅ローン_申告書・証明書URL':'住宅ローン控除有無'};if(deductionFileMap[name]){return data[deductionFileMap[name]]==='あり';}return true;}));
-                } else {
-                    message.textContent = `エラー: ${result.message}`;
+                if (result.result !== 'success') {
+                    throw new Error(result.message);
                 }
+
+                message.textContent = `回答ID: ${id} の内容を表示しています。`;
+                document.getElementById('edit-section').style.display = 'block';
+                document.getElementById('add-files-section').style.display = 'block';
+                
+                const data = result.data;
+
+                // --- ▼▼▼ 新しいデータ表示ロジック ▼▼▼ ---
+
+                // テーブルに行を追加するヘルパー関数
+                const addRow = (label, value) => {
+                    // 値が空やnullの場合は行自体を追加しない
+                    if (value === null || value === undefined || value === '') return;
+
+                    const row = table.insertRow();
+                    row.insertCell().outerHTML = `<th>${label}</th>`;
+                    const cell = row.insertCell();
+                    
+                    // 値がURLの場合はリンクを作成
+                    if (typeof value === 'string' && value.startsWith('http')) {
+                        const urls = value.split('\n');
+                        urls.forEach((url, index) => {
+                            if (!url) return;
+                            const a = document.createElement('a');
+                            a.href = url;
+                            // 複数ファイルの場合「添付ファイル1, 添付ファイル2...」と表示
+                            const fileName = `添付ファイル${urls.length > 1 ? index + 1 : ''}`;
+                            a.textContent = fileName;
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                            cell.appendChild(a);
+                            cell.appendChild(document.createElement('br'));
+                        });
+                    } else {
+                        cell.textContent = value;
+                    }
+                };
+                
+                // 表示する項目をセクションごとに分かりやすく定義
+                const sections = [
+                    {
+                        title: 'ご本人情報',
+                        fields: [
+                            { label: '回答日時', key: 'タイムスタンプ' },
+                            { label: '回答ID', key: '回答ID' },
+                            { label: '事業者名', key: '事業者名' },
+                            { label: 'メールアドレス', key: 'メールアドレス' },
+                            { label: '氏名', value: `${data['姓'] || ''} ${data['名'] || ''}`.trim() },
+                            { label: 'フリガナ', value: `${data['姓フリガナ'] || ''} ${data['名フリガナ'] || ''}`.trim() },
+                            { label: '生年月日', key: '生年月日' },
+                            { label: '郵便番号', key: '郵便番号' },
+                            { label: '住所', value: `${data['住所1'] || ''}${data['住所2'] || ''}`.trim() },
+                            { label: '世帯主の氏名', key: '世帯主の氏名' },
+                            { label: '世帯主との続柄', key: '世帯主の続柄' },
+                        ]
+                    },
+                    {
+                        title: '年末調整情報',
+                        fields: [
+                            { label: '年末調整の実施', key: '年末調整実施可否' },
+                            { label: '前職の有無', key: '前職有無', condition: () => data['年末調整実施可否'] === 'はい' },
+                            { label: '前職の源泉徴収票', key: '前職源泉徴収票URL', condition: () => data['年末調整実施可否'] === 'はい' && data['前職有無'] === 'あり' },
+                            { label: 'その他収入の有無', key: 'その他収入有無', condition: () => data['年末調整実施可否'] === 'はい' },
+                            { label: 'その他収入金額', key: 'その他収入金額', condition: () => data['年末調整実施可否'] === 'はい' && data['その他収入有無'] === 'あり' },
+                            { label: '住民税の徴収方法', key: '住民税徴収方法', condition: () => data['年末調整実施可否'] === 'はい' },
+                        ]
+                    },
+                    {
+                        title: '配偶者情報',
+                        condition: () => data['年末調整実施可否'] === 'はい' && data['配偶者有無'] === 'あり',
+                        fields: [
+                            { label: '氏名', value: `${data['配偶者姓'] || ''} ${data['配偶者名'] || ''}`.trim() },
+                            { label: 'フリガナ', value: `${data['配偶者姓フリガナ'] || ''} ${data['配偶者名フリガナ'] || ''}`.trim() },
+                            { label: '生年月日', key: '配偶者生年月日' },
+                            { label: '住所', value: `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim() },
+                            { label: '収入金額', key: '配偶者収入金額' },
+                            { label: '退職手当の有無', key: '配偶者退職手当有無' },
+                            { label: '退職手当金額', key: '配偶者退職手当等金額' },
+                            { label: '障害者手帳の有無', key: '配偶者障害者手帳交付有無' },
+                            { label: '障害者手帳(添付)', key: '配偶者障害者手帳URL', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
+                            { label: '障害者手帳(備考)', key: '配偶者障害者手帳備考', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
+                        ]
+                    }
+                ];
+
+                // 扶養親族情報を動的に追加（最大6人）
+                if (data['年末調整実施可否'] === 'はい' && data['扶養親族有無'] === 'あり') {
+                    for (let i = 1; i <= 6; i++) {
+                        // 氏名のどちらかが入力されていれば、その親族の情報は存在するとみなす
+                        if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) {
+                            sections.push({
+                                title: `扶養親族 ${i}`,
+                                fields: [
+                                    { label: '氏名', value: `${data[`扶養親族${i}_姓`] || ''} ${data[`扶養親族${i}_名`] || ''}`.trim() },
+                                    { label: 'フリガナ', value: `${data[`扶養親族${i}_姓フリガナ`] || ''} ${data[`扶養親族${i}_名フリガナ`] || ''}`.trim() },
+                                    { label: '続柄', key: `扶養親族${i}_続柄` },
+                                    { label: '生年月日', key: `扶養親族${i}_生年月日` },
+                                    { label: '住所', value: `${data[`扶養親族${i}_住所1`] || ''}${data[`扶養親族${i}_住所2`] || ''}`.trim() },
+                                    { label: '収入金額', key: `扶養親族${i}_収入金額` },
+                                    { label: '障害者手帳の有無', key: `扶養親族${i}_障害者手帳交付有無` },
+                                    { label: '障害者手帳(添付)', key: `扶養親族${i}_障害者手帳交付URL`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' },
+                                    { label: '障害者手帳(備考)', key: `扶養親族${i}_障害者手帳備考`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' },
+                                ]
+                            });
+                        }
+                    }
+                }
+                
+                // 本人該当項目と各種控除
+                sections.push({
+                    title: '本人該当項目・各種控除',
+                    condition: () => data['年末調整実施可否'] === 'はい',
+                    fields: [
+                        { label: '本人障害者手帳の有無', key: '本人障害者手帳交付有無' },
+                        { label: '本人障害者手帳(添付)', key: '本人障害者手帳交付URL', condition: () => data['本人障害者手帳交付有無'] === 'あり' },
+                        { label: '本人障害者手帳(備考)', key: '本人障害者手帳備考', condition: () => data['本人障害者手帳交付有無'] === 'あり' },
+                        { label: '寡婦', key: '寡婦該当確認' },
+                        { label: 'ひとり親', key: 'ひとり親該当確認' },
+                        { label: '勤労学生', key: '勤労学生該当確認' },
+                        { label: '学生証(添付)', key: '勤労学生_学生証URL', condition: () => data['勤労学生該当確認'] === '該当' },
+                        { label: '災害者', key: '災害者該当確認' },
+                        { label: '生命保険料控除', key: '生命保険料控除有無' },
+                        { label: '生命保険料控除証明書', key: '生命保険料_控除証明書URL', condition: () => data['生命保険料控除有無'] === 'あり' },
+                        { label: '地震保険料控除', key: '地震保険料控除有無' },
+                        { label: '地震保険料控除証明書', key: '地震保険料_控除証明書URL', condition: () => data['地震保険料控除有無'] === 'あり' },
+                        { label: '社会保険料控除', key: '社会保険料控除有無' },
+                        { label: '国民健康保険料(支払者)', key: '国民健康保険料 支払対象者氏名', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '国民健康保険料(支払額)', key: '国民健康保険料 年間支払額', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '国民健康保険料証明書', key: '国民健康保険料 控除証明書URL', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '国民年金保険料証明書', key: '国民年金保険料 控除証明書URL', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '小規模企業共済等掛金控除', key: '小規模企業共済掛金等控除有無' },
+                        { label: '小規模企業共済等証明書', key: '小規模企業共済掛金等_控除証明書URL', condition: () => data['小規模企業共済掛金等控除有無'] === 'あり' },
+                        { label: '住宅ローン控除', key: '住宅ローン控除有無' },
+                        { label: '住宅ローン控除申告書等', key: '住宅ローン_申告書・証明書URL', condition: () => data['住宅ローン控除有無'] === 'あり' },
+                    ]
+                });
+
+                // 定義したセクションをループしてテーブルを生成
+                sections.forEach(section => {
+                    // セクション自体に表示条件があり、それを満たさなければスキップ
+                    if (section.condition && !section.condition()) {
+                        return;
+                    }
+
+                    // セクションタイトル行を追加
+                    const titleRow = table.insertRow();
+                    const titleCell = titleRow.insertCell();
+                    titleCell.colSpan = 2;
+                    titleCell.innerHTML = `<h2>${section.title}</h2>`;
+                    titleCell.style.backgroundColor = 'var(--primary-color)';
+                    titleCell.style.color = 'white';
+                    titleCell.style.padding = '10px';
+                    titleCell.style.textAlign = 'center';
+
+                    // 各項目をループして行を追加
+                    section.fields.forEach(field => {
+                        // 項目自体に表示条件があり、それを満たさなければスキップ
+                        if (field.condition && !field.condition()) {
+                            return;
+                        }
+                        // 表示する値を取得 (keyがあればdataから、なければvalueから)
+                        const value = field.key ? data[field.key] : field.value;
+                        addRow(field.label, value);
+                    });
+                });
+                
+                // --- ▲▲▲ 新しいデータ表示ロジック ▲▲▲ ---
+                
             } catch (error) {
-                message.textContent = 'データの取得に失敗しました。';
+                message.textContent = `エラー: ${error.message}`;
+                console.error('Fetch Error:', error);
             }
         }
 
         function redirectToEdit() {
             if (submissionId) {
+                // index.htmlの場所を適切に指定してください
                 window.location.href = `index.html?editId=${submissionId}`;
             }
         }
@@ -333,7 +438,7 @@
                 if (result.result === 'success') {
                     uploadMessage.textContent = 'ファイルを追加しました。ページをリロードして確認してください。';
                     uploadMessage.style.color = 'var(--success-color)';
-                    fileInput.value = ''; // Reset file input
+                    fileInput.value = '';
                 } else {
                     throw new Error(result.message || '不明なエラーが発生しました。');
                 }
@@ -343,5 +448,6 @@
             }
         }
     </script>
+
 </body>
 </html>
