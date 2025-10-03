@@ -137,7 +137,7 @@
         .form-group-medium input, .form-group-medium select { max-width: 400px; }
         .form-group-large input, .form-group-large select { max-width: 500px; }
 
-        /* ★★★ 追加したCSS ★★★ */
+        /* ★★★ 修正箇所 ★★★ (ファイル表示用のCSS) */
         .current-files {
             font-size: 0.9em;
             background-color: #f8f9fa;
@@ -153,6 +153,7 @@
         .current-files a {
             color: #1e3656;
             text-decoration: none;
+            word-break: break-all;
         }
         .current-files a:hover {
             text-decoration: underline;
@@ -249,7 +250,7 @@
                     <label>当社で年末調整をおこないますか？</label>
                     <div class="radio-group">
                         <label><input type="radio" name="year_end_adjustment" value="はい" onchange="toggleMainSections(this.value)" checked> はい</label>
-                        <label><input type="radio" name="year_end_adjustment" value="いいえ" onchange="toggleMainSections(this.value)"> いいえ</label>
+                        <label><input type="radio" name="year_end_adjustment" value="他社でおこなう/確定申告" onchange="toggleMainSections(this.value)"> 他社でおこなう / 確定申告</label>
                     </div>
                      <p style="font-size: 0.8em; color: #555; margin-top: 5px;">他社で給与収入がある場合は、原則、確定申告が必要となりますが、収入が多い勤務先で年末調整をおこなうことができます。<br>※給与収入が2,000万円を超える方は、確定申告が必要です。</p>
                 </div>
@@ -322,10 +323,6 @@
             });
         }
 
-        /**
-         * ★★★ 修正後 ★★★
-         * 住所同期チェックボックスの処理（隠しフィールドも操作）
-         */
         function syncAddress(destPrefix, checkbox) {
             const hiddenInput = form.querySelector(`[name="${destPrefix}_address_same_as_user"]`);
             const userAddr1 = document.getElementById('address1').value;
@@ -403,33 +400,29 @@
             document.getElementById('add-dependent-btn').classList.remove('hidden');
         }
         
-        /**
-         * ★★★ 修正後 ★★★
-         * 金額入力のフォーマット（全角数字に対応）
-         */
         function formatCurrency(event) {
-            const input = event.target;
-            let value = input.value;
+    		if (event.isComposing) {
+        		return;
+    		}
 
-            // 全角英数字を半角に変換
-            value = value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
-                return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
-            });
+    		const input = event.target;
+    		let value = input.value;
 
-            // 数字以外の文字を削除
-            value = value.replace(/[^0-9]/g, '');
+    		// 全角英数字を半角に変換
+    		value = value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+        		return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+    		});	
 
-            if (value === '') {
-                input.value = '';
-                return;
-            }
-            input.value = Number(value).toLocaleString('ja-JP');
-        }
+    		// 数字以外の文字を削除
+    		value = value.replace(/[^0-9]/g, '');
 
-        /**
-         * ★★★ 修正後 ★★★
-         * HTMLの動的部分を生成（隠しフィールドを追加）
-         */
+    		if (value === '') {
+        		input.value = '';
+        		return;
+    		}
+    		input.value = Number(value).toLocaleString('ja-JP');
+		}
+
         function populateMainSections() {
             mainSectionsContainer.innerHTML = `
                 <fieldset>
@@ -503,8 +496,8 @@
                         <div id="spouse-disability-file-group" class="form-group hidden">
                             <label>障害者手帳</label>
                             <input type="file" name="spouse_disability_certificate_file" multiple>
-                            <label style="margin-top:15px;">備考</label>
-                            <textarea name="spouse_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
+                            <label style="margin-top:15px;">添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください</label>
+                            <textarea name="spouse_disability_certificate_remarks" rows="2" placeholder=""></textarea>
                         </div>
                     </div>
                 </fieldset>
@@ -555,8 +548,8 @@
                                 <div id="dependent-${i + 1}-disability-file-group" class="form-group hidden">
                                     <label>障害者手帳</label>
                                     <input type="file" name="dependent_${i + 1}_disability_certificate_file" multiple>
-                                    <label style="margin-top:15px;">備考</label>
-                                    <textarea name="dependent_${i + 1}_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
+                                    <label style="margin-top:15px;">添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください</label>
+                                    <textarea name="dependent_${i + 1}_disability_certificate_remarks" rows="2" placeholder=""></textarea>
                                 </div>
                             </fieldset>
                         `).join('')}
@@ -569,8 +562,8 @@
                     <div id="user-disability-file-group" class="form-group hidden">
                         <label>障害者手帳</label>
                         <input type="file" name="user_disability_certificate_file" multiple>
-                        <label style="margin-top:15px;">備考</label>
-                        <textarea name="user_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
+                        <label style="margin-top:15px;">添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください</label>
+                        <textarea name="user_disability_certificate_remarks" rows="2" placeholder=""></textarea>
                     </div>
                     <div class="form-group"><div class="tooltip-wrapper"><label>寡婦該当確認</label>
                     	<div class="tooltip-container">
@@ -612,23 +605,24 @@
                                 <div class="tooltip-text">ご自身でお支払いされた国民健康保険料、国民年金保険料が対象です。<br>給与から控除されている健康保険料や厚生年金は含みません。</div>
                             </div>
                         </div>
-                    	<div class="radio-group"><label><input type="radio" name="social_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')">あり</label><label><input type="radio" name="social_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')" checked>なし</label></div></div>                                
+                    	<div class="radio-group"><label><input type="radio" name="social_insurance_deduction" value="あり" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')">あり</label><label><input type="radio" name="social_insurance_deduction" value="なし" onchange="toggleSection(this.value === 'あり', 'social-insurance-group')" checked>なし</label></div></div>
                     <div id="social-insurance-group" class="hidden" style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
                         <div class="form-group">
                             <label style="font-size: 1.1em; color: #333;">国民健康保険料</label>
-                            <p style="font-size: 0.8em; color: #555; margin-top: 5px;">年間支払額を入力するか、控除証明書をアップロードしてください。</p>
+                            <p style="font-size: 0.8em; color: #555; margin-top: 5px;">年間支払額を入力するか、領収書または証明書をアップロードしてください。</p>
                             <div class="form-group form-group-medium" style="margin-top: 15px;">
                                 <label>国民健康保険料を支払うことになっている人の氏名</label>
                                 <input type="text" name="national_health_insurance_payer_name">
                             </div>
                             <div class="form-group form-group-small" style="margin-top: 15px;">
                                 <label>年間支払額</label>
+                                <p style="font-size: 0.8em; color: #555; margin-top: 5px;">令和7年1月1日～12月31日の支払額を入力してください。</p>
                                 <div class="yen-input-wrapper">
                                     <input type="text" name="national_health_insurance_amount" class="currency-input" inputmode="numeric">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label>控除証明書</label>
+                                <label>領収書または証明書</label>
                                 <input type="file" name="national_health_insurance_file" multiple>
                             </div>
                         </div>
@@ -723,12 +717,9 @@
                 }
 
                 if (input.type === 'file') {
-                    // ★★★ 修正 ★★★
-                    // 新しいファイルをアップロードしようとしている場合のみファイル名を表示
                     if (input.files.length > 0) {
                         return Array.from(input.files).map(f => f.name).join(', ');
                     }
-                    // 既存のファイル表示を探す
                     const currentFilesDiv = input.nextElementSibling;
                     if (currentFilesDiv && currentFilesDiv.classList.contains('current-files')) {
                         return currentFilesDiv.innerText.replace('現在アップロード済みのファイル:\n', '');
@@ -737,7 +728,7 @@
                 }
                 
                 let value = formData.get(name);
-                if (value === null || value === undefined || value === '' || value === 'false') { // 'false'も非表示に
+                if (value === null || value === undefined || value === '' || value === 'false') {
                     return null;
                 }
 
@@ -765,7 +756,7 @@
                 ['spouse_last_name', '配偶者 姓'], ['spouse_first_name', '配偶者 名'],
                 ['spouse_last_name_furigana', '配偶者 姓フリガナ'], ['spouse_first_name_furigana', '配偶者 名フリガナ'],
                 ['spouse_birth_date', '配偶者 生年月日'], 
-                ['spouse_address_same_as_user', '配偶者住所'], // ★変更: フラグを表示
+                ['spouse_address_same_as_user', '配偶者住所'],
                 ['spouse_address1', '配偶者 住所1'], ['spouse_address2', '配偶者 住所2'],
                 ['spouse_income_amount', '配偶者 収入金額'], ['spouse_severance_pay_existence', '配偶者 退職手当有無'],
                 ['spouse_severance_pay_amount', '配偶者 退職手当等金額'], 
@@ -780,7 +771,7 @@
                     [`dependent_${i}_last_name`, `【扶養親族${i}】姓`], [`dependent_${i}_first_name`, `【扶養親族${i}】名`],
                     [`dependent_${i}_last_name_furigana`, `【扶養親族${i}】姓フリガナ`], [`dependent_${i}_first_name_furigana`, `【扶養親族${i}】名フリガナ`],
                     [`dependent_${i}_relationship`, `【扶養親族${i}】続柄`], [`dependent_${i}_birth_date`, `【扶養親族${i}】生年月日`],
-                    [`dependent_${i}_address_same_as_user`, `【扶養親族${i}】住所`], // ★変更: フラグを表示
+                    [`dependent_${i}_address_same_as_user`, `【扶養親族${i}】住所`],
                     [`dependent_${i}_address1`, `【扶養親族${i}】住所1`], [`dependent_${i}_address2`, `【扶養親族${i}】住所2`],
                     [`dependent_${i}_income_amount`, `【扶養親族${i}】収入金額`], [`dependent_${i}_severance_pay_existence`, `【扶養親族${i}】退職手当有無`],
                     [`dependent_${i}_severance_pay_amount`, `【扶養親族${i}】退職手当等金額`],
@@ -809,14 +800,11 @@
 
             allFields.forEach(([name, label]) => {
                 let value = getDisplayValue(name);
-                // ★★★ 修正 ★★★
-                // 住所フラグの表示名を「本人と同じ」に変換
                 if (name.includes('_address_same_as_user') && value === 'true') {
                     value = '本人と同じ';
                 }
                 
                 if (value !== null) {
-                    // 住所が「本人と同じ」の場合、個別の住所1,2は表示しない
                     if(name.includes('_address_same_as_user') && value === '本人と同じ') {
                        addRow(label, value);
                     } else if (name.endsWith('_address1') || name.endsWith('_address2')) {
@@ -844,7 +832,6 @@
         }
 
         async function submitForm() {
-            // (この関数は変更なし)
             confirmContents.classList.add('hidden');
             loading.classList.remove('hidden');
             
@@ -918,10 +905,6 @@
             }
         }
         
-        /**
-         * ★★★ 修正後 ★★★
-         * 編集データをフォームにセットする（住所同期・ファイル表示に対応）
-         */
         async function loadDataForEdit(id) {
             try {
                 const response = await fetch(`${GAS_WEB_APP_URL}?id=${id}`);
@@ -939,7 +922,7 @@
         }
         
         function populateForm(data) {
-            // 既存のファイル表示をクリア
+        
             document.querySelectorAll('.current-files').forEach(el => el.remove());
             
             let dependentCount = 0;
@@ -948,7 +931,6 @@
             }
             for (let i = 1; i < dependentCount; i++) { addDependentField(); }
 
-            // ★★★ 修正 ★★★ スプレッドシートの列名とフォームのname属性をマッピング
             const headers = Object.keys(data);
             const nameAttrMap = {
                 '事業者名':'company_name', 'メールアドレス':'email_address', '姓':'last_name', '名':'first_name', '姓フリガナ':'last_name_furigana', '名フリガナ':'first_name_furigana',
@@ -986,7 +968,7 @@
                             targetRadio.checked = true;
                             targetRadio.dispatchEvent(new Event('change', { bubbles: true }));
                         }
-                    } else if (el.type !== 'file') { // ファイル以外
+                    } else if (el.type !== 'file') {
                         el.value = value || '';
                          if(el.classList.contains('currency-input') && value) {
                             el.value = Number(value).toLocaleString('ja-JP');
@@ -995,7 +977,6 @@
                 }
             });
 
-            // ★★★ 修正 ★★★ 日付フィールドの復元
             const dateHeaders = {'生年月日':'user', '配偶者生年月日':'spouse'};
             for(let i=1; i<=6; i++) { dateHeaders[`扶養${i}_生年月日`] = `dependent_${i}`; }
             Object.keys(dateHeaders).forEach(header => {
@@ -1009,8 +990,8 @@
                         if (group) {
                             const eraSelect = group.querySelector('.era');
                             eraSelect.value = era;
-                            eraSelect.dispatchEvent(new Event('change')); // 年リストを生成
-                            setTimeout(() => { // 年リスト生成を待つ
+                            eraSelect.dispatchEvent(new Event('change'));
+                            setTimeout(() => {
                                 group.querySelector('.year').value = year;
                                 group.querySelector('.month').value = month;
                                 group.querySelector('.day').value = day;
@@ -1020,7 +1001,6 @@
                 }
             });
 
-            // ★★★ 修正 ★★★ 住所同期チェックボックスの復元
             ['spouse', ...Array.from({length: 6}, (_, i) => `dependent_${i + 1}`)].forEach(prefix => {
                 const headerName = (prefix === 'spouse' ? '配偶者' : `扶養${prefix.split('_')[1]}`) + '_住所同じ';
                 if (data[headerName] === 'true' || data[headerName] === true) {
@@ -1032,13 +1012,11 @@
                 }
             });
 
-            // ★★★ 修正 ★★★ アップロード済みファイルの表示
             const fileUrlHeaders = headers.filter(h => h.includes('URL'));
             fileUrlHeaders.forEach(header => {
                 const urls = data[header];
                 if (!urls) return;
 
-                // 対応するinput[type="file"]を見つける（命名規則に依存）
                 const name = nameAttrMap[header.replace('URL', '')] || nameAttrMap[header.replace('URL', '_ファイル')];
                 const fileInput = form.querySelector(`[name="${name}"]`) || form.querySelector(`[name="${name}_file"]`);
                 
@@ -1114,6 +1092,13 @@
             });
             
             form.addEventListener('input', (event) => { if (event.target.classList.contains('currency-input')) { formatCurrency(event); } });
+
+            form.addEventListener('compositionend', (event) => {
+                if (event.target.classList.contains('currency-input')) {
+                    formatCurrency(event);
+                }
+            });
+
             document.addEventListener('click', function(e) { if (e.target.classList.contains('tooltip-icon')) { const parent = e.target.parentElement; const wasActive = parent.classList.contains('show'); document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show')); if (!wasActive) { parent.classList.add('show'); } } else if (!e.target.closest('.tooltip-container')) { document.querySelectorAll('.tooltip-container.show').forEach(c => c.classList.remove('show')); } });
         });
     </script>
