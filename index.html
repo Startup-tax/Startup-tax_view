@@ -342,6 +342,7 @@
             });
         }
 
+        // ★★★ 修正箇所 ★★★
         function syncAddress(destPrefix, checkbox) {
             const hiddenInput = form.querySelector(`[name="${destPrefix}_address_same_as_user"]`);
             const userAddr1 = document.getElementById('address1').value;
@@ -352,12 +353,12 @@
             if (checkbox.checked) {
                 destAddr1.value = userAddr1;
                 destAddr2.value = userAddr2;
-                destAddr1.disabled = true;
-                destAddr2.disabled = true;
+                destAddr1.readOnly = true; // disabledからreadOnlyに変更
+                destAddr2.readOnly = true;
                 if(hiddenInput) hiddenInput.value = "true";
             } else {
-                destAddr1.disabled = false;
-                destAddr2.disabled = false;
+                destAddr1.readOnly = false;
+                destAddr2.readOnly = false;
                 if(hiddenInput) hiddenInput.value = "false";
             }
         }
@@ -367,7 +368,7 @@
             if (!section) return;
             section.classList.toggle('hidden', !show);
             section.querySelectorAll('input, select, textarea').forEach(input => {
-                if (!section.closest('[disabled]')) {
+                if (!section.closest('[disabled]')) { // disabledは使わない方針だが念のため残す
                     input.disabled = !show;
                 }
             });
@@ -680,6 +681,7 @@
             }
         }
         
+        // ★★★ 修正箇所 ★★★
         function showConfirm() {
             formatPostalCode('postal_code');
             
@@ -701,21 +703,6 @@
             form.querySelectorAll('.currency-input').forEach(input => {
                 input.value = input.value.replace(/,/g, '');
             });
-
-            // ★★★ 修正箇所 ★★★
-            // 「本人と同じ」にチェックがある場合、送信前に本人の住所をコピーする
-            ['spouse', ...Array.from({length: 6}, (_, i) => `dependent_${i + 1}`)].forEach(prefix => {
-                const checkbox = form.querySelector(`input[onchange="syncAddress('${prefix}', this)"]`);
-                if (checkbox && checkbox.checked) {
-                    const userAddr1 = document.getElementById('address1').value;
-                    const userAddr2 = document.getElementById('address2').value;
-                    const destAddr1 = document.getElementById(`${prefix}_address1`);
-                    const destAddr2 = document.getElementById(`${prefix}_address2`);
-                    if(destAddr1) destAddr1.value = userAddr1;
-                    if(destAddr2) destAddr2.value = userAddr2;
-                }
-            });
-
 
             if (!form.checkValidity()) {
                 form.reportValidity();
@@ -744,7 +731,7 @@
 
             const getDisplayValue = (name) => {
                 const input = form.querySelector(`[name="${name}"]`);
-                if (!input || input.closest('.hidden')) { // disabledチェックを削除
+                if (!input || input.closest('.hidden')) {
                     return null;
                 }
 
@@ -768,14 +755,6 @@
                 }
                 
                 let value = formData.get(name);
-
-                if (name.includes('_address_same_as_user') && value === 'true') {
-                     const userAddr1 = formData.get('address1');
-                     const userAddr2 = formData.get('address2');
-                     const fullAddress = `${userAddr1 || ''}${userAddr2 || ''}`.trim();
-                     return fullAddress ? `本人と同じ (${fullAddress})` : '本人と同じ';
-                }
-
                 if (value === null || value === undefined || value === '' || value === 'false') {
                     return null;
                 }
@@ -847,12 +826,19 @@
             );
 
             allFields.forEach(([name, label]) => {
-                const value = getDisplayValue(name);
+                let value = getDisplayValue(name);
+                
+                if (name.includes('_address_same_as_user') && value === 'true') {
+                    const userAddress1 = getDisplayValue('address1');
+                    const userAddress2 = getDisplayValue('address2');
+                    const fullAddress = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
+                    value = fullAddress ? `本人と同じ (${fullAddress})` : '本人と同じ';
+                }
                 
                 if (value !== null) {
                     if ( (name.endsWith('_address1') || name.endsWith('_address2')) &&
-                         getDisplayValue(`${name.substring(0, name.lastIndexOf('_'))}_address_same_as_user`)?.includes('本人と同じ') ) {
-                        // 「本人と同じ」が表示されている場合は、個別の住所欄を表示しない
+                         getDisplayValue(`${name.substring(0, name.lastIndexOf('_'))}_address_same_as_user`) === 'true' ) {
+                        // 何もしない
                     } else {
                         addRow(label, value);
                     }
@@ -890,7 +876,7 @@
             const formData = new FormData(form);
             const dataObject = {};
             for (const [key, value] of formData.entries()) {
-                if (!form.querySelector(`[name="${key}"]`)?.disabled) { dataObject[key] = value; }
+                 dataObject[key] = value;
             }
             
             const fileInputs = form.querySelectorAll('input[type="file"]');
