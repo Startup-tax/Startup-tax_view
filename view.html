@@ -167,15 +167,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             submissionId = params.get('id');
-            
-            // ★★★ 修正箇所 ★★★
-            // URLに mode=edit が含まれているかチェック
             const isEditMode = params.get('mode') === 'edit';
-            
             fetchData(submissionId, isEditMode);
         });
 
-        async function fetchData(id, isEditMode) { // isEditMode を引数で受け取る
+        async function fetchData(id, isEditMode) {
             const tableContainer = document.getElementById('table-container');
             const message = document.getElementById('message');
             
@@ -197,8 +193,6 @@
 
                 message.textContent = `回答ID: ${id} の内容を表示しています。`;
                 
-                // ★★★ 修正箇所 ★★★
-                // isEditModeがtrueの場合のみ、修正・追加セクションを表示する
                 if (isEditMode) {
                     document.getElementById('edit-section').style.display = 'block';
                     document.getElementById('add-files-section').style.display = 'block';
@@ -264,8 +258,11 @@
                     { label: '世帯主の氏名', key: '世帯主の氏名' }, { label: '世帯主との続柄', key: '世帯主の続柄' },
                 ]);
 
+                // ★★★ 修正箇所 ★★★
+                // 年末調整実施可否のチェックを createSection の外で行う
                 if (data['年末調整実施可否'] === 'はい') {
                     createSection('年末調整情報', [
+                        { label: '年末調整の実施', key: '年末調整実施可否' },
                         { label: '前職の有無', key: '前職有無' },
                         { label: '前職の源泉徴収票', value: ' ', urlKey: '前職源泉徴収票URL', condition: () => data['前職有無'] === 'あり' },
                         { label: 'その他収入の有無', key: 'その他収入有無' },
@@ -273,18 +270,17 @@
                         { label: '住民税の徴収方法', key: '住民税徴収方法' },
                     ]);
                     
-                    if (data['配偶者有無'] === 'あり') {
-                        createSection('配偶者情報', [
-                           { label: '氏名', value: `${data['配偶者姓'] || ''} ${data['配偶者名'] || ''}`.trim() },
-                           { label: 'フリガナ', value: `${data['配偶者姓フリガナ'] || ''} ${data['配偶者名フリガナ'] || ''}`.trim() },
-                           { label: '生年月日', key: '配偶者生年月日' },
-                           { label: '住所', value: (data['配偶者_住所同じ'] === 'true' || data['配偶者_住所同じ'] === true) ? '本人と同じ' : `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim() },
-                           { label: '収入金額', key: '配偶者収入金額' }, { label: '退職手当の有無', key: '配偶者退職手当有無' },
-                           { label: '退職手当金額', key: '配偶者退職手当等金額' }, { label: '障害者手帳の有無', key: '配偶者障害者手帳交付有無' },
-                           { label: '障害者手帳(添付)', value: ' ', urlKey: '配偶者障害者手帳URL', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
-                           { label: '障害者手帳(備考)', key: '配偶者障害者手帳備考', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
-                        ]);
-                    }
+                    createSection('配偶者・扶養親族情報', [
+                        { label: '配偶者有無', key: '配偶者有無'},
+                        { label: '配偶者氏名', value: `${data['配偶者姓'] || ''} ${data['配偶者名'] || ''}`.trim(), condition: () => data['配偶者有無'] === 'あり' },
+                        { label: '配偶者フリガナ', value: `${data['配偶者姓フリガナ'] || ''} ${data['配偶者名フリガナ'] || ''}`.trim(), condition: () => data['配偶者有無'] === 'あり' },
+                        { label: '配偶者生年月日', key: '配偶者生年月日', condition: () => data['配偶者有無'] === 'あり' },
+                        { label: '配偶者住所', value: (data['配偶者_住所同じ'] === 'true' || data['配偶者_住所同じ'] === true) ? '本人と同じ' : `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim(), condition: () => data['配偶者有無'] === 'あり' },
+                        { label: '配偶者収入金額', key: '配偶者収入金額', condition: () => data['配偶者有無'] === 'あり' },
+                        { label: '配偶者障害者手帳(添付)', value: ' ', urlKey: '配偶者障害者手帳URL', condition: () => data['配偶者有無'] === 'あり' && data['配偶者障害者手帳交付有無'] === 'あり' },
+                        { label: '配偶者障害者手帳(備考)', key: '配偶者障害者手帳備考', condition: () => data['配偶者有無'] === 'あり' && data['配偶者障害者手帳交付有無'] === 'あり' },
+                        { label: '扶養親族有無', key: '扶養親族有無'},
+                    ]);
 
                     if (data['扶養親族有無'] === 'あり') {
                         for (let i = 1; i <= 6; i++) {
@@ -333,8 +329,6 @@
 
         function redirectToEdit() {
             if (submissionId) {
-                // ★★★ 修正箇所 ★★★
-                // 修正画面に遷移する際にも mode=edit を付ける
                 window.location.href = `index.html?editId=${submissionId}&mode=edit`;
             }
         }
