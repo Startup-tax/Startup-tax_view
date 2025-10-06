@@ -22,133 +22,77 @@
             --medium-gray: #dee2e6;
             --border-radius: 8px;
         }
-
         body {
             font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
-            background-color: #f4f7f9;
+            line-height: 1.6; color: #333; max-width: 800px;
+            margin: 20px auto; padding: 0 20px; background-color: #f4f7f9;
         }
-
         .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: var(--border-radius);
+            background-color: #fff; padding: 30px; border-radius: var(--border-radius);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             border-top: 5px solid var(--secondary-color);
             margin-bottom: 20px;
         }
-
-        h1, h2 {
-            color: var(--primary-color);
-            text-align: center;
-            font-weight: 700;
-        }
         h1 {
-            font-size: 1.8em;
-            margin-bottom: 25px;
+            color: var(--primary-color); text-align: center; font-weight: 700;
+            font-size: 1.8em; margin-bottom: 25px;
         }
         h2 {
-            font-size: 1.4em;
-            margin-top: 1.5em;
-            margin-bottom: 1em;
-            border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: .4em;
+            font-size: 1.3em; color: white; background-color: var(--primary-color);
+            padding: 10px 15px; border-radius: var(--border-radius) var(--border-radius) 0 0;
+            margin: 20px -30px 0 -30px; text-align: center;
         }
-        
         #message {
-            text-align: center;
-            font-size: 1.1em;
-            color: var(--primary-color);
-            padding: 20px;
-            background-color: var(--light-gray);
-            border-radius: var(--border-radius);
-            margin-bottom: 25px;
+            text-align: center; font-size: 1.1em; color: var(--primary-color);
+            padding: 20px; background-color: var(--light-gray);
+            border-radius: var(--border-radius); margin-bottom: 25px;
         }
-
         #result-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            width: 100%; border-collapse: collapse; margin-top: 0;
+            border-top: none;
         }
-
         #result-table th,
         #result-table td {
-            border: 1px solid var(--medium-gray);
-            padding: 12px 15px;
-            text-align: left;
-            word-break: break-all;
+            border: 1px solid var(--medium-gray); padding: 12px 15px;
+            text-align: left; word-break: break-all;
         }
-
         #result-table th {
-            background-color: var(--light-gray);
-            width: 35%;
-            font-weight: 700;
-            color: var(--primary-color);
+            background-color: var(--light-gray); width: 35%;
+            font-weight: 700; color: var(--primary-color);
         }
-
         .btn {
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 700;
+            background-color: var(--secondary-color); color: white; padding: 12px 25px;
+            border: none; border-radius: var(--border-radius); cursor: pointer;
+            font-size: 16px; font-weight: 700;
             transition: background-color 0.3s, transform 0.2s;
-            text-decoration: none;
-            display: inline-block;
+            text-decoration: none; display: inline-block;
         }
         .btn:hover {
-            background-color: #4aa3d3;
-            transform: translateY(-2px);
+            background-color: #4aa3d3; transform: translateY(-2px);
         }
-        .btn-secondary {
-             background-color: #6c757d;
-        }
+        .btn-secondary { background-color: #6c757d; }
         .file-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: var(--border-radius);
-            box-sizing: border-box;
-            font-family: inherit;
-            font-size: inherit;
+            width: 100%; padding: 12px; border: 1px solid #ccc;
+            border-radius: var(--border-radius); box-sizing: border-box;
+            font-family: inherit; font-size: inherit;
         }
         .text-center { text-align: center; }
         .mt-20 { margin-top: 20px; }
-
 
         @media (max-width: 600px) {
             body { padding: 0 10px; }
             h1 { font-size: 1.6em; }
             .container { padding: 20px; }
-
+            h2 { margin: 20px -20px 0 -20px; }
             #result-table th,
             #result-table td {
-                display: block;
-                width: 100%;
-                text-align: left !important;
+                display: block; width: 100%; text-align: left !important;
             }
-
             #result-table th {
-                border-bottom: none;
-                background-color: transparent;
-                font-size: 0.9em;
-                color: var(--primary-color);
-                padding-bottom: 3px;
-                font-weight: 700;
+                border-bottom: none; background-color: transparent; font-size: 0.9em;
+                color: var(--primary-color); padding-bottom: 3px; font-weight: 700;
             }
-
-            #result-table td {
-                border-top: none;
-                padding-top: 0;
-                padding-bottom: 20px;
-            }
+            #result-table td { border-top: none; padding-top: 0; padding-bottom: 20px; }
         }
     </style>
 </head>
@@ -160,7 +104,8 @@
         </div>
         <h1>回答内容の確認</h1>
         <div id="message"></div>
-        <div id="table-container"></div> </div>
+        <div id="table-container"></div>
+    </div>
 
     <div class="container" id="edit-section" style="display: none;">
         <h2>回答内容の修正</h2>
@@ -218,29 +163,22 @@
                 
                 const data = result.data;
 
-                const addRow = (table, label, value) => {
+                const addRow = (table, label, value, urlKey) => {
                     if (value === null || value === undefined || value === '') return;
 
                     const row = table.insertRow();
                     row.insertCell().outerHTML = `<th>${label}</th>`;
                     const cell = row.insertCell();
                     
-                    if (typeof value === 'string' && value.startsWith('http')) {
-                        const urls = value.split('\n');
-                        urls.forEach((url) => {
+                    if (urlKey && data[urlKey]) {
+                        const urls = data[urlKey].split('\n');
+                        const names = data[urlKey.replace('URL', 'FileName')]?.split('\n') || [];
+
+                        urls.forEach((url, index) => {
                             if (!url) return;
                             const a = document.createElement('a');
                             a.href = url;
-                            
-                            // ★★★ 修正箇所 ★★★ ファイル名をURLから抽出
-                            const uniqueName = url.substring(url.lastIndexOf('/') + 1).split('?')[0];
-                            const nameParts = uniqueName.split('-');
-                            let fileName = uniqueName;
-                            if (nameParts.length > 2) {
-                                fileName = nameParts.slice(2).join('-');
-                            }
-                            a.textContent = decodeURIComponent(fileName) || 'ファイルを開く';
-
+                            a.textContent = names[index] || 'ファイルを開く';
                             a.target = '_blank';
                             a.rel = 'noopener noreferrer';
                             cell.appendChild(a);
@@ -254,7 +192,6 @@
                 const createSection = (title, fields) => {
                     const sectionDiv = document.createElement('div');
                     let hasContent = false;
-
                     const table = document.createElement('table');
                     table.id = 'result-table';
                     
@@ -262,7 +199,7 @@
                         if (field.condition && !field.condition()) return;
                         const value = field.key ? data[field.key] : field.value;
                         if (value !== null && value !== undefined && value !== '') {
-                            addRow(table, field.label, value);
+                            addRow(table, field.label, value, field.urlKey);
                             hasContent = true;
                         }
                     });
@@ -287,7 +224,7 @@
                 if (data['年末調整実施可否'] === 'はい') {
                     createSection('年末調整情報', [
                         { label: '前職の有無', key: '前職有無' },
-                        { label: '前職の源泉徴収票', key: '前職源泉徴収票URL', condition: () => data['前職有無'] === 'あり' },
+                        { label: '前職の源泉徴収票', value: ' ', urlKey: '前職源泉徴収票URL', condition: () => data['前職有無'] === 'あり' },
                         { label: 'その他収入の有無', key: 'その他収入有無' },
                         { label: 'その他収入金額', key: 'その他収入金額', condition: () => data['その他収入有無'] === 'あり' },
                         { label: '住民税の徴収方法', key: '住民税徴収方法' },
@@ -301,7 +238,7 @@
                            { label: '住所', value: (data['配偶者_住所同じ'] === 'true' || data['配偶者_住所同じ'] === true) ? '本人と同じ' : `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim() },
                            { label: '収入金額', key: '配偶者収入金額' }, { label: '退職手当の有無', key: '配偶者退職手当有無' },
                            { label: '退職手当金額', key: '配偶者退職手当等金額' }, { label: '障害者手帳の有無', key: '配偶者障害者手帳交付有無' },
-                           { label: '障害者手帳(添付)', key: '配偶者障害者手帳URL', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
+                           { label: '障害者手帳(添付)', value: ' ', urlKey: '配偶者障害者手帳URL', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
                            { label: '障害者手帳(備考)', key: '配偶者障害者手帳備考', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
                         ]);
                     }
@@ -315,7 +252,7 @@
                                     { label: '続柄', key: `扶養${i}_続柄` }, { label: '生年月日', key: `扶養${i}_生年月日` },
                                     { label: '住所', value: (data[`扶養${i}_住所同じ`] === 'true' || data[`扶養${i}_住所同じ`] === true) ? '本人と同じ' : `${data[`扶養${i}_住所1`] || ''}${data[`扶養${i}_住所2`] || ''}`.trim() },
                                     { label: '収入金額', key: `扶養${i}_収入金額` }, { label: '障害者手帳の有無', key: `扶養${i}_障害者手帳交付有無` },
-                                    { label: '障害者手帳(添付)', key: `扶養${i}_障害者手帳URL`, condition: () => data[`扶養${i}_障害者手帳交付有無`] === 'あり' },
+                                    { label: '障害者手帳(添付)', value: ' ', urlKey: `扶養${i}_障害者手帳URL`, condition: () => data[`扶養${i}_障害者手帳交付有無`] === 'あり' },
                                     { label: '障害者手帳(備考)', key: `扶養${i}_障害者手帳備考`, condition: () => data[`扶養${i}_障害者手帳交付有無`] === 'あり' },
                                 ]);
                             }
@@ -324,24 +261,24 @@
 
                     createSection('本人該当項目・各種控除', [
                         { label: '本人障害者手帳の有無', key: '本人障害者手帳交付有無' },
-                        { label: '本人障害者手帳(添付)', key: '本人障害者手帳URL', condition: () => data['本人障害者手帳交付有無'] === 'あり' },
+                        { label: '本人障害者手帳(添付)', value: ' ', urlKey: '本人障害者手帳URL', condition: () => data['本人障害者手帳交付有無'] === 'あり' },
                         { label: '本人障害者手帳(備考)', key: '本人障害者手帳備考', condition: () => data['本人障害者手帳交付有無'] === 'あり' },
                         { label: '寡婦', key: '寡婦該当確認' }, { label: 'ひとり親', key: 'ひとり親該当確認' },
                         { label: '勤労学生', key: '勤労学生該当確認' },
-                        { label: '学生証(添付)', key: '勤労学生_学生証URL', condition: () => data['勤労学生該当確認'] === '該当' },
+                        { label: '学生証(添付)', value: ' ', urlKey: '勤労学生_学生証URL', condition: () => data['勤労学生該当確認'] === '該当' },
                         { label: '災害者', key: '災害者該当確認' }, { label: '生命保険料控除', key: '生命保険料控除有無' },
-                        { label: '生命保険料控除証明書', key: '生命保険料_控除証明書URL', condition: () => data['生命保険料控除有無'] === 'あり' },
+                        { label: '生命保険料控除証明書', value: ' ', urlKey: '生命保険料_控除証明書URL', condition: () => data['生命保険料控除有無'] === 'あり' },
                         { label: '地震保険料控除', key: '地震保険料控除有無' },
-                        { label: '地震保険料控除証明書', key: '地震保険料_控除証明書URL', condition: () => data['地震保険料控除有無'] === 'あり' },
+                        { label: '地震保険料控除証明書', value: ' ', urlKey: '地震保険料_控除証明書URL', condition: () => data['地震保険料控除有無'] === 'あり' },
                         { label: '社会保険料控除', key: '社会保険料控除有無' },
                         { label: '国民健康保険料(支払者)', key: '国民健康保険料 支払対象者氏名', condition: () => data['社会保険料控除有無'] === 'あり' },
                         { label: '国民健康保険料(支払額)', key: '国民健康保険料 年間支払額', condition: () => data['社会保険料控除有無'] === 'あり' },
-                        { label: '国民健康保険料証明書', key: '国民健康保険料 控除証明書URL', condition: () => data['社会保険料控除有無'] === 'あり' },
-                        { label: '国民年金保険料証明書', key: '国民年金保険料 控除証明書URL', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '国民健康保険料証明書', value: ' ', urlKey: '国民健康保険料 控除証明書URL', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '国民年金保険料証明書', value: ' ', urlKey: '国民年金保険料 控除証明書URL', condition: () => data['社会保険料控除有無'] === 'あり' },
                         { label: '小規模企業共済等掛金控除', key: '小規模企業共済掛金等控除有無' },
-                        { label: '小規模企業共済等証明書', key: '小規模企業共済掛金等_控除証明書URL', condition: () => data['小規模企業共済掛金等控除有無'] === 'あり' },
+                        { label: '小規模企業共済等証明書', value: ' ', urlKey: '小規模企業共済掛金等_控除証明書URL', condition: () => data['小規模企業共済掛金等控除有無'] === 'あり' },
                         { label: '住宅ローン控除', key: '住宅ローン控除有無' },
-                        { label: '住宅ローン控除申告書等', key: '住宅ローン_申告書・証明書URL', condition: () => data['住宅ローン控除有無'] === 'あり' },
+                        { label: '住宅ローン控除申告書等', value: ' ', urlKey: '住宅ローン_申告書・証明書URL', condition: () => data['住宅ローン控除有無'] === 'あり' },
                     ]);
                 }
                 
