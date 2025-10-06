@@ -50,7 +50,7 @@
             width: 100%; padding: 12px; border: 1px solid #ccc; 
             border-radius: var(--border-radius); box-sizing: border-box; 
             font-family: inherit; font-size: inherit; 
-            transition: border-color 0.3s, box-shadow 0.3s;
+            transition: border-color: 0.3s, box-shadow: 0.3s;
         }
         input:focus, select:focus, textarea:focus {
             border-color: var(--secondary-color);
@@ -733,8 +733,8 @@
                     return null;
                 }
 
-                // ★★★ 修正箇所 ★★★
                 if (input.type === 'file') {
+                    // ★★★ 修正箇所 ★★★
                     let existingFileNames = [];
                     const currentFilesDiv = input.nextElementSibling;
                     if (currentFilesDiv && currentFilesDiv.classList.contains('current-files')) {
