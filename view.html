@@ -167,10 +167,15 @@
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             submissionId = params.get('id');
-            fetchData(submissionId);
+            
+            // ★★★ 修正箇所 ★★★
+            // URLに mode=edit が含まれているかチェック
+            const isEditMode = params.get('mode') === 'edit';
+            
+            fetchData(submissionId, isEditMode);
         });
 
-        async function fetchData(id) {
+        async function fetchData(id, isEditMode) { // isEditMode を引数で受け取る
             const tableContainer = document.getElementById('table-container');
             const message = document.getElementById('message');
             
@@ -191,8 +196,13 @@
                 }
 
                 message.textContent = `回答ID: ${id} の内容を表示しています。`;
-                document.getElementById('edit-section').style.display = 'block';
-                document.getElementById('add-files-section').style.display = 'block';
+                
+                // ★★★ 修正箇所 ★★★
+                // isEditModeがtrueの場合のみ、修正・追加セクションを表示する
+                if (isEditMode) {
+                    document.getElementById('edit-section').style.display = 'block';
+                    document.getElementById('add-files-section').style.display = 'block';
+                }
                 
                 const data = result.data;
 
@@ -323,7 +333,9 @@
 
         function redirectToEdit() {
             if (submissionId) {
-                window.location.href = `index.html?editId=${submissionId}`;
+                // ★★★ 修正箇所 ★★★
+                // 修正画面に遷移する際にも mode=edit を付ける
+                window.location.href = `index.html?editId=${submissionId}&mode=edit`;
             }
         }
         
