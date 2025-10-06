@@ -733,18 +733,24 @@
                     return null;
                 }
 
+                // ★★★ 修正箇所 ★★★
                 if (input.type === 'file') {
-                    if (input.files.length > 0) {
-                        return Array.from(input.files).map(f => f.name).join(', ');
-                    }
+                    let existingFileNames = [];
                     const currentFilesDiv = input.nextElementSibling;
                     if (currentFilesDiv && currentFilesDiv.classList.contains('current-files')) {
                         const links = currentFilesDiv.querySelectorAll('a');
                         if (links.length > 0) {
-                            return Array.from(links).map(a => a.textContent).join(', ');
+                            existingFileNames = Array.from(links).map(a => a.textContent);
                         }
                     }
-                    return null;
+
+                    const newFileNames = (input.files.length > 0) 
+                        ? Array.from(input.files).map(f => f.name) 
+                        : [];
+
+                    const allFileNames = [...existingFileNames, ...newFileNames];
+                    
+                    return allFileNames.length > 0 ? allFileNames.join(', ') : null;
                 }
                 
                 let value = formData.get(name);
