@@ -727,7 +727,6 @@
             const table = document.getElementById('confirm-table');
             const formData = new FormData(form);
 
-            // ★★★ 修正箇所 ★★★
             const getDisplayValue = (name) => {
                 const input = form.querySelector(`[name="${name}"]`);
                 if (!input || input.disabled || input.closest('.hidden')) {
@@ -947,7 +946,6 @@
             }
         }
         
-        // ★★★ 修正箇所 ★★★
         function populateForm(data) {
         
             document.querySelectorAll('.current-files').forEach(el => el.remove());
