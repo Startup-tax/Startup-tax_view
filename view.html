@@ -71,7 +71,7 @@
             background-color: #4aa3d3; transform: translateY(-2px);
         }
         .btn-secondary { background-color: #6c757d; }
-        .file-input, .category-select { /* ★★★ 修正 ★★★ */
+        .file-input, .category-select {
             width: 100%;
             padding: 12px;
             border: 1px solid #ccc;
@@ -79,11 +79,11 @@
             box-sizing: border-box;
             font-family: inherit;
             font-size: inherit;
-            background-color: #fff; /* ★★★ 追加 ★★★ */
+            background-color: #fff;
         }
         .text-center { text-align: center; }
         .mt-20 { margin-top: 20px; }
-        .mb-20 { margin-bottom: 20px; } /* ★★★ 追加 ★★★ */
+        .mb-20 { margin-bottom: 20px; }
 
 
         @media (max-width: 600px) {
@@ -132,6 +132,12 @@
                 <option value="">-- 項目を選択してください --</option>
                 <option value="前職源泉徴収票">前職の源泉徴収票</option>
                 <option value="配偶者障害者手帳">配偶者の障害者手帳</option>
+                <option value="扶養1_障害者手帳">扶養親族1の障害者手帳</option>
+                <option value="扶養2_障害者手帳">扶養親族2の障害者手帳</option>
+                <option value="扶養3_障害者手帳">扶養親族3の障害者手帳</option>
+                <option value="扶養4_障害者手帳">扶養親族4の障害者手帳</option>
+                <option value="扶養5_障害者手帳">扶養親族5の障害者手帳</option>
+                <option value="扶養6_障害者手帳">扶養親族6の障害者手帳</option>
                 <option value="本人障害者手帳">ご本人の障害者手帳</option>
                 <option value="勤労学生_学生証">勤労学生の学生証</option>
                 <option value="生命保険料_控除証明書">生命保険料の控除証明書</option>
@@ -140,12 +146,6 @@
                 <option value="国民年金保険料 控除証明書">国民年金保険料の控除証明書</option>
                 <option value="小規模企業共済掛金等_控除証明書">小規模企業共済掛金等の証明書</option>
                 <option value="住宅ローン_申告書・証明書">住宅ローン控除の申告書・証明書</option>
-                <option value="扶養1_障害者手帳">扶養親族1の障害者手帳</option>
-                <option value="扶養2_障害者手帳">扶養親族2の障害者手帳</option>
-                <option value="扶養3_障害者手帳">扶養親族3の障害者手帳</option>
-                <option value="扶養4_障害者手帳">扶養親族4の障害者手帳</option>
-                <option value="扶養5_障害者手帳">扶養親族5の障害者手帳</option>
-                <option value="扶養6_障害者手帳">扶養親族6の障害者手帳</option>
             </select>
         </div>
 
@@ -327,7 +327,6 @@
             }
         }
         
-        // ★★★ 修正箇所 ★★★
         async function uploadAdditionalFiles() {
             const fileInput = document.getElementById('additional-files');
             const categorySelect = document.getElementById('file-category-select');
@@ -373,7 +372,7 @@
                         action: 'addFiles',
                         id: submissionId,
                         files: files,
-                        targetHeaderBase: selectedCategory // 選択された項目をGASに送信
+                        targetHeaderBase: selectedCategory
                     })
                 });
 
