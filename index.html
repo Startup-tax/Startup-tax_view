@@ -342,7 +342,6 @@
             });
         }
 
-        // ★★★ 修正箇所 ★★★
         function syncAddress(destPrefix, checkbox) {
             const hiddenInput = form.querySelector(`[name="${destPrefix}_address_same_as_user"]`);
             const userAddr1 = document.getElementById('address1').value;
@@ -353,7 +352,7 @@
             if (checkbox.checked) {
                 destAddr1.value = userAddr1;
                 destAddr2.value = userAddr2;
-                destAddr1.readOnly = true; // disabledからreadOnlyに変更
+                destAddr1.readOnly = true;
                 destAddr2.readOnly = true;
                 if(hiddenInput) hiddenInput.value = "true";
             } else {
@@ -368,7 +367,7 @@
             if (!section) return;
             section.classList.toggle('hidden', !show);
             section.querySelectorAll('input, select, textarea').forEach(input => {
-                if (!section.closest('[disabled]')) { // disabledは使わない方針だが念のため残す
+                if (!section.closest('[disabled]')) {
                     input.disabled = !show;
                 }
             });
@@ -681,7 +680,6 @@
             }
         }
         
-        // ★★★ 修正箇所 ★★★
         function showConfirm() {
             formatPostalCode('postal_code');
             
@@ -825,6 +823,7 @@
                 ['housing_loan_deduction', '住宅ローン控除有無'], ['housing_loan_file', '住宅ローン_申告書・証明書']
             );
 
+            // ★★★ 修正箇所 ★★★
             allFields.forEach(([name, label]) => {
                 let value = getDisplayValue(name);
                 
@@ -838,7 +837,7 @@
                 if (value !== null) {
                     if ( (name.endsWith('_address1') || name.endsWith('_address2')) &&
                          getDisplayValue(`${name.substring(0, name.lastIndexOf('_'))}_address_same_as_user`) === 'true' ) {
-                        // 何もしない
+                        // 「本人と同じ」が表示されている場合は、個別の住所欄（address1, address2）を表示しない
                     } else {
                         addRow(label, value);
                     }
@@ -873,7 +872,16 @@
                 reader.onerror = error => reject(error);
             });
 
+            // ★★★ 修正箇所 ★★★
+            // FormDataを作成する前に、readOnlyのフィールドを一時的に解除する
+            const readOnlyElements = Array.from(form.querySelectorAll('[readonly]'));
+            readOnlyElements.forEach(el => el.readOnly = false);
+
             const formData = new FormData(form);
+
+            // 元の状態に戻す
+            readOnlyElements.forEach(el => el.readOnly = true);
+
             const dataObject = {};
             for (const [key, value] of formData.entries()) {
                  dataObject[key] = value;
