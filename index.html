@@ -826,27 +826,20 @@
             // ★★★ 修正箇所 ★★★
             allFields.forEach(([name, label]) => {
                 let value = getDisplayValue(name);
-                let fullAddress = '';
-
+                
                 // 住所が「本人と同じ」の場合の処理
                 if (name.includes('_address_same_as_user') && value === 'true') {
                     const userAddress1 = getDisplayValue('address1');
                     const userAddress2 = getDisplayValue('address2');
-                    fullAddress = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
-                    if (fullAddress) {
-                        value = `本人と同じ (${fullAddress})`;
-                    } else {
-                        value = '本人と同じ';
-                    }
+                    const fullAddress = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
+                    value = fullAddress ? `本人と同じ (${fullAddress})` : '本人と同じ';
                 }
                 
                 if (value !== null) {
                     // 住所フラグが表示されたら、個別の住所1,2は表示しない
-                    if (name.endsWith('_address1') || name.endsWith('_address2')) {
-                        const prefix = name.substring(0, name.lastIndexOf('_'));
-                        if (getDisplayValue(`${prefix}_address_same_as_user`) !== 'true') {
-                            addRow(label, value);
-                        }
+                    if ( (name.endsWith('_address1') || name.endsWith('_address2')) &&
+                         getDisplayValue(`${name.substring(0, name.lastIndexOf('_'))}_address_same_as_user`) === 'true' ) {
+                        // 何もしない
                     } else {
                         addRow(label, value);
                     }
