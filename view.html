@@ -84,6 +84,24 @@
         .text-center { text-align: center; }
         .mt-20 { margin-top: 20px; }
         .mb-20 { margin-bottom: 20px; }
+        
+        /* ★★★ 修正箇所 ★★★ (ローディング画面のCSSを追加) */
+        .hidden { display: none !important; }
+        #loading {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255, 255, 255, 0.85);
+            display: flex; /* 最初から表示 */
+            flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; backdrop-filter: blur(4px);
+        }
+        .loading-logo { max-width: 150px; margin-bottom: 20px; }
+        #loading p { color: var(--primary-color); font-size: 1.2em; margin-top: 20px; font-weight: 700; }
+        #loading p.sub-text { font-size: 0.9em; color: #555; margin-top: 10px; text-align: center; font-weight: 400; }
+
+        .dots-loader { display: flex; justify-content: center; align-items: center; height: 40px; }
+        .dots-loader div { width: 15px; height: 15px; background-color: var(--primary-color); border-radius: 50%; margin: 0 5px; animation: bounce 1.4s infinite ease-in-out both; }
+        .dots-loader .dot1 { animation-delay: -0.32s; } .dots-loader .dot2 { animation-delay: -0.16s; } .dots-loader .dot3 { animation-delay: 0s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
 
 
         @media (max-width: 600px) {
@@ -105,6 +123,16 @@
 </head>
 
 <body>
+    <!-- ★★★ 修正箇所 ★★★ (ローディング画面のHTMLを追加) -->
+    <div id="loading">
+        <img src="./favicon.jpg" alt="Logo" class="loading-logo">
+        <div class="dots-loader">
+            <div class="dot1"></div> <div class="dot2"></div> <div class="dot3"></div>
+        </div>
+        <p>データを読み込んでいます...</p>
+        <p class="sub-text">この処理には数秒かかることがあります。<br>画面を閉じずにお待ちください。</p>
+    </div>
+
     <div class="container">
         <div style="text-align: center; margin-bottom: 20px;">
             <img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 Logo" style="max-width: 180px;">
@@ -171,15 +199,18 @@
             fetchData(submissionId, isEditMode);
         });
 
+        // ★★★ 修正箇所 ★★★
         async function fetchData(id, isEditMode) {
             const tableContainer = document.getElementById('table-container');
             const message = document.getElementById('message');
+            const loading = document.getElementById('loading'); // ローディング要素を取得
             
             tableContainer.innerHTML = '';
-            message.textContent = 'データを取得中...';
+            message.textContent = ''; // 初期メッセージは空に
 
             if (!id) {
                 message.textContent = '回答IDが見つからないため、回答を表示できません。';
+                loading.classList.add('hidden'); // エラー時もローディングを非表示
                 return;
             }
 
@@ -258,10 +289,7 @@
                     { label: '世帯主の氏名', key: '世帯主の氏名' }, { label: '世帯主との続柄', key: '世帯主の続柄' },
                 ]);
 
-                // ★★★ 修正箇所 ★★★
-                // 年末調整実施の有無で全体を囲む
                 if (data['年末調整実施可否'] === 'はい') {
-                    
                     createSection('年末調整情報', [
                         { label: '年末調整の実施', key: '年末調整実施可否' },
                         { label: '前職の有無', key: '前職有無' },
@@ -271,18 +299,17 @@
                         { label: '住民税の徴収方法', key: '住民税徴収方法' },
                     ]);
                     
-                    // 配偶者と扶養親族の有無を表示するセクションを追加
                     createSection('配偶者・扶養親族の有無', [
                         { label: '配偶者有無', key: '配偶者有無' },
                         { label: '扶養親族有無', key: '扶養親族有無' }
                     ]);
-                    
+
                     if (data['配偶者有無'] === 'あり') {
                         createSection('配偶者情報', [
                            { label: '氏名', value: `${data['配偶者姓'] || ''} ${data['配偶者名'] || ''}`.trim() },
                            { label: 'フリガナ', value: `${data['配偶者姓フリガナ'] || ''} ${data['配偶者名フリガナ'] || ''}`.trim() },
                            { label: '生年月日', key: '配偶者生年月日' },
-                           { label: '住所', value: (data['配偶者_住所同じ'] === 'true' || data['配偶者_住所同じ'] === true) ? '本人と同じ' : `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim() },
+                           { label: '住所', value: (data['配偶者_住所同じ'] === 'true' || data['配偶者_住所同じ'] === true) ? `本人と同じ (${data['住所1'] || ''}${data['住所2'] || ''})` : `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim() },
                            { label: '収入金額', key: '配偶者収入金額' }, { label: '退職手当の有無', key: '配偶者退職手当有無' },
                            { label: '退職手当金額', key: '配偶者退職手当等金額' }, { label: '障害者手帳の有無', key: '配偶者障害者手帳交付有無' },
                            { label: '障害者手帳(添付)', value: ' ', urlKey: '配偶者障害者手帳URL', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
@@ -292,12 +319,12 @@
 
                     if (data['扶養親族有無'] === 'あり') {
                         for (let i = 1; i <= 6; i++) {
-                            if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) { // スプレッドシートのヘッダー名と一致させる
+                            if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) {
                                 createSection(`扶養親族 ${i}`, [
                                     { label: '氏名', value: `${data[`扶養親族${i}_姓`] || ''} ${data[`扶養親族${i}_名`] || ''}`.trim() },
                                     { label: 'フリガナ', value: `${data[`扶養親族${i}_姓フリガナ`] || ''} ${data[`扶養親族${i}_名フリガナ`] || ''}`.trim() },
                                     { label: '続柄', key: `扶養親族${i}_続柄` }, { label: '生年月日', key: `扶養親族${i}_生年月日` },
-                                    { label: '住所', value: (data[`扶養親族${i}_住所同じ`] === 'true' || data[`扶養親族${i}_住所同じ`] === true) ? '本人と同じ' : `${data[`扶養親族${i}_住所1`] || ''}${data[`扶養親族${i}_住所2`] || ''}`.trim() },
+                                    { label: '住所', value: (data[`扶養親族${i}_住所同じ`] === 'true' || data[`扶養親族${i}_住所同じ`] === true) ? `本人と同じ (${data['住所1'] || ''}${data['住所2'] || ''})` : `${data[`扶養親族${i}_住所1`] || ''}${data[`扶養親族${i}_住所2`] || ''}`.trim() },
                                     { label: '収入金額', key: `扶養親族${i}_収入金額` }, { label: '障害者手帳の有無', key: `扶養親族${i}_障害者手帳交付有無` },
                                     { label: '障害者手帳(添付)', value: ' ', urlKey: `扶養親族${i}_障害者手帳URL`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' },
                                     { label: '障害者手帳(備考)', key: `扶養親族${i}_障害者手帳備考`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' },
@@ -327,11 +354,19 @@
                         { label: '住宅ローン控除', key: '住宅ローン控除有無' },
                         { label: '住宅ローン控除申告書等', value: ' ', urlKey: '住宅ローン_申告書・証明書URL', condition: () => data['住宅ローン控除有無'] === 'あり' },
                     ]);
+                } else {
+                    createSection('配偶者・扶養親族の有無', [
+                        { label: '配偶者有無', key: '配偶者有無' },
+                        { label: '扶養親族有無', key: '扶養親族有無' }
+                    ]);
                 }
                 
             } catch (error) {
                 message.textContent = `エラー: ${error.message}`;
                 console.error('Fetch Error:', error);
+            } finally {
+                // 処理が成功しても失敗しても、最後にローディング画面を非表示にする
+                loading.classList.add('hidden');
             }
         }
 

@@ -702,6 +702,21 @@
                 input.value = input.value.replace(/,/g, '');
             });
 
+            // ★★★ 修正箇所 ★★★
+            // 「本人と同じ」にチェックがある場合、送信前に本人の住所をコピーする
+            ['spouse', ...Array.from({length: 6}, (_, i) => `dependent_${i + 1}`)].forEach(prefix => {
+                const checkbox = form.querySelector(`input[onchange="syncAddress('${prefix}', this)"]`);
+                if (checkbox && checkbox.checked) {
+                    const userAddr1 = document.getElementById('address1').value;
+                    const userAddr2 = document.getElementById('address2').value;
+                    const destAddr1 = document.getElementById(`${prefix}_address1`);
+                    const destAddr2 = document.getElementById(`${prefix}_address2`);
+                    if(destAddr1) destAddr1.value = userAddr1;
+                    if(destAddr2) destAddr2.value = userAddr2;
+                }
+            });
+
+
             if (!form.checkValidity()) {
                 form.reportValidity();
                 form.querySelectorAll('.currency-input').forEach(input => {
@@ -729,7 +744,7 @@
 
             const getDisplayValue = (name) => {
                 const input = form.querySelector(`[name="${name}"]`);
-                if (!input || input.disabled || input.closest('.hidden')) {
+                if (!input || input.closest('.hidden')) { // disabledチェックを削除
                     return null;
                 }
 
@@ -753,6 +768,14 @@
                 }
                 
                 let value = formData.get(name);
+
+                if (name.includes('_address_same_as_user') && value === 'true') {
+                     const userAddr1 = formData.get('address1');
+                     const userAddr2 = formData.get('address2');
+                     const fullAddress = `${userAddr1 || ''}${userAddr2 || ''}`.trim();
+                     return fullAddress ? `本人と同じ (${fullAddress})` : '本人と同じ';
+                }
+
                 if (value === null || value === undefined || value === '' || value === 'false') {
                     return null;
                 }
@@ -823,23 +846,13 @@
                 ['housing_loan_deduction', '住宅ローン控除有無'], ['housing_loan_file', '住宅ローン_申告書・証明書']
             );
 
-            // ★★★ 修正箇所 ★★★
             allFields.forEach(([name, label]) => {
-                let value = getDisplayValue(name);
-                
-                // 住所が「本人と同じ」の場合の処理
-                if (name.includes('_address_same_as_user') && value === 'true') {
-                    const userAddress1 = getDisplayValue('address1');
-                    const userAddress2 = getDisplayValue('address2');
-                    const fullAddress = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
-                    value = fullAddress ? `本人と同じ (${fullAddress})` : '本人と同じ';
-                }
+                const value = getDisplayValue(name);
                 
                 if (value !== null) {
-                    // 住所フラグが表示されたら、個別の住所1,2は表示しない
                     if ( (name.endsWith('_address1') || name.endsWith('_address2')) &&
-                         getDisplayValue(`${name.substring(0, name.lastIndexOf('_'))}_address_same_as_user`) === 'true' ) {
-                        // 何もしない
+                         getDisplayValue(`${name.substring(0, name.lastIndexOf('_'))}_address_same_as_user`)?.includes('本人と同じ') ) {
+                        // 「本人と同じ」が表示されている場合は、個別の住所欄を表示しない
                     } else {
                         addRow(label, value);
                     }
@@ -955,7 +968,7 @@
             
             let dependentCount = 0;
             for (let i = 1; i <= 6; i++) {
-                if (data[`扶養${i}_姓`] || data[`扶養${i}_名`]) { dependentCount++; }
+                if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) { dependentCount++; }
             }
             for (let i = 1; i < dependentCount; i++) { addDependentField(); }
 
@@ -975,12 +988,12 @@
                 '小規模企業共済掛金等控除有無':'small_business_deduction', '住宅ローン控除有無':'housing_loan_deduction',
             };
             for(let i=1; i<=6; i++){
-                nameAttrMap[`扶養${i}_姓`] = `dependent_${i}_last_name`; nameAttrMap[`扶養${i}_名`] = `dependent_${i}_first_name`;
-                nameAttrMap[`扶養${i}_姓フリガナ`] = `dependent_${i}_last_name_furigana`; nameAttrMap[`扶養${i}_名フリガナ`] = `dependent_${i}_first_name_furigana`;
-                nameAttrMap[`扶養${i}_続柄`] = `dependent_${i}_relationship`; nameAttrMap[`扶養${i}_住所1`] = `dependent_${i}_address1`; nameAttrMap[`扶養${i}_住所2`] = `dependent_${i}_address2`;
-                nameAttrMap[`扶養${i}_住所同じ`] = `dependent_${i}_address_same_as_user`; nameAttrMap[`扶養${i}_収入金額`] = `dependent_${i}_income_amount`;
-                nameAttrMap[`扶養${i}_退職手当有無`] = `dependent_${i}_severance_pay_existence`; nameAttrMap[`扶養${i}_退職手当等金額`] = `dependent_${i}_severance_pay_amount`;
-                nameAttrMap[`扶養${i}_障害者手帳交付有無`] = `dependent_${i}_disability_certificate_existence`; nameAttrMap[`扶養${i}_障害者手帳備考`] = `dependent_${i}_disability_certificate_remarks`;
+                nameAttrMap[`扶養親族${i}_姓`] = `dependent_${i}_last_name`; nameAttrMap[`扶養親族${i}_名`] = `dependent_${i}_first_name`;
+                nameAttrMap[`扶養親族${i}_姓フリガナ`] = `dependent_${i}_last_name_furigana`; nameAttrMap[`扶養親族${i}_名フリガナ`] = `dependent_${i}_first_name_furigana`;
+                nameAttrMap[`扶養親族${i}_続柄`] = `dependent_${i}_relationship`; nameAttrMap[`扶養親族${i}_住所1`] = `dependent_${i}_address1`; nameAttrMap[`扶養親族${i}_住所2`] = `dependent_${i}_address2`;
+                nameAttrMap[`扶養親族${i}_住所同じ`] = `dependent_${i}_address_same_as_user`; nameAttrMap[`扶養親族${i}_収入金額`] = `dependent_${i}_income_amount`;
+                nameAttrMap[`扶養親族${i}_退職手当有無`] = `dependent_${i}_severance_pay_existence`; nameAttrMap[`扶養親族${i}_退職手当等金額`] = `dependent_${i}_severance_pay_amount`;
+                nameAttrMap[`扶養親族${i}_障害者手帳交付有無`] = `dependent_${i}_disability_certificate_existence`; nameAttrMap[`扶養親族${i}_障害者手帳備考`] = `dependent_${i}_disability_certificate_remarks`;
             }
 
             headers.forEach(header => {
@@ -1006,7 +1019,7 @@
             });
 
             const dateHeaders = {'生年月日':'user', '配偶者生年月日':'spouse'};
-            for(let i=1; i<=6; i++) { dateHeaders[`扶養${i}_生年月日`] = `dependent_${i}`; }
+            for(let i=1; i<=6; i++) { dateHeaders[`扶養親族${i}_生年月日`] = `dependent_${i}`; }
             Object.keys(dateHeaders).forEach(header => {
                 const dateString = data[header];
                 if (dateString) {
@@ -1030,7 +1043,7 @@
             });
 
             ['spouse', ...Array.from({length: 6}, (_, i) => `dependent_${i + 1}`)].forEach(prefix => {
-                const headerName = (prefix === 'spouse' ? '配偶者' : `扶養${prefix.split('_')[1]}`) + '_住所同じ';
+                const headerName = (prefix === 'spouse' ? '配偶者' : `扶養親族${prefix.split('_')[1]}`) + '_住所同じ';
                 if (data[headerName] === 'true' || data[headerName] === true) {
                     const checkbox = form.querySelector(`[onchange="syncAddress('${prefix}', this)"]`);
                     if (checkbox) {
@@ -1053,7 +1066,7 @@
                 '住宅ローン_申告書・証明書URL': 'housing_loan_file'
             };
             for (let i = 1; i <= 6; i++) {
-                fileUrlMap[`扶養${i}_障害者手帳URL`] = `dependent_${i}_disability_certificate_file`;
+                fileUrlMap[`扶養親族${i}_障害者手帳URL`] = `dependent_${i}_disability_certificate_file`;
             }
 
             for (const header in fileUrlMap) {
