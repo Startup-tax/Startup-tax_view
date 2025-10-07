@@ -220,11 +220,11 @@
         });
 
         async function fetchData(id, isEditMode) {
-            const dataContainer = document.getElementById('data-container');
+            const tableContainer = document.getElementById('table-container');
             const message = document.getElementById('message');
             const loading = document.getElementById('loading');
             
-            dataContainer.innerHTML = '';
+            tableContainer.innerHTML = '';
             message.textContent = '';
 
             if (!id) {
@@ -250,24 +250,18 @@
                 
                 const data = result.data;
 
-                const addRow = (parent, label, value, urlKey) => {
+                const addRow = (table, label, value, urlKey) => {
                     if (value === null || value === undefined || value === '') return;
                     if (label.endsWith('_住所同じ')) return;
 
-                    const rowDiv = document.createElement('div');
-                    rowDiv.classList.add('data-row');
-
-                    const labelDiv = document.createElement('div');
-                    labelDiv.classList.add('data-label');
-                    labelDiv.textContent = label;
-                    rowDiv.appendChild(labelDiv);
-
-                    const valueDiv = document.createElement('div');
-                    valueDiv.classList.add('data-value');
-
+                    const row = table.insertRow();
+                    row.insertCell().outerHTML = `<th>${label}</th>`;
+                    const cell = row.insertCell();
+                    
                     if (urlKey && data[urlKey]) {
                         const urls = data[urlKey].split('\n');
                         const names = data[urlKey.replace('URL', 'FileName')]?.split('\n') || [];
+
                         urls.forEach((url, index) => {
                             if (!url) return;
                             const a = document.createElement('a');
@@ -279,36 +273,35 @@
                             valueDiv.appendChild(a);
                         });
                     } else {
-                        valueDiv.textContent = value;
+                        // ★★★ 修正箇所 ★★★
+                        // 金額に関する項目にカンマを追加
+                        if (label.includes('金額') && !isNaN(value)) {
+                            cell.textContent = Number(value).toLocaleString('ja-JP') + ' 円';
+                        } else {
+                            cell.textContent = value;
+                        }
                     }
-                    rowDiv.appendChild(valueDiv);
-                    parent.appendChild(rowDiv);
                 };
                 
                 const createSection = (title, fields) => {
                     const sectionDiv = document.createElement('div');
-                    sectionDiv.classList.add('section');
                     let hasContent = false;
-                    
-                    const contentDiv = document.createElement('div');
-                    contentDiv.classList.add('section-content');
+                    const table = document.createElement('table');
+                    table.id = 'result-table';
                     
                     fields.forEach(field => {
                         if (field.condition && !field.condition()) return;
                         const value = field.key ? data[field.key] : field.value;
                         if (value !== null && value !== undefined && value !== '') {
-                            addRow(contentDiv, field.label, value, field.urlKey);
+                            addRow(table, field.label, value, field.urlKey);
                             hasContent = true;
                         }
                     });
 
                     if (hasContent) {
-                        const titleDiv = document.createElement('div');
-                        titleDiv.classList.add('section-title');
-                        titleDiv.textContent = title;
-                        sectionDiv.appendChild(titleDiv);
-                        sectionDiv.appendChild(contentDiv);
-                        dataContainer.appendChild(sectionDiv);
+                        sectionDiv.innerHTML = `<h2>${title}</h2>`;
+                        sectionDiv.appendChild(table);
+                        tableContainer.appendChild(sectionDiv);
                     }
                 };
                 

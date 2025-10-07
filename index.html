@@ -744,7 +744,13 @@
             confirmContents.innerHTML = confirmHtml;
 
             const table = document.getElementById('confirm-table');
+            
+            // readOnlyのフィールドを一時的に有効化してFormDataを作成
+            const readOnlyElements = Array.from(form.querySelectorAll('[readonly]'));
+            readOnlyElements.forEach(el => el.readOnly = false);
             const formData = new FormData(form);
+            readOnlyElements.forEach(el => el.readOnly = true);
+
 
             const getDisplayValue = (name) => {
                 const input = form.querySelector(`[name="${name}"]`);
@@ -800,7 +806,6 @@
                 ['spouse_last_name', '配偶者 姓'], ['spouse_first_name', '配偶者 名'],
                 ['spouse_last_name_furigana', '配偶者 姓フリガナ'], ['spouse_first_name_furigana', '配偶者 名フリガナ'],
                 ['spouse_birth_date', '配偶者 生年月日'], 
-                ['spouse_address_same_as_user', '配偶者住所'],
                 ['spouse_address1', '配偶者 住所1'], ['spouse_address2', '配偶者 住所2'],
                 ['spouse_salary_income', '配偶者 給与収入金額'], ['spouse_other_income', '配偶者 その他収入金額'],
                 ['spouse_severance_pay_existence', '配偶者 退職手当有無'],
@@ -816,7 +821,6 @@
                     [`dependent_${i}_last_name`, `【扶養親族${i}】姓`], [`dependent_${i}_first_name`, `【扶養親族${i}】名`],
                     [`dependent_${i}_last_name_furigana`, `【扶養親族${i}】姓フリガナ`], [`dependent_${i}_first_name_furigana`, `【扶養親族${i}】名フリガナ`],
                     [`dependent_${i}_relationship`, `【扶養親族${i}】続柄`], [`dependent_${i}_birth_date`, `【扶養親族${i}】生年月日`],
-                    [`dependent_${i}_address_same_as_user`, `【扶養親族${i}】住所`],
                     [`dependent_${i}_address1`, `【扶養親族${i}】住所1`], [`dependent_${i}_address2`, `【扶養親族${i}】住所2`],
                     [`dependent_${i}_salary_income`, `【扶養親族${i}】給与収入金額`],
                     [`dependent_${i}_other_income`, `【扶養親族${i}】その他収入金額`],
@@ -845,20 +849,23 @@
                 ['housing_loan_deduction', '住宅ローン控除有無'], ['housing_loan_file', '住宅ローン_申告書・証明書']
             );
 
+            // ★★★ 修正箇所 ★★★
+            const address1 = getDisplayValue('address1');
+            const address2 = getDisplayValue('address2');
+
             allFields.forEach(([name, label]) => {
                 let value = getDisplayValue(name);
                 
+                // 住所が「本人と同じ」の場合、ラベルを「住所」に統一し、値を本人の住所に置き換える
                 if (name.includes('_address_same_as_user') && value === 'true') {
-                    const userAddress1 = getDisplayValue('address1');
-                    const userAddress2 = getDisplayValue('address2');
-                    const fullAddress = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
-                    value = fullAddress ? `本人と同じ (${fullAddress})` : '本人と同じ';
+                    label = label.replace('住所', '住所'); // ラベルを統一
+                    value = `${address1 || ''}${address2 || ''}`.trim();
                 }
                 
                 if (value !== null) {
                     if ( (name.endsWith('_address1') || name.endsWith('_address2')) &&
                          getDisplayValue(`${name.substring(0, name.lastIndexOf('_'))}_address_same_as_user`) === 'true' ) {
-                        // 何もしない
+                        // 「本人と同じ」が表示されている場合は、個別の住所欄(address1, address2)を表示しない
                     } else {
                         addRow(label, value);
                     }
