@@ -84,14 +84,14 @@
         .text-center { text-align: center; }
         .mt-20 { margin-top: 20px; }
         .mb-20 { margin-bottom: 20px; }
-
+        
         .hidden { display: none !important; }
         #loading {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(255, 255, 255, 0.85);
+            background-color: #ffffff; 
             display: flex;
             flex-direction: column; justify-content: center; align-items: center;
-            z-index: 9999; backdrop-filter: blur(4px);
+            z-index: 9999;
         }
         .loading-logo { max-width: 150px; margin-bottom: 20px; }
         #loading p { color: var(--primary-color); font-size: 1.2em; margin-top: 20px; font-weight: 700; }
@@ -135,7 +135,7 @@
         </div>
         <h1>年末調整 回答内容確認</h1>
         <div id="message"></div>
-        <div id="table-container"></div>
+        <div id="data-container"></div>
     </div>
 
     <div class="container hidden" id="edit-section">
@@ -195,12 +195,13 @@
             fetchData(submissionId, isEditMode);
         });
 
+        // ★★★ デザイン修正箇所 ★★★
         async function fetchData(id, isEditMode) {
-            const tableContainer = document.getElementById('table-container');
+            const dataContainer = document.getElementById('data-container');
             const message = document.getElementById('message');
             const loading = document.getElementById('loading');
             
-            tableContainer.innerHTML = '';
+            dataContainer.innerHTML = '';
             message.textContent = '';
 
             if (!id) {
@@ -226,18 +227,24 @@
                 
                 const data = result.data;
 
-                const addRow = (table, label, value, urlKey) => {
+                const addRow = (parent, label, value, urlKey) => {
                     if (value === null || value === undefined || value === '') return;
                     if (label.endsWith('_住所同じ')) return;
 
-                    const row = table.insertRow();
-                    row.insertCell().outerHTML = `<th>${label}</th>`;
-                    const cell = row.insertCell();
-                    
+                    const rowDiv = document.createElement('div');
+                    rowDiv.classList.add('data-row');
+
+                    const labelDiv = document.createElement('div');
+                    labelDiv.classList.add('data-label');
+                    labelDiv.textContent = label;
+                    rowDiv.appendChild(labelDiv);
+
+                    const valueDiv = document.createElement('div');
+                    valueDiv.classList.add('data-value');
+
                     if (urlKey && data[urlKey]) {
                         const urls = data[urlKey].split('\n');
                         const names = data[urlKey.replace('URL', 'FileName')]?.split('\n') || [];
-
                         urls.forEach((url, index) => {
                             if (!url) return;
                             const a = document.createElement('a');
@@ -245,33 +252,40 @@
                             a.textContent = names[index] || 'ファイルを開く';
                             a.target = '_blank';
                             a.rel = 'noopener noreferrer';
-                            cell.appendChild(a);
-                            cell.appendChild(document.createElement('br'));
+                            a.classList.add('file-link');
+                            valueDiv.appendChild(a);
                         });
                     } else {
-                        cell.textContent = value;
+                        valueDiv.textContent = value;
                     }
+                    rowDiv.appendChild(valueDiv);
+                    parent.appendChild(rowDiv);
                 };
                 
                 const createSection = (title, fields) => {
                     const sectionDiv = document.createElement('div');
+                    sectionDiv.classList.add('section');
                     let hasContent = false;
-                    const table = document.createElement('table');
-                    table.id = 'result-table';
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.classList.add('section-content');
                     
                     fields.forEach(field => {
                         if (field.condition && !field.condition()) return;
                         const value = field.key ? data[field.key] : field.value;
                         if (value !== null && value !== undefined && value !== '') {
-                            addRow(table, field.label, value, field.urlKey);
+                            addRow(contentDiv, field.label, value, field.urlKey);
                             hasContent = true;
                         }
                     });
 
                     if (hasContent) {
-                        sectionDiv.innerHTML = `<h2>${title}</h2>`;
-                        sectionDiv.appendChild(table);
-                        tableContainer.appendChild(sectionDiv);
+                        const titleDiv = document.createElement('div');
+                        titleDiv.classList.add('section-title');
+                        titleDiv.textContent = title;
+                        sectionDiv.appendChild(titleDiv);
+                        sectionDiv.appendChild(contentDiv);
+                        dataContainer.appendChild(sectionDiv);
                     }
                 };
                 
@@ -300,7 +314,7 @@
                            { label: '氏名', value: `${data['配偶者姓'] || ''} ${data['配偶者名'] || ''}`.trim() },
                            { label: 'フリガナ', value: `${data['配偶者姓フリガナ'] || ''} ${data['配偶者名フリガナ'] || ''}`.trim() },
                            { label: '生年月日', key: '配偶者生年月日' },
-                           { label: '住所', value: (data['配偶者_住所同じ'] === 'true' || data['配偶者_住所同じ'] === true) ? `${data['住所1'] || ''}${data['住所2'] || ''}` : `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim() },
+                           { label: '住所', value: (data['配偶者_住所同じ'] === true || data['配偶者_住所同じ'] === 'true') ? `${data['住所1'] || ''}${data['住所2'] || ''}`.trim() : `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim() },
                            { label: '収入金額', key: '配偶者収入金額' }, { label: '退職手当の有無', key: '配偶者退職手当有無' },
                            { label: '退職手当金額', key: '配偶者退職手当等金額' }, { label: '障害者手帳の有無', key: '配偶者障害者手帳交付有無' },
                            { label: '障害者手帳(添付)', value: ' ', urlKey: '配偶者障害者手帳URL', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
@@ -308,14 +322,7 @@
                         ]);
                     }
 
-                    // ★★★ 修正箇所 ★★★
                     if (data['扶養親族有無'] === 'あり') {
-                        // まず「扶養親族有無」の項目だけを表示するセクションを作成
-                        createSection('扶養親族情報', [
-                            { label: '扶養親族有無', key: '扶養親族有無' }
-                        ]);
-
-                        // その後、各扶養親族を個別のセクションとして表示
                         for (let i = 1; i <= 6; i++) {
                             if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) {
                                 createSection(`扶養親族 ${i}`, [
