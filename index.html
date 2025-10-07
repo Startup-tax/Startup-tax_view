@@ -269,7 +269,8 @@
                     <label>当社で年末調整をおこないますか？</label>
                     <div class="radio-group">
                         <label><input type="radio" name="year_end_adjustment" value="はい" onchange="toggleMainSections(this.value)" checked> はい</label>
-                        <label><input type="radio" name="year_end_adjustment" value="他社でおこなう/確定申告" onchange="toggleMainSections(this.value)"> 他社でおこなう / 確定申告</label>
+                        <label><input type="radio" name="year_end_adjustment" value="他社でおこなう" onchange="toggleMainSections(this.value)"> 他社でおこなう</label>
+                        <label><input type="radio" name="year_end_adjustment" value="確定申告する" onchange="toggleMainSections(this.value)"> 確定申告する</label>
                     </div>
                      <p style="font-size: 0.8em; color: #555; margin-top: 5px;">他社で給与収入がある場合は、原則、確定申告が必要となりますが、収入が多い勤務先で年末調整をおこなうことができます。<br>※給与収入が2,000万円を超える方は、確定申告が必要です。</p>
                 </div>
@@ -367,7 +368,7 @@
             if (!section) return;
             section.classList.toggle('hidden', !show);
             section.querySelectorAll('input, select, textarea').forEach(input => {
-                if (!section.closest('[disabled]')) {
+                if (!input.readOnly) {
                     input.disabled = !show;
                 }
             });
@@ -500,15 +501,24 @@
                         <input type="hidden" name="spouse_address_same_as_user" value="false">
                         <div class="form-group form-group-large"><label>住所1</label><input type="text" id="spouse_address1" name="spouse_address1"></div>
                         <div class="form-group form-group-large"><label>住所2</label><input type="text" id="spouse_address2" name="spouse_address2"></div>
-                        <div class="form-group form-group-small"><div class="tooltip-wrapper"><label>収入金額</label>
-                        	<div class="tooltip-container">
-                                <span class="tooltip-icon">!</span>
-                                <div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>給与収入の場合は総支給額から非課税交通費を除いた金額です。</div>
+                        <div class="form-group form-group-small">
+                            <div class="tooltip-wrapper"><label>給与収入金額</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">!</span>
+                                    <div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>総支給額から非課税交通費を除いた金額です。</div>
+                                </div>
                             </div>
+                            <div class="yen-input-wrapper"><input type="text" name="spouse_salary_income" class="currency-input" inputmode="numeric"></div>
                         </div>
-                        	<div class="yen-input-wrapper"><input type="text" name="spouse_income_amount" class="currency-input" inputmode="numeric"></div></div>
-                        <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="spouse_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="spouse_severance_pay_existence" value="なし" checked>なし</label></div></div>
-                        <div class="form-group form-group-small"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="spouse_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
+                        <div class="form-group form-group-small">
+                            <label>その他収入金額(退職手当を含む)</label>
+                            <div class="yen-input-wrapper"><input type="text" name="spouse_other_income" class="currency-input" inputmode="numeric"></div>
+                        </div>
+                        <div class="form-group"><label>退職手当有無</label><div class="radio-group">
+                           <label><input type="radio" name="spouse_severance_pay_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'spouse-severance-group')">あり</label>
+                           <label><input type="radio" name="spouse_severance_pay_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'spouse-severance-group')" checked>なし</label>
+                        </div></div>
+                        <div id="spouse-severance-group" class="form-group form-group-small hidden"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="spouse_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
                         <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="spouse_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'spouse-disability-file-group')"> あり</label><label><input type="radio" name="spouse_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'spouse-disability-file-group')" checked> なし</label></div></div>
                         <div id="spouse-disability-file-group" class="form-group hidden">
                             <label>障害者手帳</label>
@@ -552,15 +562,24 @@
                                 <input type="hidden" name="dependent_${i + 1}_address_same_as_user" value="false">
                                 <div class="form-group form-group-large"><label>住所1</label><input type="text" id="dependent_${i + 1}_address1" name="dependent_${i + 1}_address1"></div>
                                 <div class="form-group form-group-large"><label>住所2</label><input type="text" id="dependent_${i + 1}_address2" name="dependent_${i + 1}_address2"></div>
-                                <div class="form-group form-group-small"><div class="tooltip-wrapper"><label>収入金額</label>
-                                	<div class="tooltip-container">
-                                		<span class="tooltip-icon">!</span>
-                                		<div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>給与収入の場合は総支給額から非課税交通費を除いた金額です。</div>
-                            		</div>
-                                	</div>
-                                	<div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_income_amount" class="currency-input" inputmode="numeric"></div></div>
-                                <div class="form-group"><label>退職手当有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="あり">あり</label><label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="なし" checked>なし</label></div></div>
-                                <div class="form-group form-group-small"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
+                                <div class="form-group form-group-small">
+                                    <div class="tooltip-wrapper"><label>給与収入金額</label>
+                                        <div class="tooltip-container">
+                                            <span class="tooltip-icon">!</span>
+                                            <div class="tooltip-text">令和7年(2025年)中の収入を記載してください。<br>総支給額から非課税交通費を除いた金額です。</div>
+                                        </div>
+                                    </div>
+                                    <div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_salary_income" class="currency-input" inputmode="numeric"></div>
+                                </div>
+                                <div class="form-group form-group-small">
+                                    <label>その他収入金額(退職手当を含む)</label>
+                                    <div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_other_income" class="currency-input" inputmode="numeric"></div>
+                                </div>
+                                <div class="form-group"><label>退職手当有無</label><div class="radio-group">
+                                    <label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-severance-group')">あり</label>
+                                    <label><input type="radio" name="dependent_${i + 1}_severance_pay_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-severance-group')" checked>なし</label>
+                                </div></div>
+                                <div id="dependent-${i + 1}-severance-group" class="form-group form-group-small hidden"><label>退職手当等金額</label><div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_severance_pay_amount" class="currency-input" inputmode="numeric"></div></div>
                                 <div class="form-group"><label>障害者手帳交付有無</label><div class="radio-group"><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="あり" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')"> あり</label><label><input type="radio" name="dependent_${i + 1}_disability_certificate_existence" value="なし" onchange="toggleSection(this.value === 'あり', 'dependent-${i + 1}-disability-file-group')" checked> なし</label></div></div>
                                 <div id="dependent-${i + 1}-disability-file-group" class="form-group hidden">
                                     <label>障害者手帳</label>
@@ -783,7 +802,8 @@
                 ['spouse_birth_date', '配偶者 生年月日'], 
                 ['spouse_address_same_as_user', '配偶者住所'],
                 ['spouse_address1', '配偶者 住所1'], ['spouse_address2', '配偶者 住所2'],
-                ['spouse_income_amount', '配偶者 収入金額'], ['spouse_severance_pay_existence', '配偶者 退職手当有無'],
+                ['spouse_salary_income', '配偶者 給与収入金額'], ['spouse_other_income', '配偶者 その他収入金額'],
+                ['spouse_severance_pay_existence', '配偶者 退職手当有無'],
                 ['spouse_severance_pay_amount', '配偶者 退職手当等金額'], 
                 ['spouse_disability_certificate_existence', '配偶者 障害者手帳交付有無'],
                 ['spouse_disability_certificate_file', '配偶者 障害者手帳'],
@@ -798,7 +818,9 @@
                     [`dependent_${i}_relationship`, `【扶養親族${i}】続柄`], [`dependent_${i}_birth_date`, `【扶養親族${i}】生年月日`],
                     [`dependent_${i}_address_same_as_user`, `【扶養親族${i}】住所`],
                     [`dependent_${i}_address1`, `【扶養親族${i}】住所1`], [`dependent_${i}_address2`, `【扶養親族${i}】住所2`],
-                    [`dependent_${i}_income_amount`, `【扶養親族${i}】収入金額`], [`dependent_${i}_severance_pay_existence`, `【扶養親族${i}】退職手当有無`],
+                    [`dependent_${i}_salary_income`, `【扶養親族${i}】給与収入金額`],
+                    [`dependent_${i}_other_income`, `【扶養親族${i}】その他収入金額`],
+                    [`dependent_${i}_severance_pay_existence`, `【扶養親族${i}】退職手当有無`],
                     [`dependent_${i}_severance_pay_amount`, `【扶養親族${i}】退職手当等金額`],
                     [`dependent_${i}_disability_certificate_existence`, `【扶養親族${i}】障害者手帳交付有無`],
                     [`dependent_${i}_disability_certificate_file`, `【扶養親族${i}】障害者手帳`],
@@ -823,20 +845,20 @@
                 ['housing_loan_deduction', '住宅ローン控除有無'], ['housing_loan_file', '住宅ローン_申告書・証明書']
             );
 
-            // ★★★ 修正箇所 ★★★
             allFields.forEach(([name, label]) => {
                 let value = getDisplayValue(name);
                 
                 if (name.includes('_address_same_as_user') && value === 'true') {
                     const userAddress1 = getDisplayValue('address1');
                     const userAddress2 = getDisplayValue('address2');
-                    value = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
+                    const fullAddress = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
+                    value = fullAddress ? `本人と同じ (${fullAddress})` : '本人と同じ';
                 }
                 
-                if (value !== null && value !== '') {
+                if (value !== null) {
                     if ( (name.endsWith('_address1') || name.endsWith('_address2')) &&
                          getDisplayValue(`${name.substring(0, name.lastIndexOf('_'))}_address_same_as_user`) === 'true' ) {
-                        // 「本人と同じ」がチェックされている場合は、個別の住所欄(address1, address2)を表示しない
+                        // 何もしない
                     } else {
                         addRow(label, value);
                     }
@@ -871,14 +893,11 @@
                 reader.onerror = error => reject(error);
             });
 
-            // ★★★ 修正箇所 ★★★
-            // FormDataを作成する前に、readOnlyのフィールドを一時的に解除する
             const readOnlyElements = Array.from(form.querySelectorAll('[readonly]'));
             readOnlyElements.forEach(el => el.readOnly = false);
 
             const formData = new FormData(form);
 
-            // 元の状態に戻す
             readOnlyElements.forEach(el => el.readOnly = true);
 
             const dataObject = {};
@@ -972,7 +991,8 @@
                 '年末調整実施可否':'year_end_adjustment', '前職有無':'previous_job', 'その他収入有無':'other_income_existence', 'その他収入金額':'other_income_amount', '住民税徴収方法':'resident_tax',
                 '配偶者有無':'spouse_existence', '配偶者姓':'spouse_last_name', '配偶者名':'spouse_first_name', '配偶者姓フリガナ':'spouse_last_name_furigana', '配偶者名フリガナ':'spouse_first_name_furigana',
                 '配偶者住所1':'spouse_address1', '配偶者住所2':'spouse_address2', '配偶者_住所同じ':'spouse_address_same_as_user',
-                '配偶者収入金額':'spouse_income_amount', '配偶者退職手当有無':'spouse_severance_pay_existence', '配偶者退職手当等金額':'spouse_severance_pay_amount',
+                '配偶者_給与収入金額':'spouse_salary_income', '配偶者_その他収入金額':'spouse_other_income', 
+                '配偶者退職手当有無':'spouse_severance_pay_existence', '配偶者退職手当等金額':'spouse_severance_pay_amount',
                 '配偶者障害者手帳交付有無':'spouse_disability_certificate_existence', '配偶者障害者手帳備考':'spouse_disability_certificate_remarks',
                 '扶養親族有無':'dependents_existence', '本人障害者手帳交付有無':'user_disability_certificate_existence', '本人障害者手帳備考':'user_disability_certificate_remarks',
                 '寡婦該当確認':'widow_status', 'ひとり親該当確認':'single_parent_status', '勤労学生該当確認':'working_student_status', '災害者該当確認':'disaster_status',
@@ -984,7 +1004,9 @@
                 nameAttrMap[`扶養親族${i}_姓`] = `dependent_${i}_last_name`; nameAttrMap[`扶養親族${i}_名`] = `dependent_${i}_first_name`;
                 nameAttrMap[`扶養親族${i}_姓フリガナ`] = `dependent_${i}_last_name_furigana`; nameAttrMap[`扶養親族${i}_名フリガナ`] = `dependent_${i}_first_name_furigana`;
                 nameAttrMap[`扶養親族${i}_続柄`] = `dependent_${i}_relationship`; nameAttrMap[`扶養親族${i}_住所1`] = `dependent_${i}_address1`; nameAttrMap[`扶養親族${i}_住所2`] = `dependent_${i}_address2`;
-                nameAttrMap[`扶養親族${i}_住所同じ`] = `dependent_${i}_address_same_as_user`; nameAttrMap[`扶養親族${i}_収入金額`] = `dependent_${i}_income_amount`;
+                nameAttrMap[`扶養親族${i}_住所同じ`] = `dependent_${i}_address_same_as_user`;
+                nameAttrMap[`扶養親族${i}_給与収入金額`] = `dependent_${i}_salary_income`;
+                nameAttrMap[`扶養親族${i}_その他収入金額`] = `dependent_${i}_other_income`;
                 nameAttrMap[`扶養親族${i}_退職手当有無`] = `dependent_${i}_severance_pay_existence`; nameAttrMap[`扶養親族${i}_退職手当等金額`] = `dependent_${i}_severance_pay_amount`;
                 nameAttrMap[`扶養親族${i}_障害者手帳交付有無`] = `dependent_${i}_disability_certificate_existence`; nameAttrMap[`扶養親族${i}_障害者手帳備考`] = `dependent_${i}_disability_certificate_remarks`;
             }
