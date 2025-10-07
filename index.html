@@ -830,14 +830,13 @@
                 if (name.includes('_address_same_as_user') && value === 'true') {
                     const userAddress1 = getDisplayValue('address1');
                     const userAddress2 = getDisplayValue('address2');
-                    const fullAddress = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
-                    value = fullAddress ? `本人と同じ (${fullAddress})` : '本人と同じ';
+                    value = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
                 }
                 
-                if (value !== null) {
+                if (value !== null && value !== '') {
                     if ( (name.endsWith('_address1') || name.endsWith('_address2')) &&
                          getDisplayValue(`${name.substring(0, name.lastIndexOf('_'))}_address_same_as_user`) === 'true' ) {
-                        // 「本人と同じ」が表示されている場合は、個別の住所欄（address1, address2）を表示しない
+                        // 「本人と同じ」がチェックされている場合は、個別の住所欄(address1, address2)を表示しない
                     } else {
                         addRow(label, value);
                     }
