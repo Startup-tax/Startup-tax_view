@@ -228,6 +228,7 @@
 
                 const addRow = (table, label, value, urlKey) => {
                     if (value === null || value === undefined || value === '') return;
+                    if (label.endsWith('_住所同じ')) return;
 
                     const row = table.insertRow();
                     row.insertCell().outerHTML = `<th>${label}</th>`;
@@ -299,7 +300,6 @@
                            { label: '氏名', value: `${data['配偶者姓'] || ''} ${data['配偶者名'] || ''}`.trim() },
                            { label: 'フリガナ', value: `${data['配偶者姓フリガナ'] || ''} ${data['配偶者名フリガナ'] || ''}`.trim() },
                            { label: '生年月日', key: '配偶者生年月日' },
-                           // ★★★ 修正箇所 ★★★
                            { label: '住所', value: (data['配偶者_住所同じ'] === 'true' || data['配偶者_住所同じ'] === true) ? `${data['住所1'] || ''}${data['住所2'] || ''}` : `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim() },
                            { label: '収入金額', key: '配偶者収入金額' }, { label: '退職手当の有無', key: '配偶者退職手当有無' },
                            { label: '退職手当金額', key: '配偶者退職手当等金額' }, { label: '障害者手帳の有無', key: '配偶者障害者手帳交付有無' },
@@ -308,23 +308,29 @@
                         ]);
                     }
 
+                    // ★★★ 修正箇所 ★★★
                     if (data['扶養親族有無'] === 'あり') {
-                        const dependentsFields = [];
+                        // まず「扶養親族有無」の項目だけを表示するセクションを作成
+                        createSection('扶養親族情報', [
+                            { label: '扶養親族有無', key: '扶養親族有無' }
+                        ]);
+
+                        // その後、各扶養親族を個別のセクションとして表示
                         for (let i = 1; i <= 6; i++) {
                             if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) {
-                                dependentsFields.push({ label: `【扶養親族${i}】氏名`, value: `${data[`扶養親族${i}_姓`] || ''} ${data[`扶養親族${i}_名`] || ''}`.trim() });
-                                dependentsFields.push({ label: `【扶養親族${i}】フリガナ`, value: `${data[`扶養親族${i}_姓フリガナ`] || ''} ${data[`扶養親族${i}_名フリガナ`] || ''}`.trim() });
-                                dependentsFields.push({ label: `【扶養親族${i}】続柄`, key: `扶養親族${i}_続柄` });
-                                dependentsFields.push({ label: `【扶養親族${i}】生年月日`, key: `扶養親族${i}_生年月日` });
-                                // ★★★ 修正箇所 ★★★
-                                dependentsFields.push({ label: `【扶養親族${i}】住所`, value: (data[`扶養親族${i}_住所同じ`] === 'true' || data[`扶養親族${i}_住所同じ`] === true) ? `${data['住所1'] || ''}${data['住所2'] || ''}` : `${data[`扶養親族${i}_住所1`] || ''}${data[`扶養親族${i}_住所2`] || ''}`.trim() });
-                                dependentsFields.push({ label: `【扶養親族${i}】収入金額`, key: `扶養親族${i}_収入金額` });
-                                dependentsFields.push({ label: `【扶養親族${i}】障害者手帳の有無`, key: `扶養親族${i}_障害者手帳交付有無` });
-                                dependentsFields.push({ label: `【扶養親族${i}】障害者手帳(添付)`, value: ' ', urlKey: `扶養親族${i}_障害者手帳URL`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' });
-                                dependentsFields.push({ label: `【扶養親族${i}】障害者手帳(備考)`, key: `扶養親族${i}_障害者手帳備考`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' });
+                                createSection(`扶養親族 ${i}`, [
+                                    { label: '氏名', value: `${data[`扶養親族${i}_姓`] || ''} ${data[`扶養親族${i}_名`] || ''}`.trim() },
+                                    { label: 'フリガナ', value: `${data[`扶養親族${i}_姓フリガナ`] || ''} ${data[`扶養親族${i}_名フリガナ`] || ''}`.trim() },
+                                    { label: '続柄', key: `扶養親族${i}_続柄` },
+                                    { label: '生年月日', key: `扶養親族${i}_生年月日` },
+                                    { label: '住所', value: (data[`扶養親族${i}_住所同じ`] === 'true' || data[`扶養親族${i}_住所同じ`] === true) ? `${data['住所1'] || ''}${data['住所2'] || ''}`.trim() : `${data[`扶養親族${i}_住所1`] || ''}${data[`扶養親族${i}_住所2`] || ''}`.trim() },
+                                    { label: '収入金額', key: `扶養親族${i}_収入金額` },
+                                    { label: '障害者手帳の有無', key: `扶養親族${i}_障害者手帳交付有無` },
+                                    { label: '障害者手帳(添付)', value: ' ', urlKey: `扶養親族${i}_障害者手帳URL`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' },
+                                    { label: '障害者手帳(備考)', key: `扶養親族${i}_障害者手帳備考`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' },
+                                ]);
                             }
                         }
-                        createSection('扶養親族情報', dependentsFields);
                     }
 
                     createSection('本人該当項目・各種控除', [
