@@ -857,7 +857,7 @@
                     const userAddress1 = getDisplayValue('address1');
                     const userAddress2 = getDisplayValue('address2');
                     value = `${userAddress1 || ''}${userAddress2 || ''}`.trim();
-                    label = label.replace('住所', '住所');
+                    label = label.replace(/【.*?】/, '').trim();
                 }
                 
                 if (value !== null) {
