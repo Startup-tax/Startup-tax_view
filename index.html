@@ -699,6 +699,263 @@
             }
         }
         
+        async function fetchData(id, isEditMode) {
+            const tableContainer = document.getElementById('table-container');
+            const message = document.getElementById('message');
+            const loading = document.getElementById('loading');
+            
+            tableContainer.innerHTML = '';
+            message.textContent = '';
+
+            if (!id) {
+                message.textContent = '回答IDが見つからないため、回答を表示できません。';
+                loading.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${GAS_WEB_APP_URL}?id=${id}`);
+                const result = await response.json();
+
+                if (result.result !== 'success') {
+                    throw new Error(result.message);
+                }
+
+                message.textContent = `回答ID: ${id} の内容を表示しています。`;
+                
+                if (isEditMode) {
+                    document.getElementById('edit-section').classList.remove('hidden');
+                    document.getElementById('add-files-section').classList.remove('hidden');
+                }
+                
+                const data = result.data;
+
+                const addRow = (table, label, value, urlKey) => {
+                    if (value === null || value === undefined || value === '') return;
+                    if (label.endsWith('_住所同じ')) return;
+
+                    const row = table.insertRow();
+                    row.insertCell().outerHTML = `<th>${label}</th>`;
+                    const cell = row.insertCell();
+                    
+                    if (urlKey && data[urlKey]) {
+                        const urls = data[urlKey].split('\n');
+                        const names = data[urlKey.replace('URL', 'FileName')]?.split('\n') || [];
+
+                        urls.forEach((url, index) => {
+                            if (!url) return;
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.textContent = names[index] || 'ファイルを開く';
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                            a.classList.add('file-link');
+                            valueDiv.appendChild(a);
+                        });
+                    } else {
+                        // ★★★ 修正箇所 ★★★
+                        // 金額に関する項目にカンマを追加
+                        if (label.includes('金額') && !isNaN(value)) {
+                            cell.textContent = Number(value).toLocaleString('ja-JP') + ' 円';
+                        } else {
+                            cell.textContent = value;
+                        }
+                    }
+                };
+                
+                const createSection = (title, fields) => {
+                    const sectionDiv = document.createElement('div');
+                    let hasContent = false;
+                    const table = document.createElement('table');
+                    table.id = 'result-table';
+                    
+                    fields.forEach(field => {
+                        if (field.condition && !field.condition()) return;
+                        const value = field.key ? data[field.key] : field.value;
+                        if (value !== null && value !== undefined && value !== '') {
+                            addRow(table, field.label, value, field.urlKey);
+                            hasContent = true;
+                        }
+                    });
+
+                    if (hasContent) {
+                        sectionDiv.innerHTML = `<h2>${title}</h2>`;
+                        sectionDiv.appendChild(table);
+                        tableContainer.appendChild(sectionDiv);
+                    }
+                };
+                
+                createSection('ご本人情報', [
+                    { label: '回答日時', key: 'タイムスタンプ' }, { label: '回答ID', key: '回答ID' },
+                    { label: '事業者名', key: '事業者名' }, { label: 'メールアドレス', key: 'メールアドレス' },
+                    { label: '氏名', value: `${data['姓'] || ''} ${data['名'] || ''}`.trim() },
+                    { label: 'フリガナ', value: `${data['姓フリガナ'] || ''} ${data['名フリガナ'] || ''}`.trim() },
+                    { label: '生年月日', key: '生年月日' }, { label: '郵便番号', key: '郵便番号' },
+                    { label: '住所', value: `${data['住所1'] || ''}${data['住所2'] || ''}`.trim() },
+                    { label: '世帯主の氏名', key: '世帯主の氏名' }, { label: '世帯主との続柄', key: '世帯主の続柄' },
+                ]);
+
+                if (data['年末調整実施可否'] === 'はい') {
+                    createSection('年末調整情報', [
+                        { label: '年末調整の実施', key: '年末調整実施可否' },
+                        { label: '前職の有無', key: '前職有無' },
+                        { label: '前職の源泉徴収票', value: ' ', urlKey: '前職源泉徴収票URL', condition: () => data['前職有無'] === 'あり' },
+                        { label: 'その他収入の有無', key: 'その他収入有無' },
+                        { label: 'その他収入金額', key: 'その他収入金額', condition: () => data['その他収入有無'] === 'あり' },
+                        { label: '住民税の徴収方法', key: '住民税徴収方法' },
+                    ]);
+                    
+                    if (data['配偶者有無'] === 'あり') {
+                        createSection('配偶者情報', [
+                           { label: '氏名', value: `${data['配偶者姓'] || ''} ${data['配偶者名'] || ''}`.trim() },
+                           { label: 'フリガナ', value: `${data['配偶者姓フリガナ'] || ''} ${data['配偶者名フリガナ'] || ''}`.trim() },
+                           { label: '生年月日', key: '配偶者生年月日' },
+                           { label: '住所', value: (data['配偶者_住所同じ'] === true || data['配偶者_住所同じ'] === 'true') ? `${data['住所1'] || ''}${data['住所2'] || ''}`.trim() : `${data['配偶者住所1'] || ''}${data['配偶者住所2'] || ''}`.trim() },
+                           { label: '給与収入金額', key: '配偶者_給与収入金額' },
+                           { label: 'その他収入金額', key: '配偶者_その他収入金額' },
+                           { label: '退職手当の有無', key: '配偶者退職手当有無' },
+                           { label: '退職手当金額', key: '配偶者退職手当等金額' },
+                           { label: '障害者手帳の有無', key: '配偶者障害者手帳交付有無' },
+                           { label: '障害者手帳(添付)', value: ' ', urlKey: '配偶者障害者手帳URL', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
+                           { label: '障害者手帳(備考)', key: '配偶者障害者手帳備考', condition: () => data['配偶者障害者手帳交付有無'] === 'あり' },
+                        ]);
+                    }
+
+                    if (data['扶養親族有無'] === 'あり') {
+                        for (let i = 1; i <= 6; i++) {
+                            if (data[`扶養親族${i}_姓`] || data[`扶養親族${i}_名`]) {
+                                createSection(`扶養親族 ${i}`, [
+                                    { label: '氏名', value: `${data[`扶養親族${i}_姓`] || ''} ${data[`扶養親族${i}_名`] || ''}`.trim() },
+                                    { label: 'フリガナ', value: `${data[`扶養親族${i}_姓フリガナ`] || ''} ${data[`扶養親族${i}_名フリガナ`] || ''}`.trim() },
+                                    { label: '続柄', key: `扶養親族${i}_続柄` },
+                                    { label: '生年月日', key: `扶養親族${i}_生年月日` },
+                                    { label: '住所', value: (data[`扶養親族${i}_住所同じ`] === 'true' || data[`扶養親族${i}_住所同じ`] === true) ? `${data['住所1'] || ''}${data['住所2'] || ''}`.trim() : `${data[`扶養親族${i}_住所1`] || ''}${data[`扶養親族${i}_住所2`] || ''}`.trim() },
+                                    { label: '給与収入金額', key: `扶養親族${i}_給与収入金額` },
+                                    { label: 'その他収入金額', key: `扶養親族${i}_その他収入金額` },
+                                    { label: '退職手当の有無', key: `扶養親族${i}_退職手当有無` },
+                                    { label: '退職手当等金額', key: `扶養親族${i}_退職手当等金額`},
+                                    { label: '障害者手帳の有無', key: `扶養親族${i}_障害者手帳交付有無` },
+                                    { label: '障害者手帳(添付)', value: ' ', urlKey: `扶養親族${i}_障害者手帳URL`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' },
+                                    { label: '障害者手帳(備考)', key: `扶養親族${i}_障害者手帳備考`, condition: () => data[`扶養親族${i}_障害者手帳交付有無`] === 'あり' },
+                                ]);
+                            }
+                        }
+                    }
+
+                    createSection('本人該当項目・各種控除', [
+                        { label: '本人障害者手帳の有無', key: '本人障害者手帳交付有無' },
+                        { label: '本人障害者手帳(添付)', value: ' ', urlKey: '本人障害者手帳URL', condition: () => data['本人障害者手帳交付有無'] === 'あり' },
+                        { label: '本人障害者手帳(備考)', key: '本人障害者手帳備考', condition: () => data['本人障害者手帳交付有無'] === 'あり' },
+                        { label: '寡婦', key: '寡婦該当確認' }, { label: 'ひとり親', key: 'ひとり親該当確認' },
+                        { label: '勤労学生', key: '勤労学生該当確認' },
+                        { label: '学生証(添付)', value: ' ', urlKey: '勤労学生_学生証URL', condition: () => data['勤労学生該当確認'] === '該当' },
+                        { label: '災害者', key: '災害者該当確認' }, { label: '生命保険料控除', key: '生命保険料控除有無' },
+                        { label: '生命保険料控除証明書', value: ' ', urlKey: '生命保険料_控除証明書URL', condition: () => data['生命保険料控除有無'] === 'あり' },
+                        { label: '地震保険料控除', key: '地震保険料控除有無' },
+                        { label: '地震保険料控除証明書', value: ' ', urlKey: '地震保険料_控除証明書URL', condition: () => data['地震保険料控除有無'] === 'あり' },
+                        { label: '社会保険料控除', key: '社会保険料控除有無' },
+                        { label: '国民健康保険料(支払者)', key: '国民健康保険料 支払対象者氏名', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '国民健康保険料(支払額)', key: '国民健康保険料 年間支払額', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '国民健康保険料証明書', value: ' ', urlKey: '国民健康保険料 控除証明書URL', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '国民年金保険料証明書', value: ' ', urlKey: '国民年金保険料 控除証明書URL', condition: () => data['社会保険料控除有無'] === 'あり' },
+                        { label: '小規模企業共済等掛金控除', key: '小規模企業共済掛金等控除有無' },
+                        { label: '小規模企業共済等証明書', value: ' ', urlKey: '小規模企業共済掛金等_控除証明書URL', condition: () => data['小規模企業共済掛金等控除有無'] === 'あり' },
+                        { label: '住宅ローン控除', key: '住宅ローン控除有無' },
+                        { label: '住宅ローン控除申告書等', value: ' ', urlKey: '住宅ローン_申告書・証明書URL', condition: () => data['住宅ローン控除有無'] === 'あり' },
+                    ]);
+                } else {
+                    createSection('年末調整情報', [
+                        { label: '年末調整の実施', key: '年末調整実施可否' }
+                    ]);
+                }
+                
+            } catch (error) {
+                message.textContent = `エラー: ${error.message}`;
+                console.error('Fetch Error:', error);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function redirectToEdit() {
+            if (submissionId) {
+                window.location.href = `index.html?editId=${submissionId}&mode=edit`;
+            }
+        }
+        
+        async function uploadAdditionalFiles() {
+            const fileInput = document.getElementById('additional-files');
+            const categorySelect = document.getElementById('file-category-select');
+            const uploadMessage = document.getElementById('upload-message');
+            
+            const selectedCategory = categorySelect.value;
+            if (!selectedCategory) {
+                uploadMessage.textContent = 'アップロード先の項目を選択してください。';
+                uploadMessage.style.color = 'red';
+                return;
+            }
+
+            if (fileInput.files.length === 0) {
+                uploadMessage.textContent = 'ファイルが選択されていません。';
+                uploadMessage.style.color = 'red';
+                return;
+            }
+
+            if (!submissionId) {
+                 uploadMessage.textContent = '回答IDが見つからないため、アップロードできません。';
+                 uploadMessage.style.color = 'red';
+                return;
+            }
+
+            uploadMessage.textContent = 'アップロード中...';
+            uploadMessage.style.color = 'var(--primary-color)';
+
+            const fileToBase64 = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve({ name: file.name, mimeType: file.type, base64: reader.result.split(',')[1] });
+                reader.onerror = error => reject(error);
+            });
+
+            const filePromises = Array.from(fileInput.files).map(fileToBase64);
+            const files = await Promise.all(filePromises);
+
+            try {
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify({
+                        action: 'addFiles',
+                        id: submissionId,
+                        files: files,
+                        targetHeaderBase: selectedCategory
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.result === 'success') {
+                    uploadMessage.textContent = 'ファイルを追加しました。ページをリロードして確認してください。';
+                    uploadMessage.style.color = 'var(--success-color)';
+                    fileInput.value = '';
+                    categorySelect.value = '';
+                } else {
+                    throw new Error(result.message || '不明なエラーが発生しました。');
+                }
+            } catch (error) {
+                uploadMessage.textContent = `アップロードに失敗しました: ${error.message}`;
+                uploadMessage.style.color = 'red';
+            }
+        }
+    </script>
+</body>
+</html>
+2. index.htmlの修正
+送信前確認画面の表示ロジックも同様に修正します。
+以下のshowConfirm関数で、現在のindex.htmlの<script>タグ内にある同名の関数をまるごと置き換えてください。
+
+JavaScript
+
         function showConfirm() {
             formatPostalCode('postal_code');
             
