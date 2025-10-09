@@ -89,6 +89,8 @@
         .data-value a {
             color: var(--primary-color);
             text-decoration: none;
+            display: block;
+            margin-bottom: 5px;
         }
         .data-value a:hover {
             text-decoration: underline;
@@ -247,65 +249,58 @@
                 
                 const data = result.data;
 
-                const addRow = (parent, label, value, urlKey) => {
-                    if (value === null || value === undefined || value === '') return;
-                    if (label.endsWith('_住所同じ')) return;
+                // ★★★ 修正箇所 ★★★
+                // HTMLを文字列として組み立てて、最後に一度だけDOMに追加する方式に変更
+                let finalHtml = ''; 
 
-                    const rowDiv = document.createElement('div');
-                    rowDiv.classList.add('data-row');
-
-                    const labelDiv = document.createElement('div');
-                    labelDiv.classList.add('data-label');
-                    labelDiv.textContent = label;
-                    rowDiv.appendChild(labelDiv);
-
-                    const valueDiv = document.createElement('div');
-                    valueDiv.classList.add('data-value');
-
-                    if (urlKey && data[urlKey]) {
-                        const urls = data[urlKey].split('\n');
-                        const names = data[urlKey.replace('URL', 'FileName')]?.split('\n') || [];
-                        urls.forEach((url, index) => {
-                            if (!url) return;
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.textContent = names[index] || 'ファイルを開く';
-                            a.target = '_blank';
-                            a.rel = 'noopener noreferrer';
-                            a.classList.add('file-link');
-                            valueDiv.appendChild(a);
-                        });
-                    } else {
-                        valueDiv.textContent = value;
-                    }
-                    rowDiv.appendChild(valueDiv);
-                    parent.appendChild(rowDiv);
-                };
-                
-                const createSection = (title, fields) => {
-                    const sectionDiv = document.createElement('div');
-                    sectionDiv.classList.add('section');
-                    let hasContent = false;
-                    
-                    const contentDiv = document.createElement('div');
-                    contentDiv.classList.add('section-content');
-                    
+                const createSectionHtml = (title, fields) => {
+                    let sectionContentHtml = '';
                     fields.forEach(field => {
                         if (field.condition && !field.condition()) return;
-                        const value = field.key ? data[field.key] : field.value;
-                        if (value !== null && value !== undefined && value !== '') {
-                            addRow(contentDiv, field.label, value, field.urlKey);
-                            hasContent = true;
+                        
+                        let value = field.key ? data[field.key] : field.value;
+                        let label = field.label;
+
+                        if (value === null || value === undefined || value === '') return;
+                        if (label.endsWith('_住所同じ')) return;
+
+                        let valueHtml = '';
+                        const urlKey = field.urlKey;
+
+                        if (urlKey && data[urlKey]) {
+                            const urls = data[urlKey].split('\n');
+                            const names = data[urlKey.replace('URL', 'FileName')]?.split('\n') || [];
+                            urls.forEach((url, index) => {
+                                if (url) {
+                                    const name = names[index] || 'ファイルを開く';
+                                    valueHtml += `<a href="${url}" target="_blank" rel="noopener noreferrer">${name}</a><br>`;
+                                }
+                            });
+                        } else {
+                            if (label.includes('金額') && !isNaN(String(value).replace(/,/g, ''))) {
+                                valueHtml = Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
+                            } else {
+                                valueHtml = value;
+                            }
+                        }
+                        
+                        if(valueHtml.trim() !== ''){
+                             sectionContentHtml += `
+                                <div class="data-row">
+                                    <div class="data-label">${label}</div>
+                                    <div class="data-value">${valueHtml}</div>
+                                </div>
+                             `;
                         }
                     });
 
-                    if (hasContent) {
-                        const titleDiv = document.createElement('div');
-                        titleDiv.classList.add('section-title');
-                        titleDiv.textContent = title;
-                        sectionDiv.appendChild(titleDiv);
-                        sectionDiv.appendChild(contentDiv);
-                        dataContainer.appendChild(sectionDiv);
+                    if (sectionContentHtml) {
+                        finalHtml += `
+                            <div class="section">
+                                <div class="section-title">${title}</div>
+                                <div class="section-content">${sectionContentHtml}</div>
+                            </div>
+                        `;
                     }
                 };
                 
@@ -392,6 +387,8 @@
                         { label: '年末調整の実施', key: '年末調整実施可否' }
                     ]);
                 }
+
+                dataContainer.innerHTML = finalHtml; // 最後にまとめてHTMLを反映
                 
             } catch (error) {
                 message.textContent = `エラー: ${error.message}`;
