@@ -249,7 +249,6 @@
                 
                 const data = result.data;
 
-                // ★★★ ここからが修正箇所です ★★★
                 const addRow = (parent, label, value, urlKey) => {
                     if (value === null || value === undefined || value === '') return;
                     if (label.endsWith('_住所同じ')) return;
@@ -279,7 +278,13 @@
                             valueDiv.appendChild(a);
                         });
                     } else {
-                        valueDiv.textContent = value;
+                        // ★★★ 修正箇所 ★★★
+                        // 金額に関する項目にカンマを追加
+                        if (label.includes('金額') && value && !isNaN(String(value).replace(/,/g, ''))) {
+                            valueDiv.textContent = Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
+                        } else {
+                            valueDiv.textContent = value;
+                        }
                     }
                     rowDiv.appendChild(valueDiv);
                     parent.appendChild(rowDiv);
@@ -311,7 +316,6 @@
                         dataContainer.appendChild(sectionDiv);
                     }
                 };
-                // ★★★ ここまでが修正箇所です ★★★
                 
                 createSection('ご本人情報', [
                     { label: '回答日時', key: 'タイムスタンプ' }, { label: '回答ID', key: '回答ID' },
