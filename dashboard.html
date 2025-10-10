@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>年末調整 回答状況一覧</title>
+    <title>クライアント別 回答状況</title>
     
     <link rel="icon" href="./favicon.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="./logo-color-2.jpg">
@@ -16,144 +16,150 @@
         :root {
             --primary-color: #1e3656;
             --secondary-color: #5dade2;
-            --success-color: #27ae60;
-            --warning-color: #f39c12;
             --light-gray: #f8f9fa;
             --medium-gray: #dee2e6;
             --border-radius: 8px;
         }
         body {
             font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6; color: #333; max-width: 960px;
+            line-height: 1.6; color: #333; max-width: 800px;
             margin: 20px auto; padding: 0 20px; background-color: #f4f7f9;
         }
         .container {
             background-color: #fff; padding: 30px; border-radius: var(--border-radius);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-top: 5px solid var(--secondary-color);
         }
-        h1 {
-            color: var(--primary-color); text-align: center; font-weight: 700;
-            font-size: 1.8em; margin-top: 0; margin-bottom: 30px;
+        .info-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            font-size: 1.1em;
         }
-        #dashboard-table {
+        .info-panel strong {
+            color: var(--primary-color);
+            font-size: 1.2em;
+        }
+        #employee-list-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        #dashboard-table th, #dashboard-table td {
+        #employee-list-table th, #employee-list-table td {
             border: 1px solid var(--medium-gray);
-            padding: 12px 15px;
+            padding: 12px;
             text-align: left;
-            vertical-align: middle;
         }
-        #dashboard-table th {
-            background-color: var(--light-gray);
-            font-weight: 700;
+        #employee-list-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
             color: var(--primary-color);
         }
-        .status {
-            font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 4px;
-            text-align: center;
-            color: white;
-            display: inline-block;
-            min-width: 80px;
-        }
-        .status-answered { background-color: var(--success-color); }
-        .status-not-answered { background-color: var(--warning-color); }
-        .status-not-issued { background-color: #95a5a6; }
-        
         .hidden { display: none !important; }
         #loading {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #ffffff; display: flex;
-            flex-direction: column; justify-content: center; align-items: center;
-            z-index: 9999;
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: var(--primary-color);
         }
-        .loading-logo { max-width: 150px; margin-bottom: 20px; }
-        #loading p { color: var(--primary-color); font-size: 1.2em; margin-top: 20px; font-weight: 700; }
-        .dots-loader { display: flex; justify-content: center; align-items: center; height: 40px; }
-        .dots-loader div { width: 15px; height: 15px; background-color: var(--primary-color); border-radius: 50%; margin: 0 5px; animation: bounce 1.4s infinite ease-in-out both; }
-        .dots-loader .dot1 { animation-delay: -0.32s; } .dots-loader .dot2 { animation-delay: -0.16s; } .dots-loader .dot3 { animation-delay: 0s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
-
     </style>
 </head>
 <body>
-    <div id="loading">
-        <img src="./favicon.jpg" alt="Logo" class="loading-logo">
-        <div class="dots-loader">
-            <div class="dot1"></div> <div class="dot2"></div> <div class="dot3"></div>
-        </div>
-        <p>回答状況を読み込んでいます...</p>
-    </div>
-
     <div class="container">
         <div style="text-align: center; margin-bottom: 20px;">
             <img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 Logo" style="max-width: 180px;">
         </div>
-        <h1>年末調整 回答状況一覧</h1>
-        <div id="dashboard-container"></div>
+        
+        <div id="dashboard-content">
+            <div id="loading">データを読み込んでいます...</div>
+        </div>
     </div>
 
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
 
         async function loadDashboardData() {
-            const container = document.getElementById('dashboard-container');
+            const params = new URLSearchParams(window.location.search);
+            const sheetId = params.get('sheetId');
+            
+            const container = document.getElementById('dashboard-content');
             const loading = document.getElementById('loading');
+            
+            if (!sheetId) {
+                loading.textContent = 'エラー: 対象のシートIDが指定されていません。';
+                return;
+            }
 
             try {
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=getDashboardData`);
+                // 修正: action=getClientDashboardData パラメータを追加
+                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&sheetId=${sheetId}`);
                 const result = await response.json();
 
                 if (result.result !== 'success') {
                     throw new Error(result.message);
                 }
 
-                let tableHtml = `
-                    <table id="dashboard-table">
-                        <thead>
-                            <tr>
-                                <th>クライアント名</th>
-                                <th>ステータス</th>
-                                <th>回答確認シート</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                const data = result.data;
+                
+                // 表示コンテンツを生成
+                let contentHtml = `
+                    <div class="info-panel">
+                        <div>事業者名: <strong>${escapeHtml(data.clientName)}</strong></div>
+                        <div>回答済み従業員: 計 <strong>${data.employeeCount}</strong> 名</div>
+                    </div>
                 `;
 
-                result.data.forEach(client => {
-                    let statusClass = 'status-not-issued';
-                    if (client.status === '回答済み') {
-                        statusClass = 'status-answered';
-                    } else if (client.status === '未回答') {
-                        statusClass = 'status-not-answered';
-                    }
-
-                    // ★★★ 修正箇所 ★★★
-                    // client.sheetUrl を使用してリンクを作成
-                    tableHtml += `
-                        <tr>
-                            <td>${client.clientName}</td>
-                            <td><span class="status ${statusClass}">${client.status}</span></td>
-                            <td>
-                                ${client.sheetUrl && client.sheetUrl !== '#' ? `<a href="${client.sheetUrl}" target="_blank" rel="noopener noreferrer">シートを開く</a>` : '未作成'}
-                            </td>
-                        </tr>
+                if (data.employeeCount > 0) {
+                    contentHtml += `
+                        <table id="employee-list-table">
+                            <thead>
+                                <tr>
+                                    <th>氏名</th>
+                                    <th>年末調整実施可否</th>
+                                    <th>住民税の徴収方法</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                     `;
-                });
-
-                tableHtml += `</tbody></table>`;
-                container.innerHTML = tableHtml;
+                    // 従業員データをループしてテーブルの行を生成
+                    data.employees.forEach(employee => {
+                        contentHtml += `
+                            <tr>
+                                <td>${escapeHtml(employee.name)}</td>
+                                <td>${escapeHtml(employee.adjustment)}</td>
+                                <td>${escapeHtml(employee.residentTax)}</td>
+                            </tr>
+                        `;
+                    });
+                    contentHtml += `</tbody></table>`;
+                } else {
+                    contentHtml += '<p style="text-align:center;">まだ回答済みの従業員はいません。</p>';
+                }
+                
+                container.innerHTML = contentHtml;
 
             } catch (error) {
                 container.innerHTML = `<p style="color: red; text-align: center;">データの読み込みに失敗しました: ${error.message}</p>`;
             } finally {
                 loading.classList.add('hidden');
             }
+        }
+        
+        // XSS対策のためのシンプルなHTMLエスケープ関数
+        function escapeHtml(str) {
+            if (typeof str !== 'string') return '';
+            return str.replace(/[&<>"']/g, function(match) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[match];
+            });
         }
 
         document.addEventListener('DOMContentLoaded', loadDashboardData);
