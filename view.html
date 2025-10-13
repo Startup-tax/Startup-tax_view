@@ -278,8 +278,6 @@
                             valueDiv.appendChild(a);
                         });
                     } else {
-                        // ★★★ 修正箇所 ★★★
-                        // 金額に関する項目にカンマを追加
                         if (label.includes('金額') && value && !isNaN(String(value).replace(/,/g, ''))) {
                             valueDiv.textContent = Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
                         } else {

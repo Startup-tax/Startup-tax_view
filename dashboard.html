@@ -34,69 +34,70 @@
             color: var(--primary-color); text-align: center; font-weight: 700;
             font-size: 1.8em; margin-top: 0; margin-bottom: 30px;
         }
+        .overview-panel {
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--medium-gray);
+            padding-bottom: 20px;
+        }
+        .overview-item {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            font-size: 1.1em;
+            color: var(--primary-color);
+            padding: 5px 0;
+        }
+        .overview-item span {
+            font-weight: 700;
+            font-size: 1.4em;
+            color: #333;
+        }
+        .overview-item .unit {
+            font-size: 0.9em;
+            margin-left: 4px;
+        }
         .section {
-            border: 1px solid var(--medium-gray);
-            border-radius: var(--border-radius);
-            padding: 20px;
-            padding-top: 30px;
-            margin-top: 30px;
-            position: relative;
+            padding-top: 15px;
         }
         .section-title {
-            position: absolute;
-            top: -14px;
-            left: 20px;
-            background-color: #fff;
-            padding: 0 10px;
             font-weight: 700;
             color: var(--primary-color);
             font-size: 1.2em;
-        }
-        .data-row {
-            display: flex;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-            align-items: center;
-        }
-        .data-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        .data-label {
-            flex-basis: 35%;
-            font-weight: bold;
-            color: var(--primary-color);
-            padding-right: 15px;
-        }
-        .data-value {
-            flex-basis: 65%;
-            font-size: 1.1em;
+            margin-bottom: 15px;
         }
         #employee-list-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
         }
         #employee-list-table th, #employee-list-table td {
             border: 1px solid var(--medium-gray);
             padding: 12px;
             text-align: left;
+            vertical-align: middle;
         }
         #employee-list-table th {
             background-color: #f8f9fa;
             font-weight: bold;
             color: var(--primary-color);
         }
-        /* 従業員名リンクのスタイル */
-        #employee-list-table td a {
-            color: var(--primary-color);
+        .btn-cell {
+            width: 110px;
+            text-align: center;
+        }
+        .btn-confirm {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 13px;
             font-weight: 500;
-            text-decoration: none; /* 通常時のアンダーバーを非表示 */
+            display: inline-block;
+            transition: opacity 0.2s;
         }
-        #employee-list-table td a:hover {
-            text-decoration: underline; /* マウスを乗せた時だけアンダーバーを表示 */
+        .btn-confirm:hover {
+            opacity: 0.8;
         }
-
         .hidden { display: none !important; }
         #loading {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -115,12 +116,9 @@
             body { padding: 0 10px; }
             h1 { font-size: 1.6em; }
             .container { padding: 20px; }
-            .section-title { left: 15px; font-size: 1.1em;}
-            .data-row { flex-direction: column; padding-bottom: 15px; align-items: flex-start; }
-            .data-label { margin-bottom: 3px; font-size: 0.9em;}
         }
     </style>
-    </head>
+</head>
 <body>
     <div id="loading">
         <img src="./favicon.jpg" alt="Logo" class="loading-logo">
@@ -134,14 +132,14 @@
         <div style="text-align: center; margin-bottom: 20px;">
             <img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 Logo" style="max-width: 180px;">
         </div>
-        <h1>クライアント別 回答状況</h1>
+        <h1>回答状況</h1>
         <div id="dashboard-content">
             </div>
     </div>
+
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
 
-        // ▼▼▼【ここから変更】▼▼▼
         async function loadDashboardData() {
             const params = new URLSearchParams(window.location.search);
             const sheetId = params.get('sheetId');
@@ -165,18 +163,17 @@
 
                 const data = result.data;
                 
-                // --- 表示コンテンツの生成 ---
 
-                // 1. 概要セクション
+                // 1. 概要パネル（枠なし）
                 let contentHtml = `
-                    <div class="section">
-                        <div class="data-row">
-                            <div class="data-label">事業者名</div>
-                            <div class="data-value"><strong>${escapeHtml(data.clientName)}</strong></div>
+                    <div class="overview-panel">
+                        <div class="overview-item">
+                            事業者名
+                            <span>${escapeHtml(data.clientName)}</span>
                         </div>
-                        <div class="data-row">
-                            <div class="data-label">回答済み従業員</div>
-                            <div class="data-value"><strong>${data.employeeCount}</strong> 名</div>
+                        <div class="overview-item">
+                            回答済み従業員
+                            <span>${data.employeeCount}<span class="unit">名</span></span>
                         </div>
                     </div>
                 `;
@@ -195,6 +192,7 @@
                                     <th>氏名</th>
                                     <th>年末調整実施可否</th>
                                     <th>住民税の徴収方法</th>
+                                    <th class="btn-cell"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -202,13 +200,14 @@
                     data.employees.forEach(employee => {
                         contentHtml += `
                             <tr>
-                                <td>
-                                    <a href="${employee.viewUrl}" target="_blank" rel="noopener noreferrer">
-                                        ${escapeHtml(employee.name)}
-                                    </a>
-                                </td>
+                                <td>${escapeHtml(employee.name)}</td>
                                 <td>${escapeHtml(employee.adjustment)}</td>
                                 <td>${escapeHtml(employee.residentTax)}</td>
+                                <td class="btn-cell">
+                                    <a href="${employee.viewUrl}" target="_blank" rel="noopener noreferrer" class="btn-confirm">
+                                        回答確認
+                                    </a>
+                                </td>
                             </tr>
                         `;
                     });
@@ -217,7 +216,7 @@
                     contentHtml += '<p style="text-align:center; padding: 20px 0;">まだ回答済みの従業員はいません。</p>';
                 }
                 
-                contentHtml += `</div>`; // sectionの閉じタグ
+                contentHtml += `</div>`;
                 
                 container.innerHTML = contentHtml;
 
@@ -227,9 +226,7 @@
                 loading.classList.add('hidden');
             }
         }
-        // ▲▲▲【ここまで変更】▲▲▲
         
-        // XSS対策のためのシンプルなHTMLエスケープ関数
         function escapeHtml(str) {
             if (typeof str !== 'string') return '';
             return str.replace(/[&<>"']/g, function(match) {
