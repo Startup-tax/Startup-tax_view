@@ -84,13 +84,15 @@
         }
         .data-value {
             flex-basis: 65%;
-            word-break: break-all;
+            word-break: break-word; /* break-allから変更し、単語をなるべく維持 */
+            overflow-wrap: break-word; /* 長いURLなども改行させる */
         }
         .data-value a {
             color: var(--primary-color);
             text-decoration: none;
             display: block;
             margin-bottom: 5px;
+            word-break: break-all; /* ファイル名は強制的に改行 */
         }
         .data-value a:hover {
             text-decoration: underline;

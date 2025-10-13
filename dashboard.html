@@ -120,9 +120,20 @@
             h1 { font-size: 1.6em; }
             .container { padding: 20px; }
 
+            /* 事業者名の表示を2行に */
+            .overview-item {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .overview-item span {
+                margin-left: 0;
+                font-size: 1.2em;
+            }
+
             /* テーブルをカード表示に変更 */
             #employee-list-table thead {
-                display: none; /* PC用のヘッダーを非表示 */
+                display: none;
             }
             #employee-list-table, #employee-list-table tbody {
                 display: block;
@@ -142,24 +153,30 @@
                 border: none;
                 border-bottom: 1px solid #f0f0f0;
                 padding: 10px 5px;
-                text-align: right;
             }
             #employee-list-table td:last-child {
                 border-bottom: none;
             }
             #employee-list-table td::before {
-                content: attr(data-label); /* data-label属性をラベルとして表示 */
+                content: attr(data-label);
                 font-weight: bold;
                 color: var(--primary-color);
                 text-align: left;
                 margin-right: 10px;
+                flex-shrink: 0; /* ラベルが縮まないように */
             }
+            /* 氏名が長い場合に改行させる設定 */
+            #employee-list-table .name-cell span {
+                word-break: break-all; /* 単語の途中でも改行 */
+                text-align: right;
+            }
+
             .btn-cell {
                 justify-content: center;
                 padding-top: 15px;
             }
             .btn-cell::before {
-                display: none; /* ボタンのセルにはラベル不要 */
+                display: none;
             }
         }
     </style>
@@ -242,7 +259,7 @@
                     data.employees.forEach(employee => {
                         contentHtml += `
                             <tr>
-                                <td class="name-cell" data-label="氏名">${escapeHtml(employee.name)}</td>
+                                <td class="name-cell" data-label="氏名"><span>${escapeHtml(employee.name)}</span></td>
                                 <td data-label="年末調整実施可否">${escapeHtml(employee.adjustment)}</td>
                                 <td data-label="住民税徴収方法">${escapeHtml(employee.residentTax)}</td>
                                 <td class="btn-cell">
