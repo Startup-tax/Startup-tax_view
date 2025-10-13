@@ -26,7 +26,7 @@
             margin: 20px auto; padding: 0 20px; background-color: #f4f7f9;
         }
         .container {
-            background-color: #fff; padding: 30px; border-radius: var--border-radius;
+            background-color: #fff; padding: 30px; border-radius: var(--border-radius);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             border-top: 5px solid var(--secondary-color);
         }
@@ -48,7 +48,7 @@
             font-weight: 700;
             font-size: 1.4em;
             color: #333;
-            margin-left: 10px; /* ラベルとの間に余白を追加 */
+            margin-left: 10px;
         }
         .overview-item .unit {
             font-size: 0.9em;
@@ -66,7 +66,7 @@
         #employee-list-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: auto; /* テーブルのレイアウトを自動調整に */
+            table-layout: auto;
         }
         #employee-list-table th, #employee-list-table td {
             border: 1px solid var(--medium-gray);
@@ -80,11 +80,11 @@
             color: var(--primary-color);
         }
         .name-cell {
-            width: auto; /* 氏名列の幅を自動に */
+            width: auto;
         }
         .btn-cell {
-            width: 1%; /* 列幅を内容に合わせる */
-            white-space: nowrap; /* ボタンが改行されないようにする */
+            width: 1%;
+            white-space: nowrap;
             text-align: center;
         }
         .btn-confirm {
@@ -119,6 +119,48 @@
             body { padding: 0 10px; }
             h1 { font-size: 1.6em; }
             .container { padding: 20px; }
+
+            /* テーブルをカード表示に変更 */
+            #employee-list-table thead {
+                display: none; /* PC用のヘッダーを非表示 */
+            }
+            #employee-list-table, #employee-list-table tbody {
+                display: block;
+                width: 100%;
+            }
+            #employee-list-table tr {
+                display: block;
+                border: 1px solid var(--medium-gray);
+                border-radius: var(--border-radius);
+                margin-bottom: 15px;
+                padding: 10px;
+            }
+            #employee-list-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border: none;
+                border-bottom: 1px solid #f0f0f0;
+                padding: 10px 5px;
+                text-align: right;
+            }
+            #employee-list-table td:last-child {
+                border-bottom: none;
+            }
+            #employee-list-table td::before {
+                content: attr(data-label); /* data-label属性をラベルとして表示 */
+                font-weight: bold;
+                color: var(--primary-color);
+                text-align: left;
+                margin-right: 10px;
+            }
+            .btn-cell {
+                justify-content: center;
+                padding-top: 15px;
+            }
+            .btn-cell::before {
+                display: none; /* ボタンのセルにはラベル不要 */
+            }
         }
     </style>
 </head>
@@ -166,7 +208,6 @@
 
                 const data = result.data;
                 
-                // 1. 概要パネル（枠なし・左揃え）
                 let contentHtml = `
                     <div class="overview-panel">
                         <div class="overview-item">
@@ -180,7 +221,6 @@
                     </div>
                 `;
 
-                // 2. 回答状況一覧セクション
                 contentHtml += `
                     <div class="section">
                         <div class="section-title">回答状況一覧</div>
@@ -202,9 +242,9 @@
                     data.employees.forEach(employee => {
                         contentHtml += `
                             <tr>
-                                <td class="name-cell">${escapeHtml(employee.name)}</td>
-                                <td>${escapeHtml(employee.adjustment)}</td>
-                                <td>${escapeHtml(employee.residentTax)}</td>
+                                <td class="name-cell" data-label="氏名">${escapeHtml(employee.name)}</td>
+                                <td data-label="年末調整実施可否">${escapeHtml(employee.adjustment)}</td>
+                                <td data-label="住民税徴収方法">${escapeHtml(employee.residentTax)}</td>
                                 <td class="btn-cell">
                                     <a href="${employee.viewUrl}" target="_blank" rel="noopener noreferrer" class="btn-confirm">
                                         回答確認
