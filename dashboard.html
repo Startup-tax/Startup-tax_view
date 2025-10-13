@@ -94,59 +94,55 @@
             }
 
             try {
-                // 修正: action=getClientDashboardData パラメータを追加
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&sheetId=${sheetId}`);
-                const result = await response.json();
+            const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&sheetId=${sheetId}`);
+            const result = await response.json();
 
-                if (result.result !== 'success') {
-                    throw new Error(result.message);
-                }
-
-                const data = result.data;
-                
-                // 表示コンテンツを生成
-                let contentHtml = `
-                    <div class="info-panel">
-                        <div>事業者名: <strong>${escapeHtml(data.clientName)}</strong></div>
-                        <div>回答済み従業員: 計 <strong>${data.employeeCount}</strong> 名</div>
-                    </div>
-                `;
-
-                if (data.employeeCount > 0) {
-                    contentHtml += `
-                        <table id="employee-list-table">
-                            <thead>
-                                <tr>
-                                    <th>氏名</th>
-                                    <th>年末調整実施可否</th>
-                                    <th>住民税の徴収方法</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-                    // 従業員データをループしてテーブルの行を生成
-                    data.employees.forEach(employee => {
-                        contentHtml += `
-                            <tr>
-                                <td>${escapeHtml(employee.name)}</td>
-                                <td>${escapeHtml(employee.adjustment)}</td>
-                                <td>${escapeHtml(employee.residentTax)}</td>
-                            </tr>
-                        `;
-                    });
-                    contentHtml += `</tbody></table>`;
-                } else {
-                    contentHtml += '<p style="text-align:center;">まだ回答済みの従業員はいません。</p>';
-                }
-                
-                container.innerHTML = contentHtml;
-
-            } catch (error) {
-                container.innerHTML = `<p style="color: red; text-align: center;">データの読み込みに失敗しました: ${error.message}</p>`;
-            } finally {
-                loading.classList.add('hidden');
+            if (result.result !== 'success') {
+                throw new Error(result.message);
             }
+
+            const data = result.data;
+            
+            let contentHtml = `...`; // この部分は変更なし
+
+            if (data.employeeCount > 0) {
+                contentHtml += `
+                    <table id="employee-list-table">
+                        <thead>
+                            <tr>
+                                <th>氏名</th>
+                                <th>年末調整実施可否</th>
+                                <th>住民税の徴収方法</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                data.employees.forEach(employee => {
+                    contentHtml += `
+                        <tr>
+                            <td>
+                                <a href="${employee.viewUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); text-decoration: underline;">
+                                    ${escapeHtml(employee.name)}
+                                </a>
+                            </td>
+                            <td>${escapeHtml(employee.adjustment)}</td>
+                            <td>${escapeHtml(employee.residentTax)}</td>
+                        </tr>
+                    `;
+                });
+                contentHtml += `</tbody></table>`;
+            } else {
+                contentHtml += '<p style="text-align:center;">まだ回答済みの従業員はいません。</p>';
+            }
+            
+            container.innerHTML = contentHtml;
+
+        } catch (error) {
+            container.innerHTML = `<p style="color: red; text-align: center;">データの読み込みに失敗しました: ${error.message}</p>`;
+        } finally {
+            loading.classList.add('hidden');
         }
+    }
         
         // XSS対策のためのシンプルなHTMLエスケープ関数
         function escapeHtml(str) {
