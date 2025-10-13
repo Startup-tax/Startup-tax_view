@@ -246,7 +246,7 @@
         <div style="text-align: center; margin-bottom: 20px;">
             <img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 Logo" style="max-width: 180px;">
         </div>
-        <h1 id="form-title">年末調整情報 <br class="mobile-break">提出フォーム</h1>
+        <h1 id="form-title">年末調整情報<br class="mobile-break">提出フォーム</h1>
          <form id="main-form" class="h-adr" novalidate>
             <input type="hidden" name="editId" id="edit-id">
             <span class="p-country-name" style="display:none;">Japan</span>
@@ -370,11 +370,14 @@
         const complete = document.getElementById('complete');
         const mainSectionsContainer = document.getElementById('main-sections');
         const MAX_DEPENDENTS = 6;
+        // ▼▼▼【ここを修正】▼▼▼
         const warekiData = {
             '令和': { start: 2019, years: new Date().getFullYear() - 2019 + 1 },
             '平成': { start: 1989, years: 31 },
-            '昭和': { start: 1926, years: 64 }
+            '昭和': { start: 1926, years: 64 },
+            '大正': { start: 1912, years: 15 }
         };
+        // ▲▲▲【ここまで修正】▲▲▲
 
         function setupWarekiDateFields(group) {
             const eraSelect = group.querySelector('.era');
@@ -576,7 +579,13 @@
                             <div class="yen-input-wrapper"><input type="text" name="spouse_salary_income" class="currency-input" inputmode="numeric"></div>
                         </div>
                         <div class="form-group form-group-small">
-                            <label>その他収入金額(退職手当を含む)</label>
+                            <div class="tooltip-wrapper">
+                                <label>その他収入金額(退職手当を含む)</label>
+                                <div class="tooltip-container">
+                                    <span class="tooltip-icon">!</span>
+                                    <div class="tooltip-text">令和7年1月1日～12月31日の間の収入を記載してください。<br>※例：公的年金、不動産収入、原稿料など<br> ※国や自治体から支給される手当や給付金は収入には含みません。</div>
+                                </div>
+                            </div>
                             <div class="yen-input-wrapper"><input type="text" name="spouse_other_income" class="currency-input" inputmode="numeric"></div>
                         </div>
                         <div class="form-group"><label>退職手当有無</label><div class="radio-group">
@@ -648,7 +657,13 @@
                                     <div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_salary_income" class="currency-input" inputmode="numeric"></div>
                                 </div>
                                 <div class="form-group form-group-small">
-                                    <label>その他収入金額(退職手当を含む)</label>
+                                    <div class="tooltip-wrapper">
+                                        <label>その他収入金額(退職手当を含む)</label>
+                                        <div class="tooltip-container">
+                                            <span class="tooltip-icon">!</span>
+                                            <div class="tooltip-text">令和7年1月1日～12月31日の間の収入を記載してください。<br>※例：公的年金、不動産収入、原稿料など<br> ※国や自治体から支給される手当や給付金は収入には含みません。</div>
+                                        </div>
+                                    </div>
                                     <div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_other_income" class="currency-input" inputmode="numeric"></div>
                                 </div>
                                 <div class="form-group"><label>退職手当有無</label><div class="radio-group">
