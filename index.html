@@ -65,19 +65,17 @@
         .radio-group label, .checkbox-group label { display: inline-block; margin-right: 15px; font-weight: normal; }
         .hidden { display: none !important; }
 
-        /* ▼▼▼【ここからPC用の生年月日スタイル】▼▼▼ */
         .date-select-group { 
             display: flex; 
             gap: 10px; 
             align-items: center; 
         }
         .date-select-group .date-row {
-            display: contents; /* PCではdivを無視して中身を横並びにする */
+            display: contents;
         }
         .date-select-group select { 
             flex-grow: 1; 
         }
-        /* ▲▲▲【ここまでPC用の生年月日スタイル】▲▲▲ */
 
         .btn-container { text-align: center; margin-top: 30px; }
         button { 
@@ -221,14 +219,13 @@
                 word-break: break-word;
             }
 
-            /* ▼▼▼【ここからスマホ用の生年月日スタイル】▼▼▼ */
             .date-select-group {
                 flex-direction: column;
                 gap: 10px;
                 align-items: stretch;
             }
             .date-select-group .date-row {
-                display: flex; /* divをflexコンテナとして機能させる */
+                display: flex;
                 gap: 8px;
                 align-items: center;
                 width: 100%;
@@ -240,7 +237,6 @@
             .date-row > span {
                 flex-shrink: 0;
             }
-            /* ▲▲▲【ここまでスマホ用の生年月日スタイル】▲▲▲ */
         }
     </style>
 </head>
@@ -256,7 +252,11 @@
             <span class="p-country-name" style="display:none;">Japan</span>
             <fieldset>
                 <div class="fieldset-title">ご本人情報</div>
-                <div class="form-group form-group-medium"><label>事業者名</label><input type="text" name="company_name" required></div>
+                <div class="form-group form-group-medium">
+                    <label>事業者名</label>
+                    <input type="hidden" name="company_name" id="company_name_hidden">
+                    <input type="text" id="company_name_display" readonly>
+                </div>
                 <div class="form-group form-group-medium"><label>メールアドレス</label><input type="email" name="email_address" required></div>
                 <div class="form-row">
                     <div><label>姓</label><input type="text" id="name_last" name="last_name" required></div>
@@ -828,6 +828,9 @@
             const getDisplayValue = (name) => {
                 const input = form.querySelector(`[name="${name}"]`);
                 if (!input || input.closest('.hidden')) {
+                    if (name === 'company_name') {
+                        return formData.get('company_name'); // hidden inputから取得
+                    }
                     return null;
                 }
 
@@ -1094,6 +1097,19 @@
                 const name = nameAttrMap[header];
                 if (!name) return;
                 
+                if (name === 'company_name') {
+                    const fullCompanyName = data[header];
+                    document.getElementById('company_name_hidden').value = fullCompanyName;
+                    
+                    let displayName = fullCompanyName;
+                    const match = fullCompanyName.match(/【(.*?)】/);
+                    if (match && match[1]) {
+                        displayName = match[1];
+                    }
+                    document.getElementById('company_name_display').value = displayName;
+                    return; 
+                }
+                
                 const el = form.querySelector(`[name="${name}"]`);
                 if (el) {
                     const value = data[header];
@@ -1203,21 +1219,25 @@
                 const companyName = params.get('company');
 
                 if (editId) {
-                    // ▼▼▼【タイトル修正時の考慮】▼▼▼
                     const titleElement = document.getElementById('form-title');
                     titleElement.innerHTML = '年末調整情報<br class="mobile-break">の修正';
-                    // ▲▲▲【タイトル修正時の考慮】▲▲▲
                     document.getElementById('main-submit-btn').textContent = '更新内容の確認へ';
                     document.getElementById('edit-id').value = editId;
                     setTimeout(() => loadDataForEdit(editId), 100);
                 }
 
                 if (companyName) {
-                    const companyInput = form.querySelector('[name="company_name"]');
-                    if (companyInput) {
-                        companyInput.value = companyName;
-                        companyInput.readOnly = true;
+                    const hiddenInput = document.getElementById('company_name_hidden');
+                    const displayInput = document.getElementById('company_name_display');
+                    
+                    hiddenInput.value = companyName; // 隠しフィールドに元の名前をセット
+
+                    let displayName = companyName;
+                    const match = companyName.match(/【(.*?)】/);
+                    if (match && match[1]) {
+                        displayName = match[1]; // 【】の中身を抽出
                     }
+                    displayInput.value = displayName; // 表示用フィールドにセット
                 }
             } catch(e) { console.error("URLパラメータ処理エラー:", e); }
             

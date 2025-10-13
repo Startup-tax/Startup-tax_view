@@ -84,15 +84,15 @@
         }
         .data-value {
             flex-basis: 65%;
-            word-break: break-word; /* break-allから変更し、単語をなるべく維持 */
-            overflow-wrap: break-word; /* 長いURLなども改行させる */
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
         .data-value a {
             color: var(--primary-color);
             text-decoration: none;
             display: block;
             margin-bottom: 5px;
-            word-break: break-all; /* ファイル名は強制的に改行 */
+            word-break: break-all;
         }
         .data-value a:hover {
             text-decoration: underline;
@@ -316,10 +316,17 @@
                         dataContainer.appendChild(sectionDiv);
                     }
                 };
+
+                let companyDisplayName = data['事業者名'] || '';
+                const match = companyDisplayName.match(/【(.*?)】/);
+                if (match && match[1]) {
+                    companyDisplayName = match[1];
+                }
                 
                 createSection('ご本人情報', [
                     { label: '回答日時', key: 'タイムスタンプ' }, { label: '回答ID', key: '回答ID' },
-                    { label: '事業者名', key: '事業者名' }, { label: 'メールアドレス', key: 'メールアドレス' },
+                    { label: '事業者名', value: companyDisplayName }, 
+                    { label: 'メールアドレス', key: 'メールアドレス' },
                     { label: '氏名', value: `${data['姓'] || ''} ${data['名'] || ''}`.trim() },
                     { label: 'フリガナ', value: `${data['姓フリガナ'] || ''} ${data['名フリガナ'] || ''}`.trim() },
                     { label: '生年月日', key: '生年月日' }, { label: '郵便番号', key: '郵便番号' },
