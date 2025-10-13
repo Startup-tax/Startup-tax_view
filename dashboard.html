@@ -26,7 +26,7 @@
             margin: 20px auto; padding: 0 20px; background-color: #f4f7f9;
         }
         .container {
-            background-color: #fff; padding: 30px; border-radius: var(--border-radius);
+            background-color: #fff; padding: 30px; border-radius: var--border-radius;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
             border-top: 5px solid var(--secondary-color);
         }
@@ -40,9 +40,6 @@
             padding-bottom: 20px;
         }
         .overview-item {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
             font-size: 1.1em;
             color: var(--primary-color);
             padding: 5px 0;
@@ -51,6 +48,7 @@
             font-weight: 700;
             font-size: 1.4em;
             color: #333;
+            margin-left: 10px; /* ラベルとの間に余白を追加 */
         }
         .overview-item .unit {
             font-size: 0.9em;
@@ -68,6 +66,7 @@
         #employee-list-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: auto; /* テーブルのレイアウトを自動調整に */
         }
         #employee-list-table th, #employee-list-table td {
             border: 1px solid var(--medium-gray);
@@ -80,8 +79,12 @@
             font-weight: bold;
             color: var(--primary-color);
         }
+        .name-cell {
+            width: auto; /* 氏名列の幅を自動に */
+        }
         .btn-cell {
-            width: 110px;
+            width: 1%; /* 列幅を内容に合わせる */
+            white-space: nowrap; /* ボタンが改行されないようにする */
             text-align: center;
         }
         .btn-confirm {
@@ -163,8 +166,7 @@
 
                 const data = result.data;
                 
-
-                // 1. 概要パネル（枠なし）
+                // 1. 概要パネル（枠なし・左揃え）
                 let contentHtml = `
                     <div class="overview-panel">
                         <div class="overview-item">
@@ -189,7 +191,7 @@
                         <table id="employee-list-table">
                             <thead>
                                 <tr>
-                                    <th>氏名</th>
+                                    <th class="name-cell">氏名</th>
                                     <th>年末調整実施可否</th>
                                     <th>住民税の徴収方法</th>
                                     <th class="btn-cell"></th>
@@ -200,7 +202,7 @@
                     data.employees.forEach(employee => {
                         contentHtml += `
                             <tr>
-                                <td>${escapeHtml(employee.name)}</td>
+                                <td class="name-cell">${escapeHtml(employee.name)}</td>
                                 <td>${escapeHtml(employee.adjustment)}</td>
                                 <td>${escapeHtml(employee.residentTax)}</td>
                                 <td class="btn-cell">
