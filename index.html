@@ -189,9 +189,22 @@
             #confirm-table td { border-top: none; padding-top: 0; }
             button { width: 100%; padding: 15px; }
             #confirm-back-btn { margin-top: 10px; }
-            .date-select-group { flex-wrap: wrap; gap: 2%; }
-            .date-select-group select.era { width: 30%; flex-grow: 0; }
-            .date-select-group select.year, .date-select-group select.month, .date-select-group select.day { width: 24%; flex-grow: 0; }
+            
+            /* 生年月日入力欄のスマホ対応 */
+            .date-select-group {
+                flex-direction: column; /* 全体を縦に並べる */
+                gap: 10px;
+                align-items: stretch; /* 幅を親要素に合わせる */
+            }
+            .date-row {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                width: 100%;
+            }
+            .date-row select {
+                flex: 1; /* 各行のセレクトボックスが均等に幅を占める */
+            }
         }
     </style>
 </head>
@@ -444,7 +457,7 @@
         function populateMainSections() {
             mainSectionsContainer.innerHTML = `
                 <fieldset>
-					<div class="fieldset-title">令和7年(2025年)に入社された方</div>
+                    <div class="fieldset-title">令和7年(2025年)に入社された方</div>
 					<div class="form-group">
 						<label>令和7年(2025年)中に退職した勤務先はありますか？</label>
 						<div class="radio-group">
@@ -496,7 +509,20 @@
                             <div><label>姓フリガナ</label><input type="text" id="spouse_kana_last" name="spouse_last_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
                             <div><label>名フリガナ</label><input type="text" id="spouse_kana_first" name="spouse_first_name_furigana" pattern="[ァ-ヶー]+" title="全角カタカナで入力してください"></div>
                         </div>
-                        <div class="form-group"><label>生年月日</label><div class="date-select-group" data-prefix="spouse"><select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span></div><input type="hidden" name="spouse_birth_date"></div>
+                        <div class="form-group">
+                            <label>生年月日</label>
+                            <div class="date-select-group" data-prefix="spouse">
+                                <div class="date-row">
+                                    <select class="era"><option value="">元号</option></select>
+                                    <select class="year"><option value="">年</option></select><span>年</span>
+                                </div>
+                                <div class="date-row">
+                                    <select class="month"><option value="">月</option></select><span>月</span>
+                                    <select class="day"><option value="">日</option></select><span>日</span>
+                                </div>
+                            </div>
+                            <input type="hidden" name="spouse_birth_date">
+                        </div>
                         <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('spouse', this)"> 本人と住所が同じ</label></div>
                         <input type="hidden" name="spouse_address_same_as_user" value="false">
                         <div class="form-group form-group-large"><label>住所1</label><input type="text" id="spouse_address1" name="spouse_address1"></div>
@@ -511,12 +537,7 @@
                             <div class="yen-input-wrapper"><input type="text" name="spouse_salary_income" class="currency-input" inputmode="numeric"></div>
                         </div>
                         <div class="form-group form-group-small">
-                            <div class="tooltip-wrapper"><label>その他収入金額(退職手当を含む)</label>
-                                <div class="tooltip-container">
-                                    <span class="tooltip-icon">!</span>
-                                    <div class="tooltip-text">令和7年1月1日～12月31日の間の収入を記載してください。<br>※例：公的年金、不動産収入、原稿料など<br> ※国や自治体から支給される手当や給付金は収入には含みません。</div>
-                                </div>
-                            </div>
+                            <label>その他収入金額(退職手当を含む)</label>
                             <div class="yen-input-wrapper"><input type="text" name="spouse_other_income" class="currency-input" inputmode="numeric"></div>
                         </div>
                         <div class="form-group"><label>退職手当有無</label><div class="radio-group">
@@ -528,9 +549,9 @@
                         <div id="spouse-disability-file-group" class="form-group hidden">
                             <label>障害者手帳</label>
                             <input type="file" name="spouse_disability_certificate_file" multiple>
-                            <textarea style="margin-top: 10px;" name="spouse_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
+                            <textarea style="margin-top: 15px;" name="spouse_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
                         </div>
-                        </div>
+                    </div>
                 </fieldset>
                 <fieldset>
                     <div class="fieldset-title">扶養親族情報</div>
@@ -561,7 +582,20 @@
                                         <option value="叔母">叔母</option><option value="甥">甥</option><option value="姪">姪</option>
                                     </select>
                                 </div>
-                                <div class="form-group"><label>生年月日</label><div class="date-select-group" data-prefix="dependent_${i + 1}"><select class="era"><option value="">元号</option></select><select class="year"><option value="">年</option></select><span>年</span><select class="month"><option value="">月</option></select><span>月</span><select class="day"><option value="">日</option></select><span>日</span></div><input type="hidden" name="dependent_${i + 1}_birth_date"></div>
+                                <div class="form-group">
+                                    <label>生年月日</label>
+                                    <div class="date-select-group" data-prefix="dependent_${i + 1}">
+                                        <div class="date-row">
+                                            <select class="era"><option value="">元号</option></select>
+                                            <select class="year"><option value="">年</option></select><span>年</span>
+                                        </div>
+                                        <div class="date-row">
+                                            <select class="month"><option value="">月</option></select><span>月</span>
+                                            <select class="day"><option value="">日</option></select><span>日</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="dependent_${i + 1}_birth_date">
+                                </div>
                                 <div class="form-group checkbox-group"><label><input type="checkbox" onchange="syncAddress('dependent_${i + 1}', this)"> 本人と住所が同じ</label></div>
                                 <input type="hidden" name="dependent_${i + 1}_address_same_as_user" value="false">
                                 <div class="form-group form-group-large"><label>住所1</label><input type="text" id="dependent_${i + 1}_address1" name="dependent_${i + 1}_address1"></div>
@@ -576,12 +610,7 @@
                                     <div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_salary_income" class="currency-input" inputmode="numeric"></div>
                                 </div>
                                 <div class="form-group form-group-small">
-                                    <div class="tooltip-wrapper"><label>その他収入金額(退職手当を含む)</label>
-                                	<div class="tooltip-container">
-                                    	<span class="tooltip-icon">!</span>
-                                    	<div class="tooltip-text">令和7年1月1日～12月31日の間の収入を記載してください。<br>※例：公的年金、不動産収入、原稿料など<br> ※国や自治体から支給される手当や給付金は収入には含みません。</div>
-                                	</div>
-                            	</div>
+                                    <label>その他収入金額(退職手当を含む)</label>
                                     <div class="yen-input-wrapper"><input type="text" name="dependent_${i + 1}_other_income" class="currency-input" inputmode="numeric"></div>
                                 </div>
                                 <div class="form-group"><label>退職手当有無</label><div class="radio-group">
@@ -593,9 +622,9 @@
                                 <div id="dependent-${i + 1}-disability-file-group" class="form-group hidden">
                                     <label>障害者手帳</label>
                                     <input type="file" name="dependent_${i + 1}_disability_certificate_file" multiple>
-                                    <textarea style="margin-top: 10px;" name="dependent_${i + 1}_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
+                                    <textarea style="margin-top: 15px;" name="dependent_${i + 1}_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
                                 </div>
-                                </fieldset>
+                            </fieldset>
                         `).join('')}
                         <div class="btn-container"><button type="button" id="add-dependent-btn" onclick="addDependentField()">＋ 扶養親族を追加</button></div>
                     </div>
@@ -606,7 +635,7 @@
                     <div id="user-disability-file-group" class="form-group hidden">
                         <label>障害者手帳</label>
                         <input type="file" name="user_disability_certificate_file" multiple>
-                        <textarea style="margin-top: 10px;" name="user_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
+                        <textarea style="margin-top: 15px;" name="user_disability_certificate_remarks" rows="3" placeholder="添付が難しい場合はこちらに「交付年月日、手帳の種類、等級」をご記入ください"></textarea>
                     </div>
                     <div class="form-group"><div class="tooltip-wrapper"><label>寡婦該当確認</label>
                     	<div class="tooltip-container">
