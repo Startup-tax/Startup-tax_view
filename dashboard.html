@@ -204,19 +204,19 @@
 
         async function loadDashboardData() {
             const params = new URLSearchParams(window.location.search);
-            const sheetId = params.get('sheetId');
+            const clientName = params.get('client');
             
             const container = document.getElementById('dashboard-content');
             const loading = document.getElementById('loading');
             
-            if (!sheetId) {
-                container.innerHTML = `<p style="color: red; text-align: center;">エラー: 対象のシートIDが指定されていません。</p>`;
+            if (!clientName) {
+                container.innerHTML = `<p style="color: red; text-align: center;">エラー: 対象の事業者名が指定されていません。</p>`;
                 loading.classList.add('hidden');
                 return;
             }
 
             try {
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&sheetId=${sheetId}`);
+                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&client=${clientName}`);
                 const result = await response.json();
 
                 if (result.result !== 'success') {
