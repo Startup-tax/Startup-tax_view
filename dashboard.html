@@ -204,19 +204,20 @@
 
         async function loadDashboardData() {
             const params = new URLSearchParams(window.location.search);
-            const clientName = params.get('client');
+            const companyName = params.get('company');
             
             const container = document.getElementById('dashboard-content');
             const loading = document.getElementById('loading');
             
-            if (!clientName) {
+            if (!companyName) {
                 container.innerHTML = `<p style="color: red; text-align: center;">エラー: 対象の事業者名が指定されていません。</p>`;
                 loading.classList.add('hidden');
                 return;
             }
 
             try {
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&client=${clientName}`);
+                // 注: fetchリクエストでは、安全な通信のために事業者名をエンコードする必要があります。
+                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&company=${encodeURIComponent(companyName)}`);
                 const result = await response.json();
 
                 if (result.result !== 'success') {
@@ -261,7 +262,7 @@
                             <tr>
                                 <td class="name-cell" data-label="氏名"><span>${escapeHtml(employee.name)}</span></td>
                                 <td data-label="年末調整実施可否">${escapeHtml(employee.adjustment)}</td>
-                                <td data-label="住民税徴収方法">${escapeHtml(employee.residentTax)}</td>
+                                <td data-label="住民税の徴収方法">${escapeHtml(employee.residentTax)}</td>
                                 <td class="btn-cell">
                                     <a href="${employee.viewUrl}" target="_blank" rel="noopener noreferrer" class="btn-confirm">
                                         回答確認
