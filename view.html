@@ -251,10 +251,8 @@
                 
                 const data = result.data;
 
+                // ▼▼▼【ここから2つの関数を修正】▼▼▼
                 const addRow = (parent, label, value, urlKey) => {
-                    if (value === null || value === undefined || value === '') return;
-                    if (label.endsWith('_住所同じ')) return;
-
                     const rowDiv = document.createElement('div');
                     rowDiv.classList.add('data-row');
 
@@ -267,25 +265,28 @@
                     valueDiv.classList.add('data-value');
 
                     if (urlKey && data[urlKey]) {
-                        const urls = data[urlKey].split('\n');
+                        const urls = data[urlKey].split('\n').filter(Boolean);
                         const names = data[urlKey.replace('URL', 'FileName')]?.split('\n') || [];
-                        urls.forEach((url, index) => {
-                            if (!url) return;
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.textContent = names[index] || 'ファイルを開く';
-                            a.target = '_blank';
-                            a.rel = 'noopener noreferrer';
-                            a.classList.add('file-link');
-                            valueDiv.appendChild(a);
-                        });
-                    } else {
-                        if (label.includes('金額') && value && !isNaN(String(value).replace(/,/g, ''))) {
-                            valueDiv.textContent = Number(String(value).replace(/,/g, '')).toLocaleString('ja-JP') + ' 円';
+                        if (urls.length > 0) {
+                            urls.forEach((url, index) => {
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.textContent = names[index] || 'ファイルを開く';
+                                a.target = '_blank';
+                                a.rel = 'noopener noreferrer';
+                                a.classList.add('file-link');
+                                valueDiv.appendChild(a);
+                            });
                         } else {
-                            valueDiv.textContent = value;
+                            valueDiv.textContent = 'なし';
                         }
+                    } else if (label.includes('金額')) {
+                        const numericValue = Number(String(value || '0').replace(/,/g, ''));
+                        valueDiv.textContent = numericValue.toLocaleString('ja-JP') + ' 円';
+                    } else {
+                        valueDiv.textContent = value || 'なし';
                     }
+                    
                     rowDiv.appendChild(valueDiv);
                     parent.appendChild(rowDiv);
                 };
@@ -300,8 +301,21 @@
                     
                     fields.forEach(field => {
                         if (field.condition && !field.condition()) return;
+
                         const value = field.key ? data[field.key] : field.value;
-                        if (value !== null && value !== undefined && value !== '') {
+
+                        // 金額項目は値がなくても表示
+                        if (field.label.includes('金額')) {
+                            addRow(contentDiv, field.label, value, field.urlKey);
+                            hasContent = true;
+                        } 
+                        // ファイル項目も値がなくても表示（「なし」と表示するため）
+                        else if (field.urlKey) {
+                            addRow(contentDiv, field.label, value, field.urlKey);
+                            hasContent = true;
+                        }
+                        // その他の項目は値がある場合のみ表示
+                        else if (value !== null && value !== undefined && value !== '') {
                             addRow(contentDiv, field.label, value, field.urlKey);
                             hasContent = true;
                         }
@@ -316,7 +330,8 @@
                         dataContainer.appendChild(sectionDiv);
                     }
                 };
-
+                // ▲▲▲【ここまで2つの関数を修正】▲▲▲
+                
                 let companyDisplayName = data['事業者名'] || '';
                 const match = companyDisplayName.match(/【(.*?)】/);
                 if (match && match[1]) {
