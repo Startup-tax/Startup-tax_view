@@ -363,6 +363,7 @@
     
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
+        const MY_SECRET_KEY = StartupTax-Secret-Key-vB9^YWL!VoSW6y5"; // セキュリティー用
         const form = document.getElementById('main-form');
         const formContents = document.getElementById('form-contents');
         const confirmContents = document.getElementById('confirm-contents');
@@ -370,14 +371,12 @@
         const complete = document.getElementById('complete');
         const mainSectionsContainer = document.getElementById('main-sections');
         const MAX_DEPENDENTS = 6;
-        // ▼▼▼【ここを修正】▼▼▼
         const warekiData = {
             '令和': { start: 2019, years: new Date().getFullYear() - 2019 + 1 },
             '平成': { start: 1989, years: 31 },
             '昭和': { start: 1926, years: 64 },
             '大正': { start: 1912, years: 15 }
         };
-        // ▲▲▲【ここまで修正】▲▲▲
 
         function setupWarekiDateFields(group) {
             const eraSelect = group.querySelector('.era');
@@ -1021,7 +1020,7 @@
                 const response = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
                     redirect: 'follow',
-                    body: JSON.stringify({postData: dataObject})
+                    body: JSON.stringify({postData: dataObject,secret: MY_SECRET_KEY})
                 });
                 
                 const result = await response.json();

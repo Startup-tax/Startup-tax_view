@@ -211,6 +211,7 @@
 
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
+        const MY_SECRET_KEY = "StartupTax-Secret-Key-vB9^YWL!VoSW6y5"; // セキュリティー用
         let submissionId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -251,7 +252,6 @@
                 
                 const data = result.data;
 
-                // ▼▼▼【ここから2つの関数を修正】▼▼▼
                 const addRow = (parent, label, value, urlKey) => {
                     const rowDiv = document.createElement('div');
                     rowDiv.classList.add('data-row');
@@ -330,7 +330,6 @@
                         dataContainer.appendChild(sectionDiv);
                     }
                 };
-                // ▲▲▲【ここまで2つの関数を修正】▲▲▲
                 
                 let companyDisplayName = data['事業者名'] || '';
                 const match = companyDisplayName.match(/【(.*?)】/);
@@ -483,6 +482,7 @@
                         id: submissionId,
                         files: files,
                         targetHeaderBase: selectedCategory
+                        secret: MY_SECRET_KEY
                     })
                 });
 

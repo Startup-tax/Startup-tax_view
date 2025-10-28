@@ -202,6 +202,8 @@
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
 
+		const MY_SECRET_KEY = "StartupTax-Secret-Key-vB9^YWL!VoSW6y5"; // セキュリティー用
+
         async function loadDashboardData() {
             const params = new URLSearchParams(window.location.search);
             const companyName = params.get('company');
@@ -217,7 +219,7 @@
 
             try {
                 // 注: fetchリクエストでは、安全な通信のために事業者名をエンコードする必要があります。
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&company=${encodeURIComponent(companyName)}`);
+                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&company=${encodeURIComponent(companyName)}&secret=${MY_SECRET_KEY}`);
                 const result = await response.json();
 
                 if (result.result !== 'success') {
