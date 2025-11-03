@@ -264,9 +264,10 @@
                     const valueDiv = document.createElement('div');
                     valueDiv.classList.add('data-value');
 
-                    if (urlKey && data[urlKey]) {
-                        const urls = data[urlKey].split('\n').filter(Boolean);
-                        const names = data[urlKey.replace('URL', 'FileName')]?.split('\n') || [];
+                    // 1. ファイルリンクの場合
+                    if (urlKey) {
+                        const urls = (data[urlKey] || '').split('\n').filter(Boolean);
+                        const names = (data[urlKey.replace('URL', 'FileName')] || '').split('\n') || [];
                         if (urls.length > 0) {
                             urls.forEach((url, index) => {
                                 const a = document.createElement('a');
@@ -278,13 +279,17 @@
                                 valueDiv.appendChild(a);
                             });
                         } else {
-                            valueDiv.textContent = 'なし';
+                            valueDiv.textContent = 'なし'; // ファイルがなくても「なし」と表示
                         }
-                    } else if (label.includes('金額')) {
+                    } 
+                    // 2. 金額項目の場合
+                    else if (label.includes('金額')) {
                         const numericValue = Number(String(value || '0').replace(/,/g, ''));
-                        valueDiv.textContent = numericValue.toLocaleString('ja-JP') + ' 円';
-                    } else {
-                        valueDiv.textContent = value || 'なし';
+                        valueDiv.textContent = numericValue.toLocaleString('ja-JP') + ' 円'; // 0や空欄は「0円」になる
+                    } 
+                    // 3. その他のテキスト項目の場合
+                    else {
+                        valueDiv.textContent = value || 'なし'; // 空欄は「なし」と表示
                     }
                     
                     rowDiv.appendChild(valueDiv);
@@ -300,27 +305,20 @@
                     contentDiv.classList.add('section-content');
                     
                     fields.forEach(field => {
-                        if (field.condition && !field.condition()) return;
-
-                        const value = field.key ? data[field.key] : field.value;
-
-                        // 金額項目は値がなくても表示
-                        if (field.label.includes('金額')) {
-                            addRow(contentDiv, field.label, value, field.urlKey);
-                            hasContent = true;
-                        } 
-                        // ファイル項目も値がなくても表示（「なし」と表示するため）
-                        else if (field.urlKey) {
-                            addRow(contentDiv, field.label, value, field.urlKey);
-                            hasContent = true;
+                        // 1. 表示条件(condition)をチェック
+                        if (field.condition && !field.condition()) {
+                            return; // この項目は表示しない
                         }
-                        // その他の項目は値がある場合のみ表示
-                        else if (value !== null && value !== undefined && value !== '') {
-                            addRow(contentDiv, field.label, value, field.urlKey);
-                            hasContent = true;
-                        }
+                        
+                        // 2. 値を取得
+                        const value = field.key ? data[field.key] : (field.value !== undefined ? field.value : '');
+
+                        // 3. 項目が空かどうかに関わらず、addRow関数を呼び出す
+                        addRow(contentDiv, field.label, value, field.urlKey);
+                        hasContent = true;
                     });
 
+                    // 4. 表示する行が1つでもあればセクションごと表示
                     if (hasContent) {
                         const titleDiv = document.createElement('div');
                         titleDiv.classList.add('section-title');
