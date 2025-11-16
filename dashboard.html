@@ -178,7 +178,6 @@
             .btn-cell::before {
                 display: none;
             }
-        }
         
 		.header-actions {
     		display: flex;
@@ -273,7 +272,7 @@
         <h1>回答状況</h1>
         <div class="header-actions">
         	<div class="dropdown hidden" id="download-dropdown"> 
-        	<button class="dropdown-btn" onclick="toggleDropdown(event)">ダウンロード</button>
+        		<button class="dropdown-btn" onclick="toggleDropdown(event)">ダウンロード</button>
         		<div class="dropdown-content">
             		<a href="#" id="download-csv-btn">一覧をCSVでダウンロード</a>
             		<a href="#" id="download-zip-btn">添付ファイルを一括ダウンロード</a>
@@ -317,7 +316,7 @@
 				return;
 			}
 
-			const headers = ['氏名', '年末調整実施可否', '住民税の徴収方法', '回答確認URL'];
+			const headers = ['氏名', '年末調整実施可否', '住民税の徴収方法'];
 			const rows = dashboardData.employees.map(emp => {
 				return [
 					`"${(emp.name || '').replace(/"/g, '""')}"`,
