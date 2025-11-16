@@ -272,13 +272,13 @@
         </div>
         <h1>回答状況</h1>
         <div class="header-actions">
-    		<div class="dropdown" id="download-dropdown">
-        		<button class="dropdown-btn" onclick="toggleDropdown(event)">ダウンロード</button>
-        		<div class="dropdown-content">
-            		<a href="#" id="download-csv-btn">一覧をCSVでダウンロード</a>
-            		<a href="#" id="download-zip-btn">添付ファイルを一括ダウンロード</a>
-        		</div>
-    		</div>
+        <div class="dropdown hidden" id="download-dropdown"> 
+        	<button class="dropdown-btn" onclick="toggleDropdown(event)">ダウンロード</button>
+        	<div class="dropdown-content">
+            	<a href="#" id="download-csv-btn">一覧をCSVでダウンロード</a>
+            	<a href="#" id="download-zip-btn">添付ファイルを一括ダウンロード</a>
+        	</div>
+  			€ </div>
 		</div>
         <div id="dashboard-content">
             </div>
@@ -387,88 +387,96 @@
 		// ▲▲▲ 追加 (ダウンロード機能) ▲▲▲
 
         async function loadDashboardData() {
-            const params = new URLSearchParams(window.location.search);
-            const companyName = params.get('company');
-            
-            const container = document.getElementById('dashboard-content');
-            const loading = document.getElementById('loading');
-            
-            if (!companyName) {
-                container.innerHTML = `<p style="color: red; text-align: center;">エラー: 対象の事業者名が指定されていません。</p>`;
-                loading.classList.add('hidden');
-                return;
-            }
+            const params = new URLSearchParams(window.location.search);
+            const companyName = params.get('company');
+            currentCompanyName = companyName; // グローバル変数にセット
+            
+            const container = document.getElementById('dashboard-content');
+            const loading = document.getElementById('loading');
+            
+            if (!companyName) {
+                container.innerHTML = `<p style="color: red; text-align: center;">エラー: 対象の事業者名が指定されていません。</p>`;
+                loading.classList.add('hidden');
+                return;
+            }
 
-            try {
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&company=${encodeURIComponent(companyName)}&secret=${MY_SECRET_KEY}`);
-                const result = await response.json();
+            try {
+                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&company=${encodeURIComponent(companyName)}&secret=${MY_SECRET_KEY}`);
+                const result = await response.json();
 
-                if (result.result !== 'success') {
-                    throw new Error(result.message);
-                }
+                if (result.result !== 'success') {
+                    throw new Error(result.message);
+                }
 
-                const data = result.data;
-                
-                let contentHtml = `
-                    <div class="overview-panel">
-                        <div class="overview-item">
-                            事業者名
-                            <span>${escapeHtml(data.clientName)}</span>
-                        </div>
-                        <div class="overview-item">
-                            回答済み従業員
-                            <span>${data.employeeCount}<span class="unit">名</span></span>
-                        </div>
-                    </div>
-                `;
+                const data = result.data;
+                dashboardData = data; // グローバル変数にセット
+                
+                let contentHtml = `
+                    <div class="overview-panel">
+                        <div class="overview-item">
+                            事業者名
+                            <span>${escapeHtml(data.clientName)}</span>
+                        </div>
+                        <div class="overview-item">
+                            回答済み従業員
+                            <span>${data.employeeCount}<span class="unit">名</span></span>
+                        </div>
+                    </div>
+                `;
 
-                contentHtml += `
-                    <div class="section">
-                        <div class="section-title">回答状況一覧</div>
-                `;
+                contentHtml += `
+                    <div class="section">
+                        <div class="section-title">回答状況一覧</div>
+                `;
 
-                if (data.employeeCount > 0) {
-                    contentHtml += `
-                        <table id="employee-list-table">
-                            <thead>
-                                <tr>
-                                    <th class="name-cell">氏名</th>
-                                    <th>年末調整実施可否</th>
-                                    <th>住民税の徴収方法</th>
-                                    <th class="btn-cell"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-                    data.employees.forEach(employee => {
-                        contentHtml += `
-                            <tr>
-                                <td class="name-cell" data-label="氏名"><span>${escapeHtml(employee.name)}</span></td>
-                                <td data-label="年末調整実施可否">${escapeHtml(employee.adjustment)}</td>
-                                <td data-label="住民税の徴収方法">${escapeHtml(employee.residentTax)}</td>
-                                <td class="btn-cell">
-                                    <a href="${employee.viewUrl}" target="_blank" rel="noopener noreferrer" class="btn-confirm">
-                                        回答確認
-                                    </a>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    contentHtml += `</tbody></table>`;
-                } else {
-                    contentHtml += '<p style="text-align:center; padding: 20px 0;">まだ回答済みの従業員はいません。</p>';
-                }
-                
-                contentHtml += `</div>`;
-                
-                container.innerHTML = contentHtml;
+                if (data.employeeCount > 0) {
+                    // ▼▼▼ 修正: データがある場合のみボタンを表示する ▼▼▼
+						document.getElementById('download-dropdown').classList.remove('hidden');
+						// ▲▲▲ 修正 ▲▲▲
 
-            } catch (error) {
-                container.innerHTML = `<p style="color: red; text-align: center;">データの読み込みに失敗しました: ${error.message}</p>`;
-            } finally {
-                loading.classList.add('hidden');
-            }
-        }
+                    contentHtml += `
+                        <table id="employee-list-table">
+                            <thead>
+                C               <tr>
+                                    <th class="name-cell">氏名</th>
+                                    <th>年末調整実施可否</th>
+                                    <th>住民税の徴収方法</th>
+                                    <th class="btn-cell"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    data.employees.forEach(employee => {
+                        contentHtml += `
+                            <tr>
+                                <td class="name-cell" data-label="氏名"><span>${escapeHtml(employee.name)}</span></td>
+                                <td data-label="年末調整実施可否">${escapeHtml(employee.adjustment)}</td>
+                                <td data-label="住民税の徴収方法">${escapeHtml(employee.residentTax)}</td>
+                                <td class="btn-cell">
+                                    <a href="${employee.viewUrl}" target="_blank" rel="noopener noreferrer" class="btn-confirm">
+                                        回答確認
+                                    </a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    contentHtml += `</tbody></table>`;
+                } else {
+                    contentHtml += '<p style="text-align:center; padding: 20px 0;">まだ回答済みの従業員はいません。</p>';
+                    // ▼▼▼ 修正: データが無い場合はボタンは非表示(hidden)のままなので、JSでの処理は不要 ▼▼▼
+s               	// 以前のsetTimeoutは削除
+                }
+                
+                contentHtml += `</div>`;
+                
+                container.innerHTML = contentHtml;
+
+            } catch (error) {
+                container.innerHTML = `<p style="color: red; text-align: center;">データの読み込みに失敗しました: ${error.message}</p>`;
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
         
         function escapeHtml(str) {
             if (typeof str !== 'string') return '';
