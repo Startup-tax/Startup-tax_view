@@ -833,10 +833,18 @@
 
             const table = document.getElementById('confirm-table');
             
-            const readOnlyElements = Array.from(form.querySelectorAll('[readonly]'));
-            readOnlyElements.forEach(el => el.readOnly = false);
-            const formData = new FormData(form);
-            readOnlyElements.forEach(el => el.readOnly = true);
+            // 一時的にdisabledを解除
+            const disabledElements = Array.from(form.querySelectorAll('[disabled]'));
+            disabledElements.forEach(el => el.disabled = false);
+
+            const readOnlyElements = Array.from(form.querySelectorAll('[readonly]'));
+            readOnlyElements.forEach(el => el.readOnly = false);
+            
+            const formData = new FormData(form);
+            
+            // disabledとreadonlyを元に戻す
+            readOnlyElements.forEach(el => el.readOnly = true);
+            disabledElements.forEach(el => el.disabled = true);
 
 
             const getDisplayValue = (name) => {
@@ -989,12 +997,18 @@
                 reader.onerror = error => reject(error);
             });
 
-            const readOnlyElements = Array.from(form.querySelectorAll('[readonly]'));
-            readOnlyElements.forEach(el => el.readOnly = false);
+            // 一時的にdisabledを解除
+            const disabledElements = Array.from(form.querySelectorAll('[disabled]'));
+            disabledElements.forEach(el => el.disabled = false);
 
-            const formData = new FormData(form);
+            const readOnlyElements = Array.from(form.querySelectorAll('[readonly]'));
+            readOnlyElements.forEach(el => el.readOnly = false);
 
-            readOnlyElements.forEach(el => el.readOnly = true);
+            const formData = new FormData(form);
+
+            // disabledとreadonlyを元に戻す
+            readOnlyElements.forEach(el => el.readOnly = true);
+            disabledElements.forEach(el => el.disabled = true);
 
             const dataObject = {};
             for (const [key, value] of formData.entries()) {
