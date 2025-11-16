@@ -179,6 +179,82 @@
                 display: none;
             }
         }
+        
+		.header-actions {
+    		display: flex;
+    		justify-content: flex-end;
+    		margin-bottom: 20px;
+    		position: relative;
+		}
+
+		.dropdown {
+   			position: relative;
+    		display: inline-block;
+		}
+
+		.dropdown-btn {
+    		background-color: var(--primary-color);
+    		color: white;
+    		padding: 10px 20px;
+    		font-size: 15px;
+    		font-weight: 700;
+    		border: none;
+    		border-radius: var(--border-radius);
+    		cursor: pointer;
+    		display: flex;
+    		align-items: center;
+    		gap: 8px;
+		}
+
+		.dropdown-btn:hover {
+    		background-color: #3a5a8a;
+		}
+
+		.dropdown-btn::after {
+   			content: '▼';
+    		font-size: 0.7em;
+    		transform: translateY(1px);
+		}
+
+		.dropdown-content {
+    		display: none;
+    		position: absolute;
+    		right: 0;
+    		background-color: #f9f9f9;
+    		min-width: 260px; 
+    		box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    		z-index: 1;
+    		border-radius: var(--border-radius);
+    		overflow: hidden;
+		}
+
+		.dropdown-content a {
+    		color: black;
+    		padding: 12px 16px;
+    		text-decoration: none;
+    		display: block;
+    		font-size: 14px;
+    		white-space: nowrap; /* テキストを改行させない */
+		}
+
+		.dropdown-content a:hover {
+    		background-color: #ddd;
+		}
+
+		/* データがない場合にボタンを非表示にするためのスタイル */
+		.dropdown-content a.disabled {
+    		color: #999;
+    		background-color: #f0f0f0;
+    		cursor: not-allowed;
+		}
+
+		.dropdown.show .dropdown-content {
+    		display: block;
+		}
+
+		.dropdown.show .dropdown-btn::after {
+    		content: '▲';
+		}
     </style>
 </head>
 <body>
@@ -195,6 +271,15 @@
             <img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 Logo" style="max-width: 180px;">
         </div>
         <h1>回答状況</h1>
+        <div class="header-actions">
+    		<div class="dropdown" id="download-dropdown">
+        		<button class="dropdown-btn" onclick="toggleDropdown(event)">ダウンロード</button>
+        		<div class="dropdown-content">
+            		<a href="#" id="download-csv-btn">一覧をCSVでダウンロード</a>
+            		<a href="#" id="download-zip-btn">添付ファイルを一括ダウンロード</a>
+        		</div>
+    		</div>
+		</div>
         <div id="dashboard-content">
             </div>
     </div>
@@ -203,6 +288,103 @@
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
 
 		const MY_SECRET_KEY = "StartupTax-Secret-Key-vB9^YWLiVoSW6y5"; // セキュリティー用
+		
+		let dashboardData = null;
+		let currentCompanyName = null;
+		
+		// ▼▼▼ 追加 (ダウンロード機能) ▼▼▼
+
+		// ドロップダウンの表示切り替え
+		function toggleDropdown(event) {
+			event.stopPropagation();
+			document.getElementById('download-dropdown').classList.toggle('show');
+		}
+
+		// ドロップダウンの外側をクリックしたら閉じる
+		window.onclick = function(event) {
+			if (!event.target.matches('.dropdown-btn')) {
+				const dropdowns = document.getElementsByClassName("dropdown");
+				for (let i = 0; i < dropdowns.length; i++) {
+					dropdowns[i].classList.remove('show');
+				}
+			}
+		}
+
+		// CSVダウンロード処理
+		function downloadCSV() {
+			if (!dashboardData || !dashboardData.employees || dashboardData.employees.length === 0) {
+				alert('ダウンロードするデータがありません。');
+				return;
+			}
+
+			const headers = ['氏名', '年末調整実施可否', '住民税の徴収方法', '回答確認URL'];
+			const rows = dashboardData.employees.map(emp => {
+				return [
+					`"${(emp.name || '').replace(/"/g, '""')}"`,
+					`"${(emp.adjustment || '').replace(/"/g, '""')}"`,
+					`"${(emp.residentTax || '').replace(/"/g, '""')}"`,
+					`"${(emp.viewUrl || '').replace(/"/g, '""')}"`
+				].join(',');
+			});
+
+			const csvContent = [headers.join(','), ...rows].join('\n');
+			
+			// BOMを追加してExcelでの文字化けを防ぐ
+			const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+			const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+			
+			const link = document.createElement("a");
+			const url = URL.createObjectURL(blob);
+			link.setAttribute("href", url);
+			
+			// ファイル名を生成
+			const safeCompanyName = (dashboardData.clientName || '不明な事業者').replace(/[\\/:"*?<>|]/g, '_');
+			const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+			link.setAttribute("download", `${safeCompanyName}_回答状況_${today}.csv`);
+			
+			link.style.visibility = 'hidden';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		}
+
+		// ファイル一括ダウンロード処理
+		function downloadFilesZip() {
+			if (!currentCompanyName) {
+				alert('事業者名が取得できておらず、ダウンロードを開始できません。');
+				return;
+			}
+
+			// 権限チェックとZip作成をGAS側で行うため、新しいタブでGASのURLを開く
+			// GAS側で認証チェック → Zip作成 → ダウンロード（またはエラー表示）が行われる
+			const downloadUrl = `${GAS_WEB_APP_URL}?action=requestZipDownload&company=${encodeURIComponent(currentCompanyName)}&secret=${MY_SECRET_KEY}`;
+			
+			// ユーザーに通知
+			alert('添付ファイルの一括ダウンロードを開始します。\n\n@tax-startup.com のアカウントでGoogleにログインしている必要があります。\n\n新しいタブが開きますが、ファイルの準備とダウンロードに数分かかる場合があります。');
+			
+			window.open(downloadUrl, '_blank');
+		}
+
+		// イベントリスナーをセット
+		document.addEventListener('DOMContentLoaded', () => {
+			document.getElementById('download-csv-btn').addEventListener('click', function(e) {
+				e.preventDefault();
+				if (this.classList.contains('disabled')) return;
+				downloadCSV();
+				toggleDropdown(new Event('click')); // ドロップダウンを閉じる
+			});
+
+			document.getElementById('download-zip-btn').addEventListener('click', function(e) {
+				e.preventDefault();
+				if (this.classList.contains('disabled')) return;
+				downloadFilesZip();
+				toggleDropdown(new Event('click')); // ドロップダウンを閉じる
+			});
+
+			loadDashboardData();
+		});
+
+		// ▲▲▲ 追加 (ダウンロード機能) ▲▲▲
 
         async function loadDashboardData() {
             const params = new URLSearchParams(window.location.search);
@@ -301,7 +483,7 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', loadDashboardData);
+        //document.addEventListener('DOMContentLoaded', loadDashboardData);
     </script>
 </body>
 </html>
