@@ -178,8 +178,10 @@
             .btn-cell::before {
                 display: none;
             }
+        }
         
-  .header-actions {
+        /* ▼▼▼ ドロップダウン用CSS（クリーン版） ▼▼▼ */
+        .header-actions {
             display: flex;
             justify-content: flex-end;
             margin-bottom: 20px;
@@ -232,7 +234,6 @@
         .dropdown-content a:hover {
             background-color: #ddd;
         }
-        /* データがない場合にボタンを非表示にするためのスタイル */
         .dropdown-content a.disabled {
             color: #999;
             background-color: #f0f0f0;
@@ -244,6 +245,7 @@
         .dropdown.show .dropdown-btn::after {
             content: '▲';
         }
+        /* ▲▲▲ ドロップダウン用CSS（クリーン版） ▲▲▲ */
     </style>
 </head>
 <body>
@@ -260,6 +262,7 @@
             <img src="./logo-color-2.jpg" alt="スタートアップ税理士法人 Logo" style="max-width: 180px;">
         </div>
         <h1>回答状況</h1>
+        
         <div class="header-actions">
             <div class="dropdown hidden" id="download-dropdown">
                 <button class="dropdown-btn" onclick="toggleDropdown(event)">ダウンロード</button>
@@ -270,18 +273,17 @@
             </div>
         </div>
         <div id="dashboard-content">
-            </div>
+        </div>
     </div>
 
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
-
-const MY_SECRET_KEY = "StartupTax-Secret-Key-vB9^YWLiVoSW6y5"; // セキュリティー用
+        const MY_SECRET_KEY = "StartupTax-Secret-Key-vB9^YWLiVoSW6y5"; // セキュリティー用
 
         let dashboardData = null;
         let currentCompanyName = null;
 
-        // ▼▼▼ 追加 (ダウンロード機能) ▼▼▼
+        // ▼▼▼ 追加 (ダウンロード機能)（クリーン版） ▼▼▼
 
         // ドロップダウンの表示切り替え
         function toggleDropdown(event) {
@@ -374,99 +376,98 @@ const MY_SECRET_KEY = "StartupTax-Secret-Key-vB9^YWLiVoSW6y5"; // セキュリ�
             loadDashboardData();
         });
 
-        // ▲▲▲ 追加 (ダウンロード機能) ▲▲▲
+        // ▲▲▲ 追加 (ダウンロード機能)（クリーン版） ▲▲▲
 
         async function loadDashboardData() {
-            const params = new URLSearchParams(window.location.search);
-            const companyName = params.get('company');
-            currentCompanyName = companyName; // グローバル変数にセット
-            
-            const container = document.getElementById('dashboard-content');
-            const loading = document.getElementById('loading');
-            
-            if (!companyName) {
-                container.innerHTML = `<p style="color: red; text-align: center;">エラー: 対象の事業者名が指定されていません。</p>`;
-                loading.classList.add('hidden');
-                return;
-            }
+            const params = new URLSearchParams(window.location.search);
+            const companyName = params.get('company');
+            currentCompanyName = companyName; // グローバル変数にセット
+            
+            const container = document.getElementById('dashboard-content');
+            const loading = document.getElementById('loading');
+            
+            if (!companyName) {
+                container.innerHTML = `<p style="color: red; text-align: center;">エラー: 対象の事業者名が指定されていません。</p>`;
+                loading.classList.add('hidden');
+                return;
+            }
 
-            try {
-                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&company=${encodeURIComponent(companyName)}&secret=${MY_SECRET_KEY}`);
-                const result = await response.json();
+            try {
+                const response = await fetch(`${GAS_WEB_APP_URL}?action=getClientDashboardData&company=${encodeURIComponent(companyName)}&secret=${MY_SECRET_KEY}`);
+                const result = await response.json();
 
-                if (result.result !== 'success') {
-                    throw new Error(result.message);
-                }
+                if (result.result !== 'success') {
+                    throw new Error(result.message);
+                }
 
-                const data = result.data;
-                dashboardData = data; // グローバル変数にセット
-                
-                let contentHtml = `
-                    <div class="overview-panel">
-                        <div class="overview-item">
-                            事業者名
-                            <span>${escapeHtml(data.clientName)}</span>
-                        </div>
-                        <div class="overview-item">
-                            回答済み従業員
-                            <span>${data.employeeCount}<span class="unit">名</span></span>
-                        </div>
-                    </div>
-                `;
+                const data = result.data;
+                dashboardData = data; // グローバル変数にセット
+                
+                let contentHtml = `
+                    <div class="overview-panel">
+                        <div class="overview-item">
+                            事業者名
+                            <span>${escapeHtml(data.clientName)}</span>
+                        </div>
+                        <div class="overview-item">
+                            回答済み従業員
+                            <span>${data.employeeCount}<span class="unit">名</span></span>
+                        </div>
+                    </div>
+                `;
 
-                contentHtml += `
-                    <div class="section">
-                        <div class="section-title">回答状況一覧</div>
-                `;
+                contentHtml += `
+                    <div class="section">
+                        <div class="section-title">回答状況一覧</div>
+                `;
 
-                if (data.employeeCount > 0) {
-                    // ▼▼▼ 修正: データがある場合のみボタンを表示する ▼▼▼
-                     document.getElementById('download-dropdown').classList.remove('hidden');
-                   // ▲▲▲ 修正 ▲▲▲
+                if (data.employeeCount > 0) {
+                    // ▼▼▼ 修正: データがある場合のみボタンを表示する ▼▼▼
+                       document.getElementById('download-dropdown').classList.remove('hidden');
+                    // ▲▲▲ 修正 ▲▲▲
 
-                    contentHtml += `
-                        <table id="employee-list-table">
-                            <thead>
-                                <tr>
-                                    <th class="name-cell">氏名</th>
-                                    <th>年末調整実施可否</th>
-                                    <th>住民税の徴収方法</th>
-                                    <th class="btn-cell"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                    `;
-                    data.employees.forEach(employee => {
-                        contentHtml += `
-                            <tr>
-                                <td class="name-cell" data-label="氏名"><span>${escapeHtml(employee.name)}</span></td>
-                                <td data-label="年末調整実施可否">${escapeHtml(employee.adjustment)}</td>
-                                <td data-label="住民税の徴収方法">${escapeHtml(employee.residentTax)}</td>
-                                <td class="btn-cell">
-                                    <a href="${employee.viewUrl}" target="_blank" rel="noopener noreferrer" class="btn-confirm">
-                                        回答確認
-                                    </a>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    contentHtml += `</tbody></table>`;
-                } else {
-                    contentHtml += '<p style="text-align:center; padding: 20px 0;">まだ回答済みの従業員はいません。</p>';
-                    // ▼▼▼ 修正: データが無い場合はボタンは非表示(hidden)のままなので、JSでの処理は不要 ▼▼▼
-                   // 以前のsetTimeoutは削除
-                }
-                
-                contentHtml += `</div>`;
-                
-                container.innerHTML = contentHtml;
+                    contentHtml += `
+                        <table id="employee-list-table">
+                            <thead>
+                                <tr>
+                                    <th class="name-cell">氏名</th>
+                                    <th>年末調整実施可否</th>
+                                    <th>住民税の徴収方法</th>
+                                    <th class="btn-cell"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    data.employees.forEach(employee => {
+                        contentHtml += `
+                            <tr>
+                                <td class="name-cell" data-label="氏名"><span>${escapeHtml(employee.name)}</span></td>
+                                <td data-label="年末調整実施可否">${escapeHtml(employee.adjustment)}</td>
+                                <td data-label="住民税の徴収方法">${escapeHtml(employee.residentTax)}</td>
+                                <td class="btn-cell">
+                                    <a href="${employee.viewUrl}" target="_blank" rel="noopener noreferrer" class="btn-confirm">
+                                        回答確認
+                                    </a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    contentHtml += `</tbody></table>`;
+                } else {
+                    contentHtml += '<p style="text-align:center; padding: 20px 0;">まだ回答済みの従業員はいません。</p>';
+                    // データが無い場合はボタンは非表示(hidden)のまま
+                }
+                
+                contentHtml += `</div>`;
+                
+                container.innerHTML = contentHtml;
 
-            } catch (error) {
-                container.innerHTML = `<p style="color: red; text-align: center;">データの読み込みに失敗しました: ${error.message}</p>`;
-            } finally {
-                loading.classList.add('hidden');
-            }
-        }
+            } catch (error) {
+                container.innerHTML = `<p style="color: red; text-align: center;">データの読み込みに失敗しました: ${error.message}</p>`;
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
         
         function escapeHtml(str) {
             if (typeof str !== 'string') return '';
