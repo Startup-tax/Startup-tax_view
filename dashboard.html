@@ -380,7 +380,7 @@
                 // 3. ファイルを1つずつ順番に取得 (並列だとGASがエラーになりやすいため直列処理)
                 for (const file of files) {
                     count++;
-                    loadingText.textContent = `${count} / ${total} ファイルをダウンロード・圧縮中...`;
+                    loadingText.textContent = `${count} / ${total} ダウンロードファイル準備中`;
                     
                     try {
                         // GASからファイルの中身(Base64)を取得
@@ -413,7 +413,7 @@
                 const content = await zip.generateAsync({type: "blob"});
                 saveAs(content, zipFileName);
                 
-                alert('ダウンロードが完了しました。');
+                alert('ダウンロード準備が完了しました。');
 
             } catch (e) {
                 alert(`エラーが発生しました: ${e.message}`);
