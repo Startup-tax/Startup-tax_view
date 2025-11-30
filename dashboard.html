@@ -14,6 +14,8 @@
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         :root {
@@ -493,12 +495,149 @@
         }
         
         // ボタンから呼ばれる関数 (回答PDF一括)
+        // ※以前の processClientSideDownload は使わず、独自生成関数を呼びます
         function downloadPdfs() {
             if (this.classList && this.classList.contains('disabled')) return;
             const fileName = `${currentCompanyName}_回答PDF一括.zip`;
-            processClientSideDownload(fileName, 'getPdfFileList');
+            generateClientSidePdfs(fileName);
         }
-        
+
+        // ブラウザ側でHTMLからPDFを生成してZIPにする関数
+        async function generateClientSidePdfs(zipFileName) {
+            if (!currentCompanyName) {
+                alert('事業者名が取得できていません。');
+                return;
+            }
+
+            // 要素取得 (プログレスバー関連)
+            const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loading-text'); // ID修正済み
+            const progressWrapper = document.getElementById('progress-wrapper');
+            const progressBar = document.getElementById('download-progress-bar');
+            const defaultLoader = document.getElementById('default-loader');
+            
+            // UI初期化
+            loading.classList.remove('hidden');
+            progressWrapper.classList.remove('hidden');
+            defaultLoader.classList.add('hidden');
+            progressBar.style.width = '0%';
+            loadingText.textContent = '回答データを取得中...';
+
+            try {
+                // 1. GASから全従業員データを取得 (JSON)
+                const response = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'getAllEmployeeData',
+                        company: currentCompanyName,
+                        secret: MY_SECRET_KEY
+                    })
+                });
+                const result = await response.json();
+                if (result.result !== 'success') throw new Error(result.message);
+                
+                const employees = result.employees;
+                if (employees.length === 0) {
+                    alert('データがありません。');
+                    return;
+                }
+
+                // 2. PDF生成準備
+                const zip = new JSZip();
+                const total = employees.length;
+                let count = 0;
+                
+                // テンプレート要素 (bodyの最後に追加した非表示のdiv)
+                const pdfContent = document.getElementById('pdf-content');
+
+                // 3. ループ処理
+                for (const emp of employees) {
+                    count++;
+                    const percentage = Math.round((count / total) * 100);
+                    progressBar.style.width = percentage + '%';
+                    loadingText.textContent = `${count} / ${total} 名のPDFを作成中... (${percentage}%)`;
+
+                    // --- テンプレートへのデータ流し込み ---
+                    document.getElementById('pdf-date').textContent = new Date().toLocaleDateString('ja-JP');
+                    document.getElementById('pdf-name').textContent = `${emp['姓']} ${emp['名']}`;
+                    document.getElementById('pdf-kana').textContent = `${emp['姓フリガナ']} ${emp['名フリガナ']}`;
+                    document.getElementById('pdf-birth').textContent = emp['生年月日'];
+                    
+                    // 世帯主情報の処理
+                    const householder = emp['世帯主の氏名'] ? (emp['世帯主の氏名'] + ' (' + (emp['世帯主の続柄'] || '') + ')') : '-';
+                    document.getElementById('pdf-householder').textContent = householder;
+                    
+                    document.getElementById('pdf-address').textContent = `〒${emp['郵便番号']} ${emp['住所1']} ${emp['住所2']}`;
+
+                    // 詳細テーブルの生成
+                    const table = document.getElementById('pdf-details-table');
+                    table.innerHTML = ''; // クリア
+                    
+                    const keysToShow = [
+                        '年末調整実施可否', '前職有無', '住民税徴収方法',
+                        '配偶者有無', '配偶者_給与収入金額',
+                        '扶養親族有無', 
+                        '生命保険料控除有無', '地震保険料控除有無', '社会保険料控除有無',
+                        '小規模企業共済掛金等控除有無', '住宅ローン控除有無'
+                    ];
+
+                    keysToShow.forEach(key => {
+                        const tr = document.createElement('tr');
+                        const th = document.createElement('th');
+                        // スタイルはテンプレートに合わせて調整
+                        th.style.cssText = "border: 1px solid #ccc; padding: 6px; background: #f9f9f9; text-align: left; width: 40%; font-weight: normal;";
+                        th.textContent = key;
+                        
+                        const td = document.createElement('td');
+                        td.style.cssText = "border: 1px solid #ccc; padding: 6px;";
+                        td.textContent = emp[key] || '-';
+                        
+                        tr.appendChild(th);
+                        tr.appendChild(td);
+                        table.appendChild(tr);
+                    });
+
+                    // --- PDF化 (html2pdf.js) ---
+                    const opt = {
+                        margin:       10, // 余白調整
+                        filename:     'myfile.pdf',
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { scale: 2 }, 
+                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+
+                    // html2pdfを実行してBlobを取得
+                    const pdfBlob = await html2pdf().set(opt).from(pdfContent).output('blob');
+                    
+                    // ファイル名生成
+                    const safeName = `${emp['姓']}_${emp['名']}`.replace(/[\\/:"*?<>|]/g, '_');
+                    const fileName = `${safeName}_回答書.pdf`;
+                    
+                    // ZIPに追加
+                    zip.file(fileName, pdfBlob);
+
+                    // ★UIを固まらせないための待機
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+
+                loadingText.textContent = 'ZIPファイルを生成中...';
+                
+                // 4. ダウンロード
+                const content = await zip.generateAsync({type: "blob"});
+                saveAs(content, zipFileName);
+                
+                alert('PDFの一括ダウンロードが完了しました。');
+
+            } catch (e) {
+                console.error(e);
+                alert(`エラーが発生しました: ${e.message}`);
+            } finally {
+                loading.classList.add('hidden');
+                progressWrapper.classList.add('hidden');
+                defaultLoader.classList.remove('hidden');
+                loadingText.textContent = 'データを読み込んでいます...';
+            }
+        }
 
         // イベントリスナーをセット
         document.addEventListener('DOMContentLoaded', () => {
@@ -633,5 +772,43 @@
 
         //document.addEventListener('DOMContentLoaded', loadDashboardData);
     </script>
+    
+    <div id="pdf-template-container" style="position: fixed; left: -9999px; top: 0;">
+        <div id="pdf-content" style="width: 210mm; min-height: 297mm; padding: 15mm; background: white; box-sizing: border-box; font-family: 'HeiseiMinchoStd-W3', 'Ryumin', serif;">
+            
+            <div style="border-bottom: 2px solid #333; margin-bottom: 20px; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <h1 style="margin: 0; font-size: 24px;">年末調整 回答書</h1>
+                <span id="pdf-date" style="font-size: 12px;"></span>
+            </div>
+
+            <div class="pdf-section" style="margin-bottom: 20px;">
+                <h3 style="background: #eee; padding: 5px; font-size: 16px; margin: 0 0 10px 0; border-left: 5px solid #1e3656;">基本情報</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <tr>
+                        <th style="border: 1px solid #ccc; padding: 6px; background: #f9f9f9; width: 25%; text-align: left;">氏名</th>
+                        <td style="border: 1px solid #ccc; padding: 6px;" id="pdf-name"></td>
+                        <th style="border: 1px solid #ccc; padding: 6px; background: #f9f9f9; width: 25%; text-align: left;">フリガナ</th>
+                        <td style="border: 1px solid #ccc; padding: 6px;" id="pdf-kana"></td>
+                    </tr>
+                    <tr>
+                        <th style="border: 1px solid #ccc; padding: 6px; background: #f9f9f9; text-align: left;">生年月日</th>
+                        <td style="border: 1px solid #ccc; padding: 6px;" id="pdf-birth"></td>
+                        <th style="border: 1px solid #ccc; padding: 6px; background: #f9f9f9; text-align: left;">世帯主</th>
+                        <td style="border: 1px solid #ccc; padding: 6px;" id="pdf-householder"></td>
+                    </tr>
+                    <tr>
+                        <th style="border: 1px solid #ccc; padding: 6px; background: #f9f9f9; text-align: left;">住所</th>
+                        <td colspan="3" style="border: 1px solid #ccc; padding: 6px;" id="pdf-address"></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="pdf-section">
+                <h3 style="background: #eee; padding: 5px; font-size: 16px; margin: 0 0 10px 0; border-left: 5px solid #1e3656;">回答内容一覧</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;" id="pdf-details-table">
+                    </table>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
