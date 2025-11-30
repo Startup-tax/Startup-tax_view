@@ -394,17 +394,26 @@
                 return;
             }
 
+            // 1. 要素の取得
             const loading = document.getElementById('loading');
-            const loadingText = loading.querySelector('p');
+            const loadingText = document.getElementById('loading-text');
+            const progressWrapper = document.getElementById('progress-wrapper');
+            const progressBar = document.getElementById('download-progress-bar');
+            const defaultLoader = document.getElementById('default-loader');
+
+            // 2. 表示の初期化（プログレスバーを表示モードに）
             loading.classList.remove('hidden');
+            progressWrapper.classList.remove('hidden'); // ★バーを表示
+            defaultLoader.classList.add('hidden');      // ★ドットアニメを隠す
+            progressBar.style.width = '0%';             // ★幅を0%に
             loadingText.textContent = 'ダウンロードリストを取得中...';
 
             try {
-                // 1. まずダウンロード対象のファイルリストを取得
+                // ダウンロード対象のファイルリストを取得
                 const listResponse = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
                     body: JSON.stringify({
-                        action: actionType, // 'getZipFileList' or 'getPdfFileList'
+                        action: actionType,
                         company: currentCompanyName,
                         secret: MY_SECRET_KEY
                     })
@@ -413,25 +422,29 @@
                 
                 if (listResult.result !== 'success') throw new Error(listResult.message);
                 
-                const files = listResult.files; // { name: "...", id: "..." } の配列
+                const files = listResult.files;
                 if (files.length === 0) {
                     alert('ダウンロード対象のファイルがありませんでした。');
-                    loading.classList.add('hidden');
-                    return;
+                    return; // finallyでhiddenされるのでここはreturnだけでOK
                 }
 
-                // 2. JSZipの準備
+                // JSZipの準備
                 const zip = new JSZip();
                 const total = files.length;
                 let count = 0;
 
-                // 3. ファイルを1つずつ順番に取得 (並列だとGASがエラーになりやすいため直列処理)
+                // 3. ファイルを1つずつ順番に取得
                 for (const file of files) {
                     count++;
-                    loadingText.textContent = `${count} / ${total} ダウンロードファイル準備中`;
+                    
+                    // ★進捗率の計算とバーの更新
+                    const percentage = Math.round((count / total) * 100);
+                    progressBar.style.width = percentage + '%';
+                    
+                    // テキスト更新
+                    loadingText.textContent = `${count} / ${total} ファイル (${percentage}%) を処理中...`;
                     
                     try {
-                        // GASからファイルの中身(Base64)を取得
                         const contentResponse = await fetch(GAS_WEB_APP_URL, {
                             method: 'POST',
                             body: JSON.stringify({
@@ -443,11 +456,9 @@
                         const contentResult = await contentResponse.json();
                         
                         if (contentResult.result === 'success') {
-                            // ZIPに追加
                             zip.file(file.name, contentResult.data, {base64: true});
                         } else {
                             console.error(`Skipped ${file.name}: ${contentResult.message}`);
-                            // エラーのファイルはZIPに「エラー.txt」として含める
                             zip.file(`エラー_${file.name}.txt`, `ダウンロード失敗: ${contentResult.message}`);
                         }
                     } catch (e) {
@@ -457,17 +468,20 @@
 
                 loadingText.textContent = 'ZIPファイルを生成中...';
                 
-                // 4. ZIPを生成してダウンロード発火
+                // ZIPを生成してダウンロード発火
                 const content = await zip.generateAsync({type: "blob"});
                 saveAs(content, zipFileName);
                 
-                alert('ダウンロード準備が完了しました。');
+                alert('ダウンロードが完了しました。');
 
             } catch (e) {
                 alert(`エラーが発生しました: ${e.message}`);
             } finally {
+                // 4. 後始末（元のローディング表示に戻す）
                 loading.classList.add('hidden');
-                loadingText.textContent = 'データを読み込んでいます...'; // 文言を戻す
+                progressWrapper.classList.add('hidden');    // バーを隠す
+                defaultLoader.classList.remove('hidden');   // ドットアニメを戻す
+                loadingText.textContent = 'データを読み込んでいます...';
             }
         }
 
