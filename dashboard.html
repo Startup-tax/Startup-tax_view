@@ -247,15 +247,63 @@
         .dropdown.show .dropdown-btn::after {
             content: '▲';
         }
+        
+        /* ▼▼▼ プログレスバー用CSS (パターンB: Bright Blue) ▼▼▼ */
+        .progress-container {
+            background-color: #e9ecef; /* 背景の薄いグレー */
+            border-radius: 6px;
+            height: 30px;
+            width: 80%;
+            max-width: 400px;
+            margin: 15px auto; /* 上下中央揃え */
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%; /* JSで制御 */
+            background-color: #5dade2; /* ★Bright Blue★ */
+            transition: width 0.3s ease;
+            
+            /* ストライプ柄の定義 */
+            background-image: linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.2) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 40px 40px;
+            animation: progress-stripe 1s linear infinite;
+        }
+
+        /* ストライプを動かすアニメーション */
+        @keyframes progress-stripe {
+            0% { background-position: 40px 0; }
+            100% { background-position: 0 0; }
+        }
     </style>
 </head>
 <body>
-    <div id="loading">
+    <div id="loading" class="hidden">
         <img src="./favicon.jpg" alt="Logo" class="loading-logo">
-        <div class="dots-loader">
+        
+        <div id="default-loader" class="dots-loader">
             <div class="dot1"></div> <div class="dot2"></div> <div class="dot3"></div>
         </div>
-        <p>データを読み込んでいます...</p>
+        
+        <div id="progress-wrapper" class="hidden" style="width: 100%; text-align: center;">
+            <div class="progress-container">
+                <div id="download-progress-bar" class="progress-bar"></div>
+            </div>
+        </div>
+
+        <p id="loading-text">データを読み込んでいます...</p>
     </div>
 
     <div class="container">
