@@ -12,9 +12,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- 必要なライブラリ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
@@ -125,7 +125,6 @@
             h1 { font-size: 1.6em; }
             .container { padding: 20px; }
 
-            /* 事業者名の表示を2行に */
             .overview-item {
                 display: flex;
                 flex-direction: column;
@@ -136,7 +135,6 @@
                 font-size: 1.2em;
             }
 
-            /* テーブルをカード表示に変更 */
             #employee-list-table thead {
                 display: none;
             }
@@ -168,11 +166,10 @@
                 color: var(--primary-color);
                 text-align: left;
                 margin-right: 10px;
-                flex-shrink: 0; /* ラベルが縮まないように */
+                flex-shrink: 0;
             }
-            /* 氏名が長い場合に改行させる設定 */
             #employee-list-table .name-cell span {
-                word-break: break-all; /* 単語の途中でも改行 */
+                word-break: break-all;
                 text-align: right;
             }
 
@@ -252,12 +249,12 @@
         
         /* ▼▼▼ プログレスバー用CSS (パターンB: Bright Blue) ▼▼▼ */
         .progress-container {
-            background-color: #e9ecef; /* 背景の薄いグレー */
+            background-color: #e9ecef;
             border-radius: 6px;
             height: 30px;
             width: 80%;
             max-width: 400px;
-            margin: 15px auto; /* 上下中央揃え */
+            margin: 15px auto;
             overflow: hidden;
             position: relative;
             box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
@@ -265,11 +262,10 @@
 
         .progress-bar {
             height: 100%;
-            width: 0%; /* JSで制御 */
-            background-color: #5dade2; /* ★Bright Blue★ */
+            width: 0%;
+            background-color: #5dade2; /* Bright Blue */
             transition: width 0.3s ease;
             
-            /* ストライプ柄の定義 */
             background-image: linear-gradient(
                 45deg,
                 rgba(255, 255, 255, 0.2) 25%,
@@ -284,7 +280,6 @@
             animation: progress-stripe 1s linear infinite;
         }
 
-        /* ストライプを動かすアニメーション */
         @keyframes progress-stripe {
             0% { background-position: 40px 0; }
             100% { background-position: 0 0; }
@@ -330,18 +325,16 @@
 
     <script>
         const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQJgN_HG3j34Y1drCzF7i9ZDKu4OYnuUafQm1HFz9ngtGBa7sG0jbcDGpGHZm6SBBNg/exec';
-        const MY_SECRET_KEY = "StartupTax-Secret-Key-vB9^YWLiVoSW6y5"; // セキュリティー用
+        const MY_SECRET_KEY = "StartupTax-Secret-Key-vB9^YWLiVoSW6y5"; 
 
         let dashboardData = null;
         let currentCompanyName = null;
 
-        // ドロップダウンの表示切り替え
         function toggleDropdown(event) {
             event.stopPropagation();
             document.getElementById('download-dropdown').classList.toggle('show');
         }
 
-        // ドロップダウンの外側をクリックしたら閉じる
         window.onclick = function(event) {
             if (!event.target.matches('.dropdown-btn')) {
                 const dropdowns = document.getElementsByClassName("dropdown");
@@ -351,7 +344,6 @@
             }
         }
 
-        // CSVダウンロード処理
         function downloadCSV() {
             if (!dashboardData || !dashboardData.employees || dashboardData.employees.length === 0) {
                 alert('ダウンロードするデータがありません。');
@@ -368,50 +360,39 @@
             });
 
             const csvContent = [headers.join(','), ...rows].join('\n');
-            
-            // BOMを追加してExcelでの文字化けを防ぐ
             const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
             const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
-            
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            
-            // ファイル名を生成
             const safeCompanyName = (dashboardData.clientName || '不明な事業者').replace(/[\\/:"*?<>|]/g, '_');
             const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
             link.setAttribute("download", `${safeCompanyName}_回答状況_${today}.csv`);
-            
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        // ファイル一括ダウンロード処理
-        // 共通：ファイルを1つずつ取得してZIPに詰める関数
         async function processClientSideDownload(zipFileName, actionType) {
             if (!currentCompanyName) {
                 alert('事業者名が取得できていません。');
                 return;
             }
 
-            // 1. 要素の取得
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loading-text');
             const progressWrapper = document.getElementById('progress-wrapper');
             const progressBar = document.getElementById('download-progress-bar');
             const defaultLoader = document.getElementById('default-loader');
 
-            // 2. 表示の初期化（プログレスバーを表示モードに）
             loading.classList.remove('hidden');
-            progressWrapper.classList.remove('hidden'); // ★バーを表示
-            defaultLoader.classList.add('hidden');      // ★ドットアニメを隠す
-            progressBar.style.width = '0%';             // ★幅を0%に
+            progressWrapper.classList.remove('hidden');
+            defaultLoader.classList.add('hidden');
+            progressBar.style.width = '0%';
             loadingText.textContent = 'ダウンロードリストを取得中...';
 
             try {
-                // ダウンロード対象のファイルリストを取得
                 const listResponse = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -427,23 +408,17 @@
                 const files = listResult.files;
                 if (files.length === 0) {
                     alert('ダウンロード対象のファイルがありませんでした。');
-                    return; // finallyでhiddenされるのでここはreturnだけでOK
+                    return; 
                 }
 
-                // JSZipの準備
                 const zip = new JSZip();
                 const total = files.length;
                 let count = 0;
 
-                // 3. ファイルを1つずつ順番に取得
                 for (const file of files) {
                     count++;
-                    
-                    // ★進捗率の計算とバーの更新
                     const percentage = Math.round((count / total) * 100);
                     progressBar.style.width = percentage + '%';
-                    
-                    // テキスト更新
                     loadingText.textContent = `${count} / ${total} ファイル (${percentage}%) を処理中...`;
                     
                     try {
@@ -469,40 +444,32 @@
                 }
 
                 loadingText.textContent = 'ZIPファイルを生成中...';
-                
-                // ZIPを生成してダウンロード発火
                 const content = await zip.generateAsync({type: "blob"});
                 saveAs(content, zipFileName);
-                
                 alert('ダウンロードが完了しました。');
 
             } catch (e) {
                 alert(`エラーが発生しました: ${e.message}`);
             } finally {
-                // 4. 後始末（元のローディング表示に戻す）
                 loading.classList.add('hidden');
-                progressWrapper.classList.add('hidden');    // バーを隠す
-                defaultLoader.classList.remove('hidden');   // ドットアニメを戻す
+                progressWrapper.classList.add('hidden');
+                defaultLoader.classList.remove('hidden');
                 loadingText.textContent = 'データを読み込んでいます...';
             }
         }
 
-        // ボタンから呼ばれる関数 (添付ファイル一括)
         function downloadFilesZip() {
             if (this.classList && this.classList.contains('disabled')) return;
             const fileName = `${currentCompanyName}_添付ファイル一括.zip`;
             processClientSideDownload(fileName, 'getZipFileList');
         }
         
-        // ボタンから呼ばれる関数 (回答PDF一括)
-        // ※以前の processClientSideDownload は使わず、独自生成関数を呼びます
         function downloadPdfs() {
             if (this.classList && this.classList.contains('disabled')) return;
             const fileName = `${currentCompanyName}_回答PDF一括.zip`;
             generateClientSidePdfs(fileName);
         }
 
-        // ブラウザ側でHTMLからPDFを生成してZIPにする関数
         async function generateClientSidePdfs(zipFileName) {
             if (!currentCompanyName) {
                 alert('事業者名が取得できていません。');
@@ -540,7 +507,7 @@
                 }
 
                 const allKeys = Object.keys(employees[0]);
-                const ignoreKeys = ['タイムスタンプ', '回答ID', '回答表示URL', '最終更新日時', '事業者名', 'メールアドレス'];
+                const ignoreKeys = ['タイムスタンプ', '回答表示URL', '最終更新日時', '事業者名', 'メールアドレス'];
 
                 const zip = new JSZip();
                 const total = employees.length;
@@ -554,11 +521,10 @@
                     progressBar.style.width = percentage + '%';
                     loadingText.textContent = `${count} / ${total} 名のPDFを作成中... (${percentage}%)`;
 
-                    // ▼▼▼ 修正箇所：発行日の設定行を削除 ▼▼▼
-                    // document.getElementById('pdf-issue-date').textContent = ... (この行を削除しました)
-                    
+                    // ▼▼▼ 修正: ヘッダー情報（氏名、回答ID） ▼▼▼
                     document.getElementById('pdf-header-name').textContent = `${emp['姓']} ${emp['名']}`;
-                    document.getElementById('pdf-header-kana').textContent = `${emp['姓フリガナ']} ${emp['名フリガナ']}`;
+                    // フリガナ欄を「回答ID」に変更
+                    document.getElementById('pdf-header-id').textContent = emp['回答ID'] || '';
 
                     const table = document.getElementById('pdf-details-table');
                     table.innerHTML = '';
@@ -566,6 +532,7 @@
                     allKeys.forEach(key => {
                         if (ignoreKeys.includes(key)) return;
                         if (key.endsWith('URL')) return;
+                        // 回答IDはヘッダーに出すので、表からは除外しても良いですが、念のため残す設定にしています（必要なら ignoreKeys に '回答ID' を追加してください）
 
                         let value = emp[key];
                         if (value === '' || value === null || value === undefined) {
@@ -630,37 +597,35 @@
             }
         }
 
-        // イベントリスナーをセット
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('download-csv-btn').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (this.classList.contains('disabled')) return;
                 downloadCSV();
-                toggleDropdown(new Event('click')); // ドロップダウンを閉じる
+                toggleDropdown(new Event('click'));
             });
 
             document.getElementById('download-zip-btn').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (this.classList.contains('disabled')) return;
                 downloadFilesZip();
-                toggleDropdown(new Event('click')); // ドロップダウンを閉じる
+                toggleDropdown(new Event('click'));
             });
             
             document.getElementById('download-pdf-btn').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (this.classList.contains('disabled')) return;
                 downloadPdfs();
-                toggleDropdown(new Event('click')); // ドロップダウンを閉じる
+                toggleDropdown(new Event('click'));
             });
 
             loadDashboardData();
         });
 
-
         async function loadDashboardData() {
             const params = new URLSearchParams(window.location.search);
             const companyName = params.get('company');
-            currentCompanyName = companyName; // グローバル変数にセット
+            currentCompanyName = companyName; 
             
             const container = document.getElementById('dashboard-content');
             const loading = document.getElementById('loading');
@@ -680,7 +645,7 @@
                 }
 
                 const data = result.data;
-                dashboardData = data; // グローバル変数にセット
+                dashboardData = data; 
                 
                 let contentHtml = `
                     <div class="overview-panel">
@@ -701,9 +666,7 @@
                 `;
 
                 if (data.employeeCount > 0) {
-                    // ▼▼▼ 修正: データがある場合のみボタンを表示する ▼▼▼
-                       document.getElementById('download-dropdown').classList.remove('hidden');
-                    // ▲▲▲ 修正 ▲▲▲
+                        document.getElementById('download-dropdown').classList.remove('hidden');
 
                     contentHtml += `
                         <table id="employee-list-table">
@@ -734,7 +697,6 @@
                     contentHtml += `</tbody></table>`;
                 } else {
                     contentHtml += '<p style="text-align:center; padding: 20px 0;">まだ回答済みの従業員はいません。</p>';
-                    // データが無い場合はボタンは非表示(hidden)のまま
                 }
                 
                 contentHtml += `</div>`;
@@ -760,8 +722,6 @@
                 }[match];
             });
         }
-
-        //document.addEventListener('DOMContentLoaded', loadDashboardData);
     </script>
     
     <div id="pdf-template-container" style="position: fixed; left: -9999px; top: 0;">
@@ -769,8 +729,6 @@
             
             <div style="text-align: center; border-bottom: 2px solid #333; margin-bottom: 25px; padding-bottom: 10px;">
                 <h1 style="margin: 0; font-size: 22px; font-weight: bold;">年末調整 提出情報</h1>
-                <div style="text-align: right; font-size: 11px; margin-top: 10px;">
-                </div>
             </div>
 
             <div style="margin-bottom: 20px; border: 1px solid #333; padding: 10px;">
@@ -778,16 +736,16 @@
                     <tr>
                         <td style="width: 15%; font-weight: bold;">氏名</td>
                         <td style="width: 35%; border-bottom: 1px solid #ccc;" id="pdf-header-name"></td>
-                        <td style="width: 15%; font-weight: bold;">フリガナ</td>
-                        <td style="width: 35%; border-bottom: 1px solid #ccc;" id="pdf-header-kana"></td>
+                        <td style="width: 15%; font-weight: bold;">回答ID</td>
+                        <td style="width: 35%; border-bottom: 1px solid #ccc;" id="pdf-header-id"></td>
                     </tr>
                 </table>
             </div>
 
             <div>
-                <h3 style="font-size: 14px; background-color: #eee; padding: 5px 10px; margin-bottom: 0; border-top: 1px solid #333; border-left: 1px solid #333; border-right: 1px solid #333;">回答内容詳細</h3>
-                <table id="pdf-details-table" style="width: 100%; border-collapse: collapse; font-size: 10px;">
-                    </table>
+                <h3 style="font-size: 14px; background-color: #eee; padding: 5px 10px; margin-bottom: 0; border-top: 1px solid #333; border-left: 1px solid #333; border-right: 1px solid #333;">回答内容</h3>
+                <table id="pdf-details-table" style="width: 95%; margin: 0 auto; border-collapse: collapse; font-size: 10px;">
+                </table>
             </div>
             
             <div style="margin-top: 20px; text-align: right; font-size: 9px; color: #777;">
