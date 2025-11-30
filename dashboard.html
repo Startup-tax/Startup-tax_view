@@ -12,6 +12,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
     <style>
         :root {
             --primary-color: #1e3656;
@@ -336,34 +339,102 @@
         }
 
         // ファイル一括ダウンロード処理
-        function downloadFilesZip() {
+        // 共通：ファイルを1つずつ取得してZIPに詰める関数
+        async function processClientSideDownload(zipFileName, actionType) {
             if (!currentCompanyName) {
-                alert('事業者名が取得できておらず、ダウンロードを開始できません。');
+                alert('事業者名が取得できていません。');
                 return;
             }
 
-            // 権限チェックとZip作成をGAS側で行うため、新しいタブでGASのURLを開く
-            // GAS側で認証チェック → Zip作成 → ダウンロード（またはエラー表示）が行われる
-            const downloadUrl = `${GAS_WEB_APP_URL}?action=requestZipDownload&company=${encodeURIComponent(currentCompanyName)}&secret=${MY_SECRET_KEY}`;
-            
-            // ユーザーに通知
-            alert('添付ファイルの一括ダウンロードを開始します。\n\n@tax-startup.com のアカウントでGoogleにログインしている必要があります。\n\n新しいタブが開きますが、ファイルの準備とダウンロードに数分かかる場合があります。');
-            
-            window.open(downloadUrl, '_blank');
+            const loading = document.getElementById('loading');
+            const loadingText = loading.querySelector('p');
+            loading.classList.remove('hidden');
+            loadingText.textContent = 'ダウンロードリストを取得中...';
+
+            try {
+                // 1. まずダウンロード対象のファイルリストを取得
+                const listResponse = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: actionType, // 'getZipFileList' or 'getPdfFileList'
+                        company: currentCompanyName,
+                        secret: MY_SECRET_KEY
+                    })
+                });
+                const listResult = await listResponse.json();
+                
+                if (listResult.result !== 'success') throw new Error(listResult.message);
+                
+                const files = listResult.files; // { name: "...", id: "..." } の配列
+                if (files.length === 0) {
+                    alert('ダウンロード対象のファイルがありませんでした。');
+                    loading.classList.add('hidden');
+                    return;
+                }
+
+                // 2. JSZipの準備
+                const zip = new JSZip();
+                const total = files.length;
+                let count = 0;
+
+                // 3. ファイルを1つずつ順番に取得 (並列だとGASがエラーになりやすいため直列処理)
+                for (const file of files) {
+                    count++;
+                    loadingText.textContent = `${count} / ${total} ファイルをダウンロード・圧縮中...`;
+                    
+                    try {
+                        // GASからファイルの中身(Base64)を取得
+                        const contentResponse = await fetch(GAS_WEB_APP_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: 'getFileContent',
+                                fileId: file.id,
+                                secret: MY_SECRET_KEY
+                            })
+                        });
+                        const contentResult = await contentResponse.json();
+                        
+                        if (contentResult.result === 'success') {
+                            // ZIPに追加
+                            zip.file(file.name, contentResult.data, {base64: true});
+                        } else {
+                            console.error(`Skipped ${file.name}: ${contentResult.message}`);
+                            // エラーのファイルはZIPに「エラー.txt」として含める
+                            zip.file(`エラー_${file.name}.txt`, `ダウンロード失敗: ${contentResult.message}`);
+                        }
+                    } catch (e) {
+                        console.error(`Error downloading ${file.name}`, e);
+                    }
+                }
+
+                loadingText.textContent = 'ZIPファイルを生成中...';
+                
+                // 4. ZIPを生成してダウンロード発火
+                const content = await zip.generateAsync({type: "blob"});
+                saveAs(content, zipFileName);
+                
+                alert('ダウンロードが完了しました。');
+
+            } catch (e) {
+                alert(`エラーが発生しました: ${e.message}`);
+            } finally {
+                loading.classList.add('hidden');
+                loadingText.textContent = 'データを読み込んでいます...'; // 文言を戻す
+            }
+        }
+
+        // ボタンから呼ばれる関数 (添付ファイル一括)
+        function downloadFilesZip() {
+            if (this.classList && this.classList.contains('disabled')) return;
+            const fileName = `${currentCompanyName}_添付ファイル一括.zip`;
+            processClientSideDownload(fileName, 'getZipFileList');
         }
         
-        // PDFダウンロード処理
+        // ボタンから呼ばれる関数 (回答PDF一括)
         function downloadPdfs() {
-            if (!currentCompanyName) {
-                alert('事業者名が取得できておらず、ダウンロードを開始できません。');
-                return;
-            }
-
-            const downloadUrl = `${GAS_WEB_APP_URL}?action=requestPdfDownload&company=${encodeURIComponent(currentCompanyName)}&secret=${MY_SECRET_KEY}`;
-            
-            alert('回答PDFの一括ダウンロード（フォルダ作成）を開始します。\n\n@tax-startup.com のアカウントでGoogleにログインしている必要があります。\n\n回答データがPDFに変換されるため、件数に応じて数分かかる場合があります。');
-            
-            window.open(downloadUrl, '_blank');
+            if (this.classList && this.classList.contains('disabled')) return;
+            const fileName = `${currentCompanyName}_回答PDF一括.zip`;
+            processClientSideDownload(fileName, 'getPdfFileList');
         }
         
 
