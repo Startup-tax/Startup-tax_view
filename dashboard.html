@@ -12,7 +12,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <!-- 必要なライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -521,7 +520,7 @@
                     progressBar.style.width = percentage + '%';
                     loadingText.textContent = `${count} / ${total} 名のPDFを作成中... (${percentage}%)`;
 
-                    // ▼▼▼ 修正: ヘッダー情報（氏名、回答ID） ▼▼▼
+                    document.getElementById('pdf-header-company').textContent = currentCompanyName;
                     document.getElementById('pdf-header-name').textContent = `${emp['姓']} ${emp['名']}`;
                     // フリガナ欄を「回答ID」に変更
                     document.getElementById('pdf-header-id').textContent = emp['回答ID'] || '';
@@ -731,13 +730,17 @@
                 <h1 style="margin: 0; font-size: 22px; font-weight: bold;">年末調整 提出情報</h1>
             </div>
 
-            <div style="margin-bottom: 20px; border: 1px solid #333; padding: 10px;">
-                <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; font-size: 12px; border-collapse: collapse; border: 1px solid #333;">
                     <tr>
-                        <td style="width: 15%; font-weight: bold;">氏名</td>
-                        <td style="width: 35%; border-bottom: 1px solid #ccc;" id="pdf-header-name"></td>
-                        <td style="width: 15%; font-weight: bold;">回答ID</td>
-                        <td style="width: 35%; border-bottom: 1px solid #ccc;" id="pdf-header-id"></td>
+                        <td style="width: 15%; font-weight: bold; background-color: #f5f5f5; border: 1px solid #333; padding: 6px;">事業者名</td>
+                        <td colspan="3" style="border: 1px solid #333; padding: 6px;" id="pdf-header-company"></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 15%; font-weight: bold; background-color: #f5f5f5; border: 1px solid #333; padding: 6px;">氏名</td>
+                        <td style="width: 35%; border: 1px solid #333; padding: 6px;" id="pdf-header-name"></td>
+                        <td style="width: 15%; font-weight: bold; background-color: #f5f5f5; border: 1px solid #333; padding: 6px;">回答ID</td>
+                        <td style="width: 35%; border: 1px solid #333; padding: 6px;" id="pdf-header-id"></td>
                     </tr>
                 </table>
             </div>
